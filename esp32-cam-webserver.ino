@@ -39,7 +39,7 @@
   const int ledPin = -1;
 #endif
 long int  ledVal = 10; // Start with LED dim
-const int ledChannel = 8; // chose a free PWM channel (some channels apparently used by camera)
+int ledChannel = 8; // chose a free PWM channel (some channels apparently used by camera)
 const int pwmfreq = 50000; // 5Khz was very audible on my PSU, 50K better.
 const int pwmresolution = 8; // duty cycle has 8 bit range
   

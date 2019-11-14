@@ -17,9 +17,12 @@
 #include "img_converters.h"
 #include "Arduino.h"
 
-//#include "camera_index_ov2640.h"
-#include "camera_index_plain.h"
+#include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
+
+// Globals needed to set led levels
+extern long int  ledVal;
+extern int ledChannel;
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -529,7 +532,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     }
     else if(!strcmp(variable, "led")) {
       Serial.print("LED");
-      ledVal = toInt(val * 2.55); //Gets the value of the query parameter (0-100) and converts to pwm value
+      ledVal = (val * 2.55); //Gets the value of the query parameter (0-100) and converts to pwm value
       if (ledVal > 255) ledVal = 255;  // normalise 0-255 (pwm range) just in case..
       if (ledVal < 0 ) ledVal = 0;
       ledcWrite(ledChannel, ledVal);
