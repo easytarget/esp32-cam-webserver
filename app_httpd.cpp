@@ -20,9 +20,10 @@
 #include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
 
-// Globals needed to set led levels
-extern long int  ledVal;
-extern int ledChannel;
+// Globals (from main .ino) needed to set Led and Lamp levels
+extern long int  lampVal;
+extern int lampChannel;
+void flashLED(int flashtime); 
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -530,23 +531,26 @@ static esp_err_t cmd_handler(httpd_req_t *req){
             detection_enabled = val;
         }
     }
-    else if(!strcmp(variable, "led")) {
-      Serial.print("LED");
-      ledVal = (val * 2.55); //Gets the value of the query parameter (0-100) and converts to pwm value
-      if (ledVal > 255) ledVal = 255;  // normalise 0-255 (pwm range) just in case..
-      if (ledVal < 0 ) ledVal = 0;
-      ledcWrite(ledChannel, ledVal);
-      Serial.println(ledVal);
-      res = true;
+    else if(!strcmp(variable, "lamp")) {
+      Serial.print("Lamp: ");
+      lampVal = val;
+      if (lampVal > 100) lampVal = 100;  // normalise 0-255 (pwm range) just in case..
+      if (lampVal < 0 ) lampVal = 0;
+      ledcWrite(lampChannel, lampVal * 2.55); // Add s exponential map for 0-100 vs pwm value here.
+      Serial.print(lampVal);
+      Serial.println("%");
     }
     else {
         res = -1;
     }
 
+
     if(res){
         return httpd_resp_send_500(req);
     }
 
+    flashLED(75); // little flash of status LED
+    
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     return httpd_resp_send(req, NULL, 0);
 }
@@ -558,6 +562,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     char * p = json_response;
     *p++ = '{';
 
+    p+=sprintf(p, "\"Lamp\":%u", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
@@ -594,14 +599,14 @@ static esp_err_t status_handler(httpd_req_t *req){
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
     httpd_resp_set_type(req, "text/html");
-//    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     sensor_t * s = esp_camera_sensor_get();
     if (s->id.PID == OV3660_PID) {
-        return httpd_resp_send(req, (const char *)index_ov3660_html_gz, index_ov3660_html_gz_len);
+        return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
     }
-    return httpd_resp_send(req, (const char *)index_ov2640_html_gz, index_ov2640_html_gz_len);
+    return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
 }
 
 void startCameraServer(){

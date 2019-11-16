@@ -33,27 +33,33 @@
 
 #include "camera_pins.h"
 
-#ifdef LED_PIN // Do we have a LED pin?
-  const int ledPin = LED_PIN;
+// Status and illumination LED's
+#ifdef LAMP_PIN // Do we have a LED Illumination Lamp?
+  const int lampPin = LAMP_PIN;
 #else 
-  const int ledPin = -1;
+  const int lampPin = -1;
 #endif
-long int  ledVal = 10; // Start with LED dim
-int ledChannel = 8; // chose a free PWM channel (some channels apparently used by camera)
-const int pwmfreq = 50000; // 5Khz was very audible on my PSU, 50K better.
+int lampVal = 0;             // (range 0-100) Start off
+int lampChannel = 7;         // a free PWM channel (some channels used by camera)
+const int pwmfreq = 50000;   // 50K pwm frequency
 const int pwmresolution = 8; // duty cycle has 8 bit range
-  
+ 
 void startCameraServer();
 
 void setup() {
   Serial.begin(115200);
-  Serial.setDebugOutput(true);  // OWEN: Change? ProperDebug with #ifdef & stuff..?
+  Serial.setDebugOutput(true);  // OWEN: Change?
   Serial.println();
 
-  if (ledPin != -1) {
-    ledcSetup(ledChannel, pwmfreq, pwmresolution); // configure LED PWM channel
-    ledcAttachPin(LED_PIN, ledChannel);            // attach the GPIO pin to the channel 
-    ledcWrite(ledChannel, ledVal);                 // set initial value
+#ifdef LED_PIN
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LED_OFF); 
+#endif
+  
+  if (lampPin != -1) {
+    ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
+    ledcWrite(lampChannel, lampVal);                // set initial value
+    ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
   }
 
   camera_config_t config;
@@ -117,10 +123,18 @@ void setup() {
 
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {    // Owen, pulse LED for this.
     delay(500);
     Serial.print(".");
   }
+
+  // feedback that we are connected
+  flashLED(200);
+  delay(100);
+  flashLED(200);
+  delay(100);
+  flashLED(200);
+ 
   Serial.println("");
   Serial.println("WiFi connected");
 
@@ -131,19 +145,17 @@ void setup() {
   Serial.println("' to connect");
 }
 
-void flashLED(int power)
+void flashLED(int flashtime)
 {
-  if (ledPin == -1) return; // no led.
-  if (ledVal < 64) { // Only flash at power if dim
-    ledcWrite(ledChannel, power);     // A flash at requested power.
-    delay(5);                         // small delay
-    ledcWrite(ledChannel, ledVal);    // turn the LED back to set power
-  } else { // otherwise blink off
-    ledcWrite(ledChannel, 0);         // blink off
-    delay(5);                         // small delay
-    ledcWrite(ledChannel, ledVal);    // turn the LED back to set power
-  }
- }
+#ifdef LED_PIN // If we have it, flash it.
+  digitalWrite(LED_PIN, LED_ON);      // On at full power.
+  delay(flashtime);               // delay
+  digitalWrite(LED_PIN, LED_OFF);    // turn Off
+#else
+  return; // or nothing
+#endif
+} 
+
 
 void loop() {
   // put your main code here, to run repeatedly:

@@ -1,11 +1,9 @@
-//File: index_ov3660.html
-const uint8_t index_ov3660_html[] PROGMEM = R"=====(
 <!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>ESP32 OV3660</title>
+        <title>ESP32 OV2460</title>
         <style>
             body {
                 font-family: Arial,Helvetica,sans-serif;
@@ -336,28 +334,12 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
             .hidden {
                 display: none
             }
-
-            input[type=text] {
-                border: 1px solid #363636;
-                font-size: 14px;
-                height: 20px;
-                margin: 1px;
-                outline: 0;
-                border-radius: 5px
-            }
-
-            .inline-button {
-                line-height: 20px;
-                margin: 2px;
-                padding: 1px 4px 2px 4px;
-            }
-
         </style>
     </head>
     <body>
         <section class="main">
             <div id="logo">
-                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle OV3660 settings</label>
+                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle OV2640 settings</label>
             </div>
             <div id="content">
                 <div id="sidebar">
@@ -366,7 +348,6 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         <div class="input-group" id="framesize-group">
                             <label for="framesize">Resolution</label>
                             <select id="framesize" class="default-action">
-                                <option value="11">QXGA(2048x1564)</option>
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
@@ -380,51 +361,27 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         </div>
                         <div class="input-group" id="quality-group">
                             <label for="quality">Quality</label>
-                            <div class="range-min">4</div>
-                            <input type="range" id="quality" min="4" max="63" value="10" class="default-action">
+                            <div class="range-min">10</div>
+                            <input type="range" id="quality" min="10" max="63" value="10" class="default-action">
                             <div class="range-max">63</div>
                         </div>
                         <div class="input-group" id="brightness-group">
                             <label for="brightness">Brightness</label>
-                            <div class="range-min">-3</div>
-                            <input type="range" id="brightness" min="-3" max="3" value="0" class="default-action">
-                            <div class="range-max">3</div>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
                         </div>
                         <div class="input-group" id="contrast-group">
                             <label for="contrast">Contrast</label>
-                            <div class="range-min">-3</div>
-                            <input type="range" id="contrast" min="-3" max="3" value="0" class="default-action">
-                            <div class="range-max">3</div>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
                         </div>
                         <div class="input-group" id="saturation-group">
                             <label for="saturation">Saturation</label>
-                            <div class="range-min">-4</div>
-                            <input type="range" id="saturation" min="-4" max="4" value="0" class="default-action">
-                            <div class="range-max">4</div>
-                        </div>
-                        <div class="input-group" id="sharpness-group">
-                            <label for="sharpness">Sharpness</label>
-                            <div class="range-min">-3</div>
-                            <input type="range" id="sharpness" min="-3" max="3" value="0" class="default-action">
-                            <div class="range-max">3</div>
-                        </div>
-                        <div class="input-group" id="denoise-group">
-                            <label for="denoise">De-Noise</label>
-                            <div class="range-min">Auto</div>
-                            <input type="range" id="denoise" min="0" max="8" value="0" class="default-action">
-                            <div class="range-max">8</div>
-                        </div>
-                        <div class="input-group" id="ae_level-group">
-                            <label for="ae_level">Exposure Level</label>
-                            <div class="range-min">-5</div>
-                            <input type="range" id="ae_level" min="-5" max="5" value="0" class="default-action">
-                            <div class="range-max">5</div>
-                        </div>
-                        <div class="input-group" id="gainceiling-group">
-                            <label for="gainceiling">Gainceiling</label>
-                            <div class="range-min">0</div>
-                            <input type="range" id="gainceiling" min="0" max="511" value="0" class="default-action">
-                            <div class="range-max">511</div>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
                         </div>
                         <div class="input-group" id="special_effect-group">
                             <label for="special_effect">Special Effect</label>
@@ -439,28 +396,21 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </select>
                         </div>
                         <div class="input-group" id="awb-group">
-                            <label for="awb">AWB Enable</label>
+                            <label for="awb">AWB</label>
                             <div class="switch">
                                 <input id="awb" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="awb"></label>
                             </div>
                         </div>
-                        <div class="input-group" id="dcw-group">
-                            <label for="dcw">Advanced AWB</label>
-                            <div class="switch">
-                                <input id="dcw" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="dcw"></label>
-                            </div>
-                        </div>
                         <div class="input-group" id="awb_gain-group">
-                            <label for="awb_gain">Manual AWB</label>
+                            <label for="awb_gain">AWB Gain</label>
                             <div class="switch">
                                 <input id="awb_gain" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="awb_gain"></label>
                             </div>
                         </div>
                         <div class="input-group" id="wb_mode-group">
-                            <label for="wb_mode">AWB Mode</label>
+                            <label for="wb_mode">WB Mode</label>
                             <select id="wb_mode" class="default-action">
                                 <option value="0" selected="selected">Auto</option>
                                 <option value="1">Sunny</option>
@@ -470,24 +420,30 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </select>
                         </div>
                         <div class="input-group" id="aec-group">
-                            <label for="aec">AEC Enable</label>
+                            <label for="aec">AEC SENSOR</label>
                             <div class="switch">
                                 <input id="aec" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="aec"></label>
                             </div>
                         </div>
-                        <div class="input-group" id="aec_value-group">
-                            <label for="aec_value">Manual Exposure</label>
-                            <div class="range-min">0</div>
-                            <input type="range" id="aec_value" min="0" max="1536" value="320" class="default-action">
-                            <div class="range-max">1536</div>
-                        </div>
                         <div class="input-group" id="aec2-group">
-                            <label for="aec2">Night Mode</label>
+                            <label for="aec2">AEC DSP</label>
                             <div class="switch">
                                 <input id="aec2" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="aec2"></label>
                             </div>
+                        </div>
+                        <div class="input-group" id="ae_level-group">
+                            <label for="ae_level">AE Level</label>
+                            <div class="range-min">-2</div>
+                            <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
+                            <div class="range-max">2</div>
+                        </div>
+                        <div class="input-group" id="aec_value-group">
+                            <label for="aec_value">Exposure</label>
+                            <div class="range-min">0</div>
+                            <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
+                            <div class="range-max">1200</div>
                         </div>
                         <div class="input-group" id="agc-group">
                             <label for="agc">AGC</label>
@@ -499,11 +455,31 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         <div class="input-group hidden" id="agc_gain-group">
                             <label for="agc_gain">Gain</label>
                             <div class="range-min">1x</div>
-                            <input type="range" id="agc_gain" min="0" max="64" value="5" class="default-action">
-                            <div class="range-max">64x</div>
+                            <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
+                            <div class="range-max">31x</div>
+                        </div>
+                        <div class="input-group" id="gainceiling-group">
+                            <label for="gainceiling">Gain Ceiling</label>
+                            <div class="range-min">2x</div>
+                            <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
+                            <div class="range-max">128x</div>
+                        </div>
+                        <div class="input-group" id="bpc-group">
+                            <label for="bpc">BPC</label>
+                            <div class="switch">
+                                <input id="bpc" type="checkbox" class="default-action">
+                                <label class="slider" for="bpc"></label>
+                            </div>
+                        </div>
+                        <div class="input-group" id="wpc-group">
+                            <label for="wpc">WPC</label>
+                            <div class="switch">
+                                <input id="wpc" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="wpc"></label>
+                            </div>
                         </div>
                         <div class="input-group" id="raw_gma-group">
-                            <label for="raw_gma">GMA Enable</label>
+                            <label for="raw_gma">Raw GMA</label>
                             <div class="switch">
                                 <input id="raw_gma" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="raw_gma"></label>
@@ -530,18 +506,11 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                 <label class="slider" for="vflip"></label>
                             </div>
                         </div>
-                        <div class="input-group" id="bpc-group">
-                            <label for="bpc">BPC</label>
+                        <div class="input-group" id="dcw-group">
+                            <label for="dcw">DCW (Downsize EN)</label>
                             <div class="switch">
-                                <input id="bpc" type="checkbox" class="default-action">
-                                <label class="slider" for="bpc"></label>
-                            </div>
-                        </div>
-                        <div class="input-group" id="wpc-group">
-                            <label for="wpc">WPC</label>
-                            <div class="switch">
-                                <input id="wpc" type="checkbox" class="default-action" checked="checked">
-                                <label class="slider" for="wpc"></label>
+                                <input id="dcw" type="checkbox" class="default-action" checked="checked">
+                                <label class="slider" for="dcw"></label>
                             </div>
                         </div>
                         <div class="input-group" id="colorbar-group">
@@ -621,8 +590,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
         value ? hide(exposure) : show(exposure)
       } else if(el.id === "agc"){
         if (value) {
+          show(gainCeiling)
           hide(agcGain)
         } else {
+          hide(gainCeiling)
           show(agcGain)
         }
       } else if(el.id === "awb_gain"){
@@ -676,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
       document
         .querySelectorAll('.default-action')
         .forEach(el => {
-            updateValue(el, state[el.id], false)
+          updateValue(el, state[el.id], false)
         })
     })
 
@@ -734,11 +705,14 @@ document.addEventListener('DOMContentLoaded', function (event) {
   // Gain
   const agc = document.getElementById('agc')
   const agcGain = document.getElementById('agc_gain-group')
+  const gainCeiling = document.getElementById('gainceiling-group')
   agc.onchange = () => {
     updateConfig(agc)
     if (agc.checked) {
+      show(gainCeiling)
       hide(agcGain)
     } else {
+      hide(gainCeiling)
       show(agcGain)
     }
   }
@@ -804,6 +778,3 @@ document.addEventListener('DOMContentLoaded', function (event) {
         </script>
     </body>
 </html>
-)=====";
-
-size_t index_ov3660_html_len = sizeof(index_ov3660_html);

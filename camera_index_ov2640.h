@@ -1,12 +1,11 @@
-
 //File: index_ov2640.html
-const uint8_t index_ov2640_html_gz[] PROGMEM = R"=====(
+const uint8_t index_ov2640_html[] PROGMEM = R"=====(
 <!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Owens Camera 1</title>
+        <title>ESP32 OV2640</title>
         <style>
             body {
                 font-family: Arial,Helvetica,sans-serif;
@@ -349,10 +348,10 @@ const uint8_t index_ov2640_html_gz[] PROGMEM = R"=====(
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
                     
-                        <div class="input-group" id="led-group">
-                            <label for="led">Light</label>
+                        <div class="input-group" id="lamp-group">
+                            <label for="lamp">Light</label>
                             <div class="range-min">0%</div>
-                            <input type="range" id="led" min="0" max="100" value="10" class="default-action">
+                            <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
                             <div class="range-max">100%</div>
                         </div>
                         
@@ -791,4 +790,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
 </html>
 )=====";
 
-size_t index_ov2640_html_gz_len = sizeof(index_ov2640_html_gz);
+size_t index_ov2640_html_len = sizeof(index_ov2640_html);
