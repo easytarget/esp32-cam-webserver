@@ -18,15 +18,9 @@
 //#define CAMERA_MODULE_OV3660
 
 #if __has_include("mywifi.h")
-  // I keep my settings in a seperate header file that is in my .gitignore file
+  // I keep my settings in a seperate header file
   #include "mywifi.h"
 #else
-  // OWEN: todo
-  // Leave as is to create the default accesspoint, or comment out ACCESSPOINT 
-  //  line and supply your own network SSID and PASSWORD.
-  //bool accessPoint = true;
-  //const char ap_ssid[] = "ESP-CAM-SERVER";
-  //const char ap_password[]  = "ESP-CAM-DEMO";
   const char* ssid = "my-access-point-ssid";
   const char* password = "my-access-point-password";
 #endif
@@ -34,33 +28,38 @@
 #include "camera_pins.h"
 
 // Status and illumination LED's
-#ifdef LAMP_PIN // Do we have a LED Illumination Lamp?
-  const int lampPin = LAMP_PIN;
+#ifdef LAMP_PIN 
+  int lampVal = 0; // Current Lamp value, range 0-100, Start off
 #else 
-  const int lampPin = -1;
-#endif
-int lampVal = 0;             // (range 0-100) Start off
-int lampChannel = 7;         // a free PWM channel (some channels used by camera)
-const int pwmfreq = 50000;   // 50K pwm frequency
-const int pwmresolution = 8; // duty cycle has 8 bit range
- 
+  int lampVal = -1; // disable Lamp
+#endif         
+int lampChannel = 7;     // a free PWM channel (some channels used by camera)
+const int pwmfreq = 50000;     // 50K pwm frequency
+const int pwmresolution = 8;   // duty cycle has 8 bit range
+// https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
+const int pwmIntervals = 100;  // The number of Steps between the output being on and off
+float lampR;                   // The R value in the PWM graph equation (calculated in setup)
+
 void startCameraServer();
 
 void setup() {
   Serial.begin(115200);
-  Serial.setDebugOutput(true);  // OWEN: Change?
+  Serial.setDebugOutput(true);
   Serial.println();
 
-#ifdef LED_PIN
+#ifdef LED_PIN  // If we have  notification LED, set it to output
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LED_OFF); 
 #endif
-  
-  if (lampPin != -1) {
-    ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
-    ledcWrite(lampChannel, lampVal);                // set initial value
-    ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
-  }
+
+#ifdef LAMP_PIN
+  ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
+  ledcWrite(lampChannel, lampVal);                // set initial value
+  ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
+  // Calculate the PWM scaling R factor:
+  // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
+  lampR = (pwmIntervals * log10(2))/(log10(255));
+#endif
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -124,8 +123,7 @@ void setup() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {    // Owen, pulse LED for this.
-    delay(500);
-    Serial.print(".");
+    delay(250);
   }
 
   // feedback that we are connected
@@ -147,12 +145,12 @@ void setup() {
 
 void flashLED(int flashtime)
 {
-#ifdef LED_PIN // If we have it, flash it.
+#ifdef LED_PIN // Notification LED; If we have it; flash it.
   digitalWrite(LED_PIN, LED_ON);      // On at full power.
   delay(flashtime);               // delay
   digitalWrite(LED_PIN, LED_OFF);    // turn Off
 #else
-  return; // or nothing
+  return; // No notifcation LED, do nothing
 #endif
 } 
 

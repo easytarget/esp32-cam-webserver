@@ -20,10 +20,11 @@
 #include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
 
-// Globals (from main .ino) needed to set Led and Lamp levels
-extern long int  lampVal;
-extern int lampChannel;
+// Function+Globals needed for led and Lamp levels
 void flashLED(int flashtime); 
+extern int lampVal;        // The current Lamp value
+extern int lampChannel;    // PWM channel Lamp is attached to 
+extern float lampR;        // The R value in the graph equation
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -531,14 +532,17 @@ static esp_err_t cmd_handler(httpd_req_t *req){
             detection_enabled = val;
         }
     }
-    else if(!strcmp(variable, "lamp")) {
+    else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
       Serial.print("Lamp: ");
       lampVal = val;
       if (lampVal > 100) lampVal = 100;  // normalise 0-255 (pwm range) just in case..
       if (lampVal < 0 ) lampVal = 0;
-      ledcWrite(lampChannel, lampVal * 2.55); // Add s exponential map for 0-100 vs pwm value here.
+      // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
+      int brightness = pow (2, (lampVal / lampR)) - 1;
+      ledcWrite(lampChannel, brightness);
       Serial.print(lampVal);
-      Serial.println("%");
+      Serial.print("%, pwm = ");
+      Serial.println(brightness);
     }
     else {
         res = -1;
@@ -562,7 +566,6 @@ static esp_err_t status_handler(httpd_req_t *req){
     char * p = json_response;
     *p++ = '{';
 
-    p+=sprintf(p, "\"Lamp\":%u", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
@@ -591,6 +594,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_detect\":%u,", detection_enabled);
     p+=sprintf(p, "\"face_enroll\":%u,", is_enrolling);
     p+=sprintf(p, "\"face_recognize\":%u", recognition_enabled);
+    if (lampVal != -1) p+=sprintf(p, "\"Lamp\":%u", lampVal);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");

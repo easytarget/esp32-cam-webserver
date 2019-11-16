@@ -95,8 +95,8 @@
 #define PCLK_GPIO_NUM     22
 
 #define LED_PIN           33 // Status led
-#define LED_ON           LOW // Inverted
-#define LED_OFF         HIGH   
+#define LED_ON           LOW // - Pin is inverted.
+#define LED_OFF         HIGH //
 #define LAMP_PIN           4 // LED FloodLamp.
 
 #else
