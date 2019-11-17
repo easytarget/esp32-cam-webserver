@@ -35,7 +35,7 @@
 #endif         
 int lampChannel = 7;     // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
-const int pwmresolution = 8;   // duty cycle has 8 bit range
+const int pwmresolution = 9;   // duty cycle bit range
 // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
 const int pwmIntervals = 100;  // The number of Steps between the output being on and off
 float lampR;                   // The R value in the PWM graph equation (calculated in setup)
@@ -56,9 +56,9 @@ void setup() {
   ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
   ledcWrite(lampChannel, lampVal);                // set initial value
   ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
-  // Calculate the PWM scaling R factor:
+  // Calculate the PWM scaling R factor: 
   // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
-  lampR = (pwmIntervals * log10(2))/(log10(255));
+  lampR = (pwmIntervals * log10(2))/(log10(pow(2,pwmresolution)));
 #endif
 
   camera_config_t config;
@@ -113,7 +113,7 @@ void setup() {
     s->set_saturation(s, -2);//lower the saturation
   }
   //drop down frame size for higher initial frame rate
-  s->set_framesize(s, FRAMESIZE_QVGA);
+  s->set_framesize(s, FRAMESIZE_SVGA);
 
 #if defined(CAMERA_MODEL_M5STACK_WIDE)
   s->set_vflip(s, 1);

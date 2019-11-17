@@ -336,34 +336,50 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
             .hidden {
                 display: none
             }
+
+            input[type=text] {
+                border: 1px solid #363636;
+                font-size: 14px;
+                height: 20px;
+                margin: 1px;
+                outline: 0;
+                border-radius: 5px
+            }
+
+            .inline-button {
+                line-height: 20px;
+                margin: 2px;
+                padding: 1px 4px 2px 4px;
+            }
+
         </style>
     </head>
     <body>
         <section class="main">
             <div id="logo">
-                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle OV2640 settings</label>
+                <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <button id="get-still" style="float:left;">Get Still</button>
+                <button id="toggle-stream" style="float:left;">Start Stream</button>
             </div>
             <div id="content">
                 <div id="sidebar">
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
-                    
                         <div class="input-group" id="lamp-group">
                             <label for="lamp">Light</label>
                             <div class="range-min">0%</div>
                             <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
                             <div class="range-max">100%</div>
                         </div>
-                        
                         <div class="input-group" id="framesize-group">
                             <label for="framesize">Resolution</label>
                             <select id="framesize" class="default-action">
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
-                                <option value="7">SVGA(800x600)</option>
+                                <option value="7" selected="selected">SVGA(800x600)</option>
                                 <option value="6">VGA(640x480)</option>
-                                <option value="5" selected="selected">CIF(400x296)</option>
+                                <option value="5">CIF(400x296)</option>
                                 <option value="4">QVGA(320x240)</option>
                                 <option value="3">HQVGA(240x176)</option>
                                 <option value="0">QQVGA(160x120)</option>
@@ -545,8 +561,6 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <section id="buttons">
-                            <button id="get-still">Get Still</button>
-                            <button id="toggle-stream">Start Stream</button>
                             <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
                         </section>
                     </nav>
@@ -593,6 +607,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
       el.value = value
     }
 
+    const lampGroup = document.getElementById('lamp-group')
+    
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
     } else if(!updateRemote){
@@ -610,6 +626,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
         value ? show(wb) : hide(wb)
       } else if(el.id === "face_recognize"){
         value ? enable(enrollButton) : disable(enrollButton)
+      } else if(el.id === "lamp"){
+        if (value == -1) { 
+          hide(lampGroup)
+        } else {
+          show(lampGroup)
+        }
       }
     }
   }

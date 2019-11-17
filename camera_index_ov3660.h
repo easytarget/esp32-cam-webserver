@@ -357,12 +357,20 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
     <body>
         <section class="main">
             <div id="logo">
-                <label for="nav-toggle-cb" id="nav-toggle">&#9776;&nbsp;&nbsp;Toggle OV3660 settings</label>
+                <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <button id="get-still" style="float:left;">Get Still</button>
+                <button id="toggle-stream" style="float:left;">Start Stream</button>
             </div>
             <div id="content">
                 <div id="sidebar">
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
+                        <div class="input-group" id="lamp-group">
+                            <label for="lamp">Light</label>
+                            <div class="range-min">0%</div>
+                            <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
+                            <div class="range-max">100%</div>
+                        </div>
                         <div class="input-group" id="framesize-group">
                             <label for="framesize">Resolution</label>
                             <select id="framesize" class="default-action">
@@ -566,8 +574,6 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <section id="buttons">
-                            <button id="get-still">Get Still</button>
-                            <button id="toggle-stream">Start Stream</button>
                             <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
                         </section>
                     </nav>
@@ -614,6 +620,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
       el.value = value
     }
 
+    const lampGroup = document.getElementById('lamp-group')
+    
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
     } else if(!updateRemote){
@@ -629,6 +637,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
         value ? show(wb) : hide(wb)
       } else if(el.id === "face_recognize"){
         value ? enable(enrollButton) : disable(enrollButton)
+      } else if(el.id === "lamp"){
+        if (value == -1) { 
+          hide(lampGroup)
+        } else {
+          show(lampGroup)
+        }
       }
     }
   }
@@ -676,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
       document
         .querySelectorAll('.default-action')
         .forEach(el => {
-            updateValue(el, state[el.id], false)
+          updateValue(el, state[el.id], false)
         })
     })
 

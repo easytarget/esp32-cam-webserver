@@ -565,7 +565,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
     *p++ = '{';
-
+    p+=sprintf(p, "\"lamp\":%i,", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
@@ -594,7 +594,6 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_detect\":%u,", detection_enabled);
     p+=sprintf(p, "\"face_enroll\":%u,", is_enrolling);
     p+=sprintf(p, "\"face_recognize\":%u", recognition_enabled);
-    if (lampVal != -1) p+=sprintf(p, "\"Lamp\":%u", lampVal);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
