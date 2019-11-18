@@ -12,12 +12,12 @@
  *  A camera name can now be configured, and wifi details can be stored in an optional 
  *  header file to allow easier updated of the repo.
  *  
- *  The web UI has had minor changes to add the Lamp control when present, I have made the 
+ *  The web UI has had minor changes to add the lamp control when present, I have made the 
  *  'Start Stream' controls more accessible, and add feedback of the camera name/firmware.
  *  
  *  
  * note: Make sure that you have either selected ESP32 AI Thinker,
- *            or another board which has PSRAM enabled to use High resolution Modes
+ *            or another board which has PSRAM enabled to use high resolution camera modes
 */
 
 // Select camera board model
@@ -148,22 +148,31 @@ void setup() {
   s->set_hmirror(s, 1);
 #endif
 
+  // Feedback that hardware init is complete and we are now attempting to connect
+  Serial.println("");
+  Serial.print("Connecting to Wifi Netowrk: ");
+  Serial.println(ssid);
+  flashLED(400);
+  delay(100);
+
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {    // Owen, pulse LED for this.
-    delay(250);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(250);  // Wait for Wifi to connect. If no wifi the code basically hangs here.
+                 // It would be good to do something else here as a future enhancement.
+                 // (eg: go to a captive AP config portal to configure the wifi)
   }
 
   // feedback that we are connected
-  flashLED(200);
-  delay(100);
-  flashLED(200);
-  delay(100);
-  flashLED(200);
- 
   Serial.println("");
   Serial.println("WiFi connected");
+  flashLED(200);
+  delay(100);
+  flashLED(200);
+  delay(100);
+  flashLED(200);
 
+  // Start the Stream server, and the handler processes for the Web UI.
   startCameraServer();
 
   Serial.print("Camera Ready! Use 'http://");
@@ -171,19 +180,22 @@ void setup() {
   Serial.println("' to connect");
 }
 
+// Notification LED 
 void flashLED(int flashtime)
 {
-#ifdef LED_PIN // Notification LED; If we have it; flash it.
-  digitalWrite(LED_PIN, LED_ON);      // On at full power.
+#ifdef LED_PIN                    // If we have it; flash it.
+  digitalWrite(LED_PIN, LED_ON);  // On at full power.
   delay(flashtime);               // delay
-  digitalWrite(LED_PIN, LED_OFF);    // turn Off
+  digitalWrite(LED_PIN, LED_OFF); // turn Off
 #else
-  return; // No notifcation LED, do nothing
+  return;                         // No notifcation LED, do nothing, no delay
 #endif
 } 
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Just loop forever.
+  // The stream and URI handler processes initiated by the startCameraServer() call at the
+  // end of setup() will handle the camera and UI processing from now on.
   delay(10000);
 }
