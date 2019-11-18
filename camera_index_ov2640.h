@@ -5,7 +5,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>ESP32 OV2640</title>
+        <title id="title">ESP32 OV2640</title>
         <style>
             body {
                 font-family: Arial,Helvetica,sans-serif;
@@ -258,6 +258,15 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                 background: #363636
             }
 
+            input[type=text] {
+                border: 1px solid #363636;
+                font-size: 14px;
+                height: 20px;
+                margin: 1px;
+                outline: 0;
+                border-radius: 5px
+            }
+
             .switch {
                 display: block;
                 position: relative;
@@ -335,15 +344,6 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
 
             .hidden {
                 display: none
-            }
-
-            input[type=text] {
-                border: 1px solid #363636;
-                font-size: 14px;
-                height: 20px;
-                margin: 1px;
-                outline: 0;
-                border-radius: 5px
             }
 
             .inline-button {
@@ -563,6 +563,15 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                         <section id="buttons">
                             <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
                         </section>
+                        <div class="input-group" id="cam_name-group">
+                            <label for="cam_name">Name:</label>
+                            <div id="cam_name" class="default-action"></div>
+                        </div>
+                        <div class="input-group" id="code_ver-group">
+                            <label for="code_ver">Firmware:</label>
+                            <div id="code_ver" class="default-action"></div>
+                        </div>
+
                     </nav>
                 </div>
                 <figure>
@@ -573,7 +582,9 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                 </figure>
             </div>
         </section>
-        <script>
+    </body>
+    
+    <script>
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin
   var streamUrl = baseHost + ':81'
@@ -608,6 +619,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     const lampGroup = document.getElementById('lamp-group')
+    const camName = document.getElementById('cam_name')
+    const codeVer = document.getElementById('code_ver')
     
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
@@ -632,6 +645,11 @@ document.addEventListener('DOMContentLoaded', function (event) {
         } else {
           show(lampGroup)
         }
+      } else if(el.id === "cam_name"){
+        camName.innerHTML = value;
+        window.document.title = value;
+      } else if(el.id === "code_ver"){
+        codeVer.innerHTML = value;
       }
     }
   }
@@ -698,6 +716,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const startStream = () => {
     view.src = `${streamUrl}/stream`
     show(viewContainer)
+    view.scrollIntoView();
     streamButton.innerHTML = 'Stop Stream'
   }
 
@@ -807,8 +826,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
   }
 })
 
-        </script>
-    </body>
+    </script>
+
 </html>
 )=====";
 

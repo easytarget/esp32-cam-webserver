@@ -26,6 +26,10 @@ extern int lampVal;        // The current Lamp value
 extern int lampChannel;    // PWM channel Lamp is attached to 
 extern float lampR;        // The R value in the graph equation
 
+// Info we pass to the webapp
+extern char myName[];
+extern char myVer[];
+
 #include "fb_gfx.h"
 #include "fd_forward.h"
 #include "fr_forward.h"
@@ -561,7 +565,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
 static esp_err_t status_handler(httpd_req_t *req){
     static char json_response[1024];
-
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
     *p++ = '{';
@@ -593,7 +596,9 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
     p+=sprintf(p, "\"face_detect\":%u,", detection_enabled);
     p+=sprintf(p, "\"face_enroll\":%u,", is_enrolling);
-    p+=sprintf(p, "\"face_recognize\":%u", recognition_enabled);
+    p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
+    p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
+    p+=sprintf(p, "\"code_ver\":\"%s\"", myVer);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");

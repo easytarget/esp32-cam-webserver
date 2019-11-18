@@ -1,10 +1,24 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 
-//
-// WARNING!!! Make sure that you have either selected ESP32 Wrover Module,
-//            or another board which has PSRAM enabled
-//
+/* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
+ *  sketch from Expressif:
+ *  https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
+ *  
+ *  It is modified to allow control of Illumination LED Lamps's (present on some modules),
+ *  greater feedback via a status LED, and the HTML contents are present in plain text
+ *  for easy modification. 
+ *  
+ *  A camera name can now be configured, and wifi details can be stored in an optional 
+ *  header file to allow easier updated of the repo.
+ *  
+ *  The web UI has had minor changes to add the Lamp control when present, I have made the 
+ *  'Start Stream' controls more accessible, and add feedback of the camera name/firmware.
+ *  
+ *  
+ * note: Make sure that you have either selected ESP32 AI Thinker,
+ *            or another board which has PSRAM enabled to use High resolution Modes
+*/
 
 // Select camera board model
 //#define CAMERA_MODEL_WROVER_KIT
@@ -24,6 +38,18 @@
   const char* ssid = "my-access-point-ssid";
   const char* password = "my-access-point-password";
 #endif
+
+// A Name for the Camera. (can be set in wifi.h)
+#ifdef CAM_NAME
+  char myName[] = CAM_NAME;
+#else
+  char myName[] = "ESP32 camera server";
+#endif
+
+// This will be displayed to identify the firmware
+char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
+
+
 
 #include "camera_pins.h"
 
@@ -45,7 +71,10 @@ void startCameraServer();
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
-  Serial.println();
+  Serial.print("esp32-cam-webserver: ");
+  Serial.println(myName);
+  Serial.print("Code Built: ");
+  Serial.println(myVer);
 
 #ifdef LED_PIN  // If we have  notification LED, set it to output
     pinMode(LED_PIN, OUTPUT);
