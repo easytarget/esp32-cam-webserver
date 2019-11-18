@@ -258,6 +258,15 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                 background: #363636
             }
 
+            input[type=text] {
+                border: 1px solid #363636;
+                font-size: 14px;
+                height: 20px;
+                margin: 1px;
+                outline: 0;
+                border-radius: 5px
+            }
+
             .switch {
                 display: block;
                 position: relative;
@@ -337,15 +346,6 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                 display: none
             }
 
-            input[type=text] {
-                border: 1px solid #363636;
-                font-size: 14px;
-                height: 20px;
-                margin: 1px;
-                outline: 0;
-                border-radius: 5px
-            }
-
             .inline-button {
                 line-height: 20px;
                 margin: 2px;
@@ -378,9 +378,9 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
-                                <option value="7">SVGA(800x600)</option>
+                                <option value="7" selected="selected">SVGA(800x600)</option>
                                 <option value="6">VGA(640x480)</option>
-                                <option value="5" selected="selected">CIF(400x296)</option>
+                                <option value="5">CIF(400x296)</option>
                                 <option value="4">QVGA(320x240)</option>
                                 <option value="3">HQVGA(240x176)</option>
                                 <option value="0">QQVGA(160x120)</option>
@@ -576,6 +576,15 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         <section id="buttons">
                             <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
                         </section>
+                        <div class="input-group" id="cam_name-group">
+                            <label for="cam_name">Name:</label>
+                            <div id="cam_name" class="default-action"></div>
+                        </div>
+                        <div class="input-group" id="code_ver-group">
+                            <label for="code_ver">Firmware:</label>
+                            <div id="code_ver" class="default-action"></div>
+                        </div>
+
                     </nav>
                 </div>
                 <figure>
@@ -586,7 +595,9 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                 </figure>
             </div>
         </section>
-        <script>
+    </body>
+
+    <script>
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin
   var streamUrl = baseHost + ':81'
@@ -621,6 +632,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     const lampGroup = document.getElementById('lamp-group')
+    const camName = document.getElementById('cam_name')
+    const codeVer = document.getElementById('code_ver')
     
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
@@ -643,6 +656,11 @@ document.addEventListener('DOMContentLoaded', function (event) {
         } else {
           show(lampGroup)
         }
+      } else if(el.id === "cam_name"){
+        camName.innerHTML = value;
+        window.document.title = value;
+      } else if(el.id === "code_ver"){
+        codeVer.innerHTML = value;
       }
     }
   }
@@ -709,6 +727,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const startStream = () => {
     view.src = `${streamUrl}/stream`
     show(viewContainer)
+    view.scrollIntoView();
     streamButton.innerHTML = 'Stop Stream'
   }
 
@@ -717,6 +736,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     stopStream()
     view.src = `${baseHost}/capture?_cb=${Date.now()}`
     show(viewContainer)
+    view.scrollIntoView();
   }
 
   closeButton.onclick = () => {
@@ -815,8 +835,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
   }
 })
 
-        </script>
-    </body>
+    </script>
+
 </html>
 )=====";
 

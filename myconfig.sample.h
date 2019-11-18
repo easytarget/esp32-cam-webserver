@@ -6,5 +6,6 @@ const char* password = "my-access-point-password";
 
 
 // Optionally give the camera a name for the web interface 
-//  (this is not a network hostname)
-// #define CAM_NAME "Chocolate Store"
+//  (nb: this is not the network hostname)
+
+#define CAM_NAME "my-awesome-webcam"

@@ -31,15 +31,15 @@
 #define CAMERA_MODULE_OV2640
 //#define CAMERA_MODULE_OV3660
 
-#if __has_include("mywifi.h")
+#if __has_include("myconfig.h")
   // I keep my settings in a seperate header file
-  #include "mywifi.h"
+  #include "myconfig.h"
 #else
   const char* ssid = "my-access-point-ssid";
   const char* password = "my-access-point-password";
 #endif
 
-// A Name for the Camera. (can be set in wifi.h)
+// A Name for the Camera. (can be set in myconfig.h)
 #ifdef CAM_NAME
   char myName[] = CAM_NAME;
 #else
@@ -48,7 +48,6 @@
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
-
 
 
 #include "camera_pins.h"
@@ -76,7 +75,7 @@ void setup() {
   Serial.print("Code Built: ");
   Serial.println(myVer);
 
-#ifdef LED_PIN  // If we have  notification LED, set it to output
+#ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LED_OFF); 
 #endif

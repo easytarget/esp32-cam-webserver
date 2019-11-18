@@ -583,7 +583,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
             </div>
         </section>
     </body>
-    
+
     <script>
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin
@@ -725,6 +725,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     stopStream()
     view.src = `${baseHost}/capture?_cb=${Date.now()}`
     show(viewContainer)
+    view.scrollIntoView();
   }
 
   closeButton.onclick = () => {

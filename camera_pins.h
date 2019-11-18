@@ -1,3 +1,7 @@
+// Pin definitions for soem common ESP-CAM modules
+
+// ESP WROVER 
+// https://dl.espressif.com/dl/schematics/ESP-WROVER-KIT_SCH-2.pdf
 
 #if defined(CAMERA_MODEL_WROVER_KIT)
 #define PWDN_GPIO_NUM    -1
@@ -18,6 +22,15 @@
 #define HREF_GPIO_NUM    23
 #define PCLK_GPIO_NUM    22
 
+#define LED_PIN            2 // A status led on the RGB; could also use pin 0 or 4
+#define LED_ON          HIGH // 
+#define LED_OFF          LOW //
+//#define LAMP_PIN         x // No LED FloodLamp.
+
+
+// ESP-EYE
+// https://twitter.com/esp32net/status/1085488403460882437
+
 #elif defined(CAMERA_MODEL_ESP_EYE)
 #define PWDN_GPIO_NUM    -1
 #define RESET_GPIO_NUM   -1
@@ -36,6 +49,14 @@
 #define VSYNC_GPIO_NUM   5
 #define HREF_GPIO_NUM    27
 #define PCLK_GPIO_NUM    25
+
+#define LED_PIN           21 // Status led
+#define LED_ON          HIGH //
+#define LED_OFF          LOW //
+//#define LAMP_PIN   v     x // No LED FloodLamp.
+
+
+// ESP32 M5STACK
 
 #elif defined(CAMERA_MODEL_M5STACK_PSRAM)
 #define PWDN_GPIO_NUM     -1
@@ -75,13 +96,22 @@
 #define HREF_GPIO_NUM     26
 #define PCLK_GPIO_NUM     21
 
+// M5 Stack status/illumination LED details unknown/unclear
+//#define LED_PIN          x // Status led
+//#define LED_ON        HIGH // 
+//#define LED_OFF        LOW //
+//#define LAMP_PIN        x  // LED FloodLamp.
+
+
+// AI Thinker
+// https://github.com/SeeedDocument/forum_doc/raw/master/reg/ESP32_CAM_V1.6.pdf
+
 #elif defined(CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
 #define XCLK_GPIO_NUM      0
 #define SIOD_GPIO_NUM     26
 #define SIOC_GPIO_NUM     27
-
 #define Y9_GPIO_NUM       35
 #define Y8_GPIO_NUM       34
 #define Y7_GPIO_NUM       39
