@@ -367,9 +367,9 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                     <nav id="menu">
                         <div class="input-group" id="lamp-group">
                             <label for="lamp">Light</label>
-                            <div class="range-min">0%</div>
+                            <div class="range-min">Off</div>
                             <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                            <div class="range-max">100%</div>
+                            <div class="range-max">Full</div>
                         </div>
                         <div class="input-group" id="framesize-group">
                             <label for="framesize">Resolution</label>
@@ -716,7 +716,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const startStream = () => {
     view.src = `${streamUrl}/stream`
     show(viewContainer)
-    view.scrollIntoView();
+    view.scrollIntoView(false);
     streamButton.innerHTML = 'Stop Stream'
   }
 
@@ -725,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     stopStream()
     view.src = `${baseHost}/capture?_cb=${Date.now()}`
     show(viewContainer)
-    view.scrollIntoView();
+    view.scrollIntoView(false);
   }
 
   closeButton.onclick = () => {

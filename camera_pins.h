@@ -22,10 +22,10 @@
 #define HREF_GPIO_NUM    23
 #define PCLK_GPIO_NUM    22
 
-#define LED_PIN            2 // A status led on the RGB; could also use pin 0 or 4
-#define LED_ON          HIGH // 
-#define LED_OFF          LOW //
-//#define LAMP_PIN         x // No LED FloodLamp.
+#define LED_PIN           2 // A status led on the RGB; could also use pin 0 or 4
+#define LED_ON         HIGH // 
+#define LED_OFF         LOW //
+//#define LAMP_PIN        x // No LED FloodLamp.
 
 
 // ESP-EYE
@@ -34,7 +34,7 @@
 #elif defined(CAMERA_MODEL_ESP_EYE)
 #define PWDN_GPIO_NUM    -1
 #define RESET_GPIO_NUM   -1
-#define XCLK_GPIO_NUM    4
+#define XCLK_GPIO_NUM     4
 #define SIOD_GPIO_NUM    18
 #define SIOC_GPIO_NUM    23
 
@@ -46,14 +46,14 @@
 #define Y4_GPIO_NUM      14
 #define Y3_GPIO_NUM      13
 #define Y2_GPIO_NUM      34
-#define VSYNC_GPIO_NUM   5
+#define VSYNC_GPIO_NUM    5
 #define HREF_GPIO_NUM    27
 #define PCLK_GPIO_NUM    25
 
-#define LED_PIN           21 // Status led
-#define LED_ON          HIGH //
-#define LED_OFF          LOW //
-//#define LAMP_PIN   v     x // No LED FloodLamp.
+#define LED_PIN          21 // Status led
+#define LED_ON         HIGH //
+#define LED_OFF         LOW //
+//#define LAMP_PIN        x // No LED FloodLamp.
 
 
 // ESP32 M5STACK

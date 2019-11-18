@@ -17,7 +17,7 @@
  *  
  *  
  * note: Make sure that you have either selected ESP32 AI Thinker,
- *            or another board which has PSRAM enabled to use high resolution camera modes
+ *       or another board which has PSRAM enabled to use high resolution camera modes
 */
 
 // Select camera board model
@@ -70,6 +70,8 @@ void startCameraServer();
 void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
+  Serial.println();
+  Serial.println("====");
   Serial.print("esp32-cam-webserver: ");
   Serial.println(myName);
   Serial.print("Code Built: ");
@@ -158,14 +160,14 @@ void setup() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
-    delay(250);  // Wait for Wifi to connect. If no wifi the code basically hangs here.
-                 // It would be good to do something else here as a future enhancement.
-                 // (eg: go to a captive AP config portal to configure the wifi)
+    delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
+                 // - It would be good to do something else here as a future enhancement.
+                 //   (eg: go to a captive AP config portal to configure the wifi)
   }
 
   // feedback that we are connected
-  Serial.println("");
   Serial.println("WiFi connected");
+  Serial.println("");
   flashLED(200);
   delay(100);
   flashLED(200);
@@ -175,7 +177,7 @@ void setup() {
   // Start the Stream server, and the handler processes for the Web UI.
   startCameraServer();
 
-  Serial.print("Camera Ready! Use 'http://");
+  Serial.print("Camera Ready!  Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
 }
