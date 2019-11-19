@@ -31,7 +31,7 @@ https://wiki.ai-thinker.com/esp32-cam
 ### Wiring
 
 Is pretty simple, see the diagram below.
-![](http://)
+![Hoockup](Docs/hookup.png)
 * Connect the **RX** line from the serial adapter to the **TX** pin on ESP32
 * The adapters **TX** line goes to the ESP32 **RX** pin
 * The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is powered up to allow it to enter it's programming mode. This can be done with simple jumper cable connected at poweron, fitting a switch for this is useful if you will be reprogramming a lot.
