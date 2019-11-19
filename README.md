@@ -13,7 +13,7 @@ Hopefully this expanded example is more useful for those users who wish to set u
 
 #### AI-THINKER ESP32-CAM vs Other Modules:
 
-I have four of the AI-THINKER boards, so the descriptions below are for that board. But I took care to leave the default definitions and controls for other boards in the example intact. You may need to adjust the programming method to suit the your board, look for examples online.
+I have four [AI-THINKER ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) boards, so the descriptions below are for that board. But I took care to leave the default definitions and controls for other boards in the example intact. You may need to adjust the programming method to suit the your board, look for examples online.
 
 * For some other good examples and information on ESP32 based webcams I also recommend the sketches here:
 https://github.com/raphaelbs/esp32-cam-ai-thinker
@@ -47,16 +47,20 @@ You can also set the camera name plus SSID and password for your WiFi network in
 
 Assuming you are using the latest Espressif Arduino core the AI-THINKER board will appear in the ESP32 Arduino section of the boards list. 
 
-![Like This](Docs/board-selection-small.png)
+![IDE board config](Docs/board-selection-small.png)
 
-Compile and upload the code from the IDE, while keeping **GPIO0** grounded. Open the serial monitor; you should see the board start, begin connecting to the wifi, connect and then report the IP address it has been assigned.
+Compile and upload the code from the IDE, when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
+
+Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.
+
+If you have a status LED configured it will give a single slow flash when it begins attempting to conenct to WiFi, and three short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.
 
 Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
 
 ## My Modifications:
 The basic example is extended to allow control of a high power LED FlashLamps like the ones used on mobile phones, which are present on some modules. It can also blink a status LED to show when it connects to WiFi.
 
-The WiFi details can be stored in an (optional) header file to allow easier further development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
+The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
 
