@@ -230,6 +230,9 @@ static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size
 static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t * fb = NULL;
     esp_err_t res = ESP_OK;
+    
+    flashLED(75); // little flash of status LED
+
     int64_t fr_start = esp_timer_get_time();
 
     fb = esp_camera_fb_get();
@@ -328,6 +331,8 @@ static esp_err_t stream_handler(httpd_req_t *req){
     int64_t fr_face = 0;
     int64_t fr_recognize = 0;
     int64_t fr_encode = 0;
+
+    flashLED(75); // little flash of status LED
 
     static int64_t last_frame = 0;
     if(!last_frame) {
@@ -608,6 +613,8 @@ static esp_err_t status_handler(httpd_req_t *req){
 
 static esp_err_t index_handler(httpd_req_t *req){
     flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     sensor_t * s = esp_camera_sensor_get();
