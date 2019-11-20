@@ -58,13 +58,13 @@ If you have a status LED configured it will give a single slow flash when it beg
 Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
 
 ## My Modifications:
-The basic example is extended to allow control of a high power LED FlashLamps like the ones used on mobile phones, which are present on some modules. It can also blink a status LED to show when it connects to WiFi.
+The basic example is extended to allow control of a high power LED FlashLamps, which are present on my modules. It can also blink a status LED to show when it connects to WiFi.
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
 
-I have left all the Face Recognition code untouched, it works, and with good lighting and camera position it can work quite well. But you can only use it in low-resolution modes, and it is not something I wil be using.
+I have left all the Face Recognition code untouched, it works, and with good lighting and camera position it can work quite well. But you can only use it in low-resolution modes, and it is not something I will be using.
 
 The web UI has had minor changes to add the lamp control (only when enabled), I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
 
@@ -72,6 +72,8 @@ The web UI has had minor changes to add the lamp control (only when enabled), I 
 * I only have AI-THINKER modules with OV2640 camera installed; so I have only been able to test with this combination. I have attempted to preserve all the code for other boards and the OV3660 module, and I have merged all changes for the WebUI etc, but I cannot guarantee operation for these.
 * I created a small board with a handy switch for power, a pushbutton for the GPIO0 programming switch, and a socket for the AI-THINKER board. This proved very useful for development work and programming multiple devices.
 * I found some excellent [cases on Thingieverse](https://www.thingiverse.com/thing:3708345).
+
+![Cameras and a Programmer](Docs/webcams.programmer.jpg)
 
 ## Plans
 * Improve Wifi, add a captive portal for setup and fallback, better disconnect/reconnect behaviour.
