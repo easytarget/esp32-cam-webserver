@@ -532,6 +532,14 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                                 <label class="slider" for="vflip"></label>
                             </div>
                         </div>
+                        <div class="input-group" id="rotate-group">
+                            <label for="rotate">Rotate</label>
+                            <select id="rotate" class="rotate-action">
+                                <option value="0">None</option>
+                                <option value="90" selected="selected">Rotate Right</option>
+                                <option value="-90">Rotate Left</option>
+                            </select>
+                        </div>
                         <div class="input-group" id="dcw-group">
                             <label for="dcw">DCW (Downsize EN)</label>
                             <div class="switch">
@@ -789,7 +797,14 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const detect = document.getElementById('face_detect')
   const recognize = document.getElementById('face_recognize')
   const framesize = document.getElementById('framesize')
+  const rotate = document.getElementById('rotate')
 
+  rotate.onchange = () => {
+    rot = ro.value;
+    //alert(`Setting rotate:${rot}`);
+    view.style.transform = `rotate(${rot}deg)`;
+    //alert('rewrittem stream style: '+j.style.transform);
+  }
   framesize.onchange = () => {
     updateConfig(framesize)
     if (framesize.value > 5) {
@@ -831,5 +846,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 </html>
 )=====";
-
 size_t index_ov2640_html_len = sizeof(index_ov2640_html);
