@@ -325,11 +325,13 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
 
             .image-container {
                 position: relative;
-                min-width: 160px
+                min-width: 160px;
+                transform-origin: top left
             }
 
             .close {
                 position: absolute;
+                z-index: 99;
                 right: 5px;
                 top: 5px;
                 background: #ff3034;
@@ -531,6 +533,14 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                                 <input id="vflip" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="vflip"></label>
                             </div>
+                        </div>
+                        <div class="input-group" id="rotate-group">
+                            <label for="rotate">Rotate</label>
+                            <select id="rotate" class="rotate-action">
+                                <option value="0" selected="selected">None</option>
+                                <option value="90">Rotate Right</option>
+                                <option value="-90">Rotate Left</option>
+                            </select>
                         </div>
                         <div class="input-group" id="dcw-group">
                             <label for="dcw">DCW (Downsize EN)</label>
@@ -789,6 +799,18 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const detect = document.getElementById('face_detect')
   const recognize = document.getElementById('face_recognize')
   const framesize = document.getElementById('framesize')
+  const rotate = document.getElementById('rotate')
+
+  rotate.onchange = () => {
+    rot = rotate.value;
+    if (rot == -90) {
+      viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+    } else if (rot == 90) {
+      viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
+    } else {
+      viewContainer.style.transform = `rotate(0deg)`
+    }
+  }
 
   framesize.onchange = () => {
     updateConfig(framesize)
@@ -831,5 +853,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 </html>
 )=====";
-
 size_t index_ov2640_html_len = sizeof(index_ov2640_html);

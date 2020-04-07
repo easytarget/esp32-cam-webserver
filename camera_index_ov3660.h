@@ -325,11 +325,13 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
 
             .image-container {
                 position: relative;
-                min-width: 160px
+                min-width: 160px;
+                transform-origin: top left
             }
 
             .close {
                 position: absolute;
+                z-index: 99;
                 right: 5px;
                 top: 5px;
                 background: #ff3034;
@@ -538,6 +540,14 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                 <label class="slider" for="vflip"></label>
                             </div>
                         </div>
+                        <div class="input-group" id="rotate-group">
+                            <label for="rotate">Rotate</label>
+                            <select id="rotate" class="rotate-action">
+                                <option value="0" selected="selected">None</option>
+                                <option value="90">Rotate Right</option>
+                                <option value="-90">Rotate Left</option>
+                            </select>
+                        </div>
                         <div class="input-group" id="bpc-group">
                             <label for="bpc">BPC</label>
                             <div class="switch">
@@ -727,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const startStream = () => {
     view.src = `${streamUrl}/stream`
     show(viewContainer)
-    view.scrollIntoView();
+    view.scrollIntoView(false);
     streamButton.innerHTML = 'Stop Stream'
   }
 
@@ -736,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     stopStream()
     view.src = `${baseHost}/capture?_cb=${Date.now()}`
     show(viewContainer)
-    view.scrollIntoView();
+    view.scrollIntoView(false);
   }
 
   closeButton.onclick = () => {
@@ -797,6 +807,18 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const detect = document.getElementById('face_detect')
   const recognize = document.getElementById('face_recognize')
   const framesize = document.getElementById('framesize')
+  const rotate = document.getElementById('rotate')
+
+  rotate.onchange = () => {
+    rot = rotate.value;
+    if (rot == -90) {
+      viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+    } else if (rot == 90) {
+      viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
+    } else {
+      viewContainer.style.transform = `rotate(0deg)`
+    }
+  }
 
   framesize.onchange = () => {
     updateConfig(framesize)
