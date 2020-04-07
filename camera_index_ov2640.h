@@ -325,11 +325,13 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
 
             .image-container {
                 position: relative;
-                min-width: 160px
+                min-width: 160px;
+                transform-origin: top left
             }
 
             .close {
                 position: absolute;
+                z-index: 99;
                 right: 5px;
                 top: 5px;
                 background: #ff3034;
@@ -535,8 +537,8 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                         <div class="input-group" id="rotate-group">
                             <label for="rotate">Rotate</label>
                             <select id="rotate" class="rotate-action">
-                                <option value="0">None</option>
-                                <option value="90" selected="selected">Rotate Right</option>
+                                <option value="0" selected="selected">None</option>
+                                <option value="90">Rotate Right</option>
                                 <option value="-90">Rotate Left</option>
                             </select>
                         </div>
@@ -800,11 +802,16 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const rotate = document.getElementById('rotate')
 
   rotate.onchange = () => {
-    rot = ro.value;
-    //alert(`Setting rotate:${rot}`);
-    view.style.transform = `rotate(${rot}deg)`;
-    //alert('rewrittem stream style: '+j.style.transform);
+    rot = rotate.value;
+    if (rot == -90) {
+      viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+    } else if (rot == 90) {
+      viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
+    } else {
+      viewContainer.style.transform = `rotate(0deg)`
+    }
   }
+
   framesize.onchange = () => {
     updateConfig(framesize)
     if (framesize.value > 5) {
