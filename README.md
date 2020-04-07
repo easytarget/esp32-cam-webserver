@@ -21,6 +21,11 @@ https://github.com/raphaelbs/esp32-cam-ai-thinker
 * The AI thinker wiki can be quite informative, when run through an online translator and read sensibly:
 https://wiki.ai-thinker.com/esp32-cam
 
+## Troubleshooting:
+
+Please read this excellent guide for help with all the common issues:
+https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
+
 ## Setup:
 
 * For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
