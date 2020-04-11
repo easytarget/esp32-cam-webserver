@@ -46,6 +46,13 @@
 #else
   char myName[] = "ESP32 camera server";
 #endif
+// initial rotation
+char myRotation[5];
+#ifndef CAM_ROTATION
+  #define CAM_ROTATION 0
+#endif
+int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
+Serial.printf("Config Rotation: \"%s\"\n",myRotation);
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
@@ -158,7 +165,12 @@ void setup() {
   flashLED(400);
   delay(100);
 
+#ifdef WIFI_AP
+  Serial.println("Setting up AP");
+  WiFi.softAP(ssid, password, wifichan);
+#else
   WiFi.begin(ssid, password);
+#endif
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
@@ -179,7 +191,11 @@ void setup() {
   startCameraServer();
 
   Serial.print("Camera Ready!  Use 'http://");
+#ifdef WIFI_AP
+  Serial.print(WiFi.softAPIP());
+#else
   Serial.print(WiFi.localIP());
+#endif
   Serial.println("' to connect");
 }
 
