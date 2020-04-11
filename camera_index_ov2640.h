@@ -536,7 +536,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                         </div>
                         <div class="input-group" id="rotate-group">
                             <label for="rotate">Rotate</label>
-                            <select id="rotate" class="rotate-action">
+                            <select id="rotate" class="default-action">
                                 <option value="0" selected="selected">None</option>
                                 <option value="90">Rotate Right</option>
                                 <option value="-90">Rotate Left</option>
@@ -631,6 +631,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     const lampGroup = document.getElementById('lamp-group')
     const camName = document.getElementById('cam_name')
     const codeVer = document.getElementById('code_ver')
+    const rotate = document.getElementById('rotate')
+    
     
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
@@ -660,6 +662,11 @@ document.addEventListener('DOMContentLoaded', function (event) {
         window.document.title = value;
       } else if(el.id === "code_ver"){
         codeVer.innerHTML = value;
+      } else if(el.id === "rotate"){
+        rotate.value = value;
+        // setting value does not induce a onchange event
+        // this sets the figure transform css values
+        rotate.onchange();
       }
     }
   }

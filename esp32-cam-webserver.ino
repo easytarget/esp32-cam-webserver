@@ -38,6 +38,8 @@
 #else
   const char* ssid = "my-access-point-ssid";
   const char* password = "my-access-point-password";
+  // used for wifi AP
+  const int   wifichan = 5;
 #endif
 
 // A Name for the Camera. (can be set in myconfig.h)
@@ -46,16 +48,10 @@
 #else
   char myName[] = "ESP32 camera server";
 #endif
-// initial rotation
-char myRotation[5];
-#ifndef CAM_ROTATION
-  #define CAM_ROTATION 0
-#endif
-int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
-Serial.printf("Config Rotation: \"%s\"\n",myRotation);
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
+char myRotation[5];
 
 
 #include "camera_pins.h"
@@ -84,6 +80,17 @@ void setup() {
   Serial.println(myName);
   Serial.print("Code Built: ");
   Serial.println(myVer);
+
+  // initial rotation
+  // can be set in myconfig.h
+  #ifndef CAM_ROTATION
+    #define CAM_ROTATION 0
+  #endif
+
+  // set the initialisation for image rotation
+  int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
+  // Serial.printf("Config Rotation: \"%s\" size %d\n",myRotation,sizeof(myRotation));
+  
 
 #ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
@@ -170,13 +177,13 @@ void setup() {
   WiFi.softAP(ssid, password, wifichan);
 #else
   WiFi.begin(ssid, password);
-#endif
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
                  // - It would be good to do something else here as a future enhancement.
                  //   (eg: go to a captive AP config portal to configure the wifi)
   }
+#endif
 
   // feedback that we are connected
   Serial.println("WiFi connected");

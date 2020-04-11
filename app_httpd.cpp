@@ -29,6 +29,7 @@ extern float lampR;        // The R value in the graph equation
 // Info we pass to the webapp
 extern char myName[];
 extern char myVer[];
+extern char myRotation[];
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -603,7 +604,9 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_enroll\":%u,", is_enrolling);
     p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
-    p+=sprintf(p, "\"code_ver\":\"%s\"", myVer);
+    p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
+    // Serial.printf("Status Rotate \"%s\"\n",myRotation); 
+    p+=sprintf(p, "\"rotate\":\"%s\"", myRotation);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
