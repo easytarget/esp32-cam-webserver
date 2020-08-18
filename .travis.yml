@@ -1,0 +1,34 @@
+sudo: false
+
+language: bash
+
+os:
+  - linux
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - sleep 3 # give xvfb some time to start
+  - wget http://downloads.arduino.cc/arduino-1.8.13-linux64.tar.xz
+  - tar xf arduino-1.8.13-linux64.tar.xz
+  - mv arduino-1.8.13 $HOME/arduino_ide
+  - cd $HOME/arduino_ide/hardware
+  - mkdir esp32
+  - cd esp32
+  - git clone --depth 1 https://github.com/espressif/arduino-esp32.git esp32
+  - cd esp32
+  - git submodule update --init --recursive
+  - cd tools
+  - python get.py
+  
+script:
+  - cd $TRAVIS_BUILD_DIR
+  - export PATH="$HOME/arduino_ide:$PATH"
+  - arduino --board esp32:esp32:esp32:PartitionScheme=min_spiffs,FlashFreq=40 --pref compiler.warning_level=all --save-prefs
+  - arduino --verbose --verify esp32-cam-webserver.ino
+
+  
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+
