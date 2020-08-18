@@ -1,3 +1,5 @@
+[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver) `- Master branch status`
+
 # Espressives ESP32-CAM example revisited.
 ## Taken from the ESP examples, and modified for reality
 This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
