@@ -36,10 +36,14 @@
   // I keep my settings in a seperate header file
   #include "myconfig.h"
 #else
-  const char* ssid = "my-access-point-ssid";
-  const char* password = "my-access-point-password";
-  // used for wifi AP
-  const int   wifichan = 5;
+  // Default Setup; an accesspoint
+  // SSID and Password for the accesspoint we want to join, or create
+  char* ssid = "ESP32-CAM-CONNECT";
+  const char* password = "InsecurePassword";
+  // Accesspoint mode: comment out to join an existing network
+  #define WIFI_AP
+  // Optional fixed channel for accesspoint
+  // #define AP_CHAN 5
 #endif
 
 // A Name for the Camera. (can be set in myconfig.h)
@@ -51,8 +55,9 @@
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
-char myRotation[5];
 
+// current rotation direction
+char myRotation[5];
 
 #include "camera_pins.h"
 
@@ -89,8 +94,7 @@ void setup() {
 
   // set the initialisation for image rotation
   int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
-  // Serial.printf("Config Rotation: \"%s\" size %d\n",myRotation,sizeof(myRotation));
-  
+
 
 #ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
@@ -174,7 +178,11 @@ void setup() {
 
 #ifdef WIFI_AP
   Serial.println("Setting up AP");
-  WiFi.softAP(ssid, password, wifichan);
+  #ifdef AP_CHAN
+    WiFi.softAP(ssid, password, AP_CHAN);
+  # else
+    WiFi.softAP(ssid, password);
+  #endif
 #else
   WiFi.begin(ssid, password);
 
