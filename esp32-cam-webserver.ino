@@ -61,13 +61,16 @@ char myRotation[5];
 
 #include "camera_pins.h"
 
-// Status and illumination LED's
-#ifdef LAMP_PIN 
-  int lampVal = 0; // Current Lamp value, range 0-100, Start off
+// Illumination LED's
+#ifdef LAMP_DISABLE
+  int lampVal = -1; // lamp disabled by config
+#elif LAMP_PIN 
+  int lampVal = 0; // current lamp value, range 0-100, default off
 #else 
-  int lampVal = -1; // disable Lamp
+  int lampVal = -1; // no lamp pin assigned
 #endif         
-int lampChannel = 7;     // a free PWM channel (some channels used by camera)
+
+int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
 const int pwmresolution = 9;   // duty cycle bit range
 // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
@@ -98,12 +101,12 @@ void setup() {
 
 #ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LED_OFF); 
+    digitalWrite(LED_PIN, LED_OFF);
 #endif
 
 #ifdef LAMP_PIN
   ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
-  ledcWrite(lampChannel, lampVal);                // set initial value
+  ledcWrite(lampChannel, 0);                      // Off by default
   ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
   // Calculate the PWM scaling R factor: 
   // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms

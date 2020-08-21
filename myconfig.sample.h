@@ -15,3 +15,6 @@ const char* password = "my-access-point-password";
 // #define WIFI_AP
 // Optionall accesspoint channel number
 // #define AP_CHAN 5
+
+// Uncomment to disable illumination led/lamp feature even if one is fitted
+// #define LAMP_DISABLE
