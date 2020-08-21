@@ -38,6 +38,8 @@
 #else
   const char* ssid = "my-access-point-ssid";
   const char* password = "my-access-point-password";
+  // used for wifi AP
+  const int   wifichan = 5;
 #endif
 
 // A Name for the Camera. (can be set in myconfig.h)
@@ -49,6 +51,7 @@
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
+char myRotation[5];
 
 
 #include "camera_pins.h"
@@ -77,6 +80,17 @@ void setup() {
   Serial.println(myName);
   Serial.print("Code Built: ");
   Serial.println(myVer);
+
+  // initial rotation
+  // can be set in myconfig.h
+  #ifndef CAM_ROTATION
+    #define CAM_ROTATION 0
+  #endif
+
+  // set the initialisation for image rotation
+  int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
+  // Serial.printf("Config Rotation: \"%s\" size %d\n",myRotation,sizeof(myRotation));
+  
 
 #ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
@@ -158,6 +172,10 @@ void setup() {
   flashLED(400);
   delay(100);
 
+#ifdef WIFI_AP
+  Serial.println("Setting up AP");
+  WiFi.softAP(ssid, password, wifichan);
+#else
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -165,6 +183,7 @@ void setup() {
                  // - It would be good to do something else here as a future enhancement.
                  //   (eg: go to a captive AP config portal to configure the wifi)
   }
+#endif
 
   // feedback that we are connected
   Serial.println("WiFi connected");
@@ -179,7 +198,11 @@ void setup() {
   startCameraServer();
 
   Serial.print("Camera Ready!  Use 'http://");
+#ifdef WIFI_AP
+  Serial.print(WiFi.softAPIP());
+#else
   Serial.print(WiFi.localIP());
+#endif
   Serial.println("' to connect");
 }
 
