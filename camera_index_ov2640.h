@@ -521,25 +521,25 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <div class="input-group" id="hmirror-group">
-                            <label for="hmirror">H-Mirror</label>
+                            <label for="hmirror">H-Mirror Stream</label>
                             <div class="switch">
                                 <input id="hmirror" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="hmirror"></label>
                             </div>
                         </div>
                         <div class="input-group" id="vflip-group">
-                            <label for="vflip">V-Flip</label>
+                            <label for="vflip">V-Flip Stream</label>
                             <div class="switch">
                                 <input id="vflip" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="vflip"></label>
                             </div>
                         </div>
                         <div class="input-group" id="rotate-group">
-                            <label for="rotate">Rotate</label>
+                            <label for="rotate">Rotate in Browser</label>
                             <select id="rotate" class="default-action">
-                                <option value="0" selected="selected">None</option>
-                                <option value="90">Rotate Right</option>
-                                <option value="-90">Rotate Left</option>
+                                <option value="90">90&deg; (Right)</option>
+                                <option value="0" selected="selected">0&deg; (None)</option>
+                                <option value="-90">-90&deg; (Left)</option>
                             </select>
                         </div>
                         <div class="input-group" id="dcw-group">

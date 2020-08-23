@@ -15,35 +15,32 @@
  *  The web UI has had minor changes to add the lamp control when present, I have made the 
  *  'Start Stream' controls more accessible, and add feedback of the camera name/firmware.
  *  
- *  
  * note: Make sure that you have either selected ESP32 AI Thinker,
  *       or another board which has PSRAM enabled to use high resolution camera modes
-*/
+ */
 
-// Select camera board model
-//#define CAMERA_MODEL_WROVER_KIT
-//#define CAMERA_MODEL_ESP_EYE
-//#define CAMERA_MODEL_M5STACK_PSRAM
-//#define CAMERA_MODEL_M5STACK_WIDE
-//#define CAMERA_MODEL_M5STACK_NO_PSRAM
-#define CAMERA_MODEL_AI_THINKER
 
-// Select camera module used on the board
-#define CAMERA_MODULE_OV2640
-//#define CAMERA_MODULE_OV3660
+/* 
+ *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' to 'myconfig.h' AND EDIT THAT.
+ *
+ * By default this sketch will assume an AI-THINKER ESP-CAM and create 
+ * an accesspoint called "ESP32-CAM-CONNECT" (password: "InsecurePassword")
+ *
+ */
 
 #if __has_include("myconfig.h")
   // I keep my settings in a seperate header file
   #include "myconfig.h"
 #else
-  // Default Setup; an accesspoint
-  // SSID and Password for the accesspoint we want to join, or create
-  char* ssid = "ESP32-CAM-CONNECT";
+  // These are the defaults.. dont edit these.
+  // copy myconfig.sample.h to myconfig.h and edit that instead
+  //  SSID, Password and Mode
+  const char* ssid = "ESP32-CAM-CONNECT";
   const char* password = "InsecurePassword";
-  // Accesspoint mode: comment out to join an existing network
-  #define WIFI_AP
-  // Optional fixed channel for accesspoint
-  // #define AP_CHAN 5
+  #define WIFI_AP_ENABLE
+  // Default Board and Camera:
+  #define CAMERA_MODEL_AI_THINKER
+  #define CAMERA_MODULE_OV2640
 #endif
 
 // A Name for the Camera. (can be set in myconfig.h)
@@ -61,13 +58,16 @@ char myRotation[5];
 
 #include "camera_pins.h"
 
-// Status and illumination LED's
-#ifdef LAMP_PIN 
-  int lampVal = 0; // Current Lamp value, range 0-100, Start off
+// Illumination LED's
+#ifdef LAMP_DISABLE
+  int lampVal = -1; // lamp disabled by config
+#elif LAMP_PIN 
+  int lampVal = 0; // current lamp value, range 0-100, default off
 #else 
-  int lampVal = -1; // disable Lamp
+  int lampVal = -1; // no lamp pin assigned
 #endif         
-int lampChannel = 7;     // a free PWM channel (some channels used by camera)
+
+int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
 const int pwmresolution = 9;   // duty cycle bit range
 // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
@@ -93,17 +93,19 @@ void setup() {
   #endif
 
   // set the initialisation for image rotation
-  int n = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION);
+  // ToDo; might be better to handle this with an enum?
+  int n __attribute__((unused)) = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION); 
 
 
 #ifdef LED_PIN  // If we have a notification LED set it to output
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LED_OFF); 
+    digitalWrite(LED_PIN, LED_OFF);
 #endif
 
 #ifdef LAMP_PIN
+  // ledcXXX functions are esp32 core pwm control functions
   ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
-  ledcWrite(lampChannel, lampVal);                // set initial value
+  ledcWrite(lampChannel, 0);                      // Off by default
   ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
   // Calculate the PWM scaling R factor: 
   // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
@@ -170,20 +172,32 @@ void setup() {
 #endif
 
   // Feedback that hardware init is complete and we are now attempting to connect
-  Serial.println("");
-  Serial.print("Connecting to Wifi Netowrk: ");
-  Serial.println(ssid);
+  Serial.println("Wifi Initialisation");
+  Serial.println();
   flashLED(400);
   delay(100);
 
-#ifdef WIFI_AP
-  Serial.println("Setting up AP");
+#ifdef WIFI_AP_ENABLE
   #ifdef AP_CHAN
     WiFi.softAP(ssid, password, AP_CHAN);
+    Serial.println("Setting up Fixed Channel AccessPoint");
+    Serial.print("SSID     : ");
+    Serial.println(ssid);
+    Serial.print("Password : ");
+    Serial.println(password);
+    Serial.print("Channel  : ");    
+    Serial.println(AP_CHAN);
   # else
     WiFi.softAP(ssid, password);
+    Serial.println("Setting up AccessPoint");
+    Serial.print("SSID     : ");
+    Serial.println(ssid);
+    Serial.print("Password : ");
+    Serial.println(password);
   #endif
 #else
+  Serial.print("Connecting to Wifi Network: ");
+  Serial.println(ssid);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -194,8 +208,8 @@ void setup() {
 #endif
 
   // feedback that we are connected
-  Serial.println("WiFi connected");
   Serial.println("");
+  Serial.println("WiFi connected");
   flashLED(200);
   delay(100);
   flashLED(200);
@@ -206,7 +220,7 @@ void setup() {
   startCameraServer();
 
   Serial.print("Camera Ready!  Use 'http://");
-#ifdef WIFI_AP
+#ifdef WIFI_AP_ENABLE
   Serial.print(WiFi.softAPIP());
 #else
   Serial.print(WiFi.localIP());

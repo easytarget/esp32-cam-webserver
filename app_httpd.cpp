@@ -20,6 +20,8 @@
 #include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
 
+//#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
+
 // Function+Globals needed for led and Lamp levels
 void flashLED(int flashtime); 
 extern int lampVal;        // The current Lamp value
@@ -88,20 +90,22 @@ static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     return filter;
 }
 
-static int ra_filter_run(ra_filter_t * filter, int value){
-    if(!filter->values){
-        return value;
-    }
-    filter->sum -= filter->values[filter->index];
-    filter->values[filter->index] = value;
-    filter->sum += filter->values[filter->index];
-    filter->index++;
-    filter->index = filter->index % filter->size;
-    if (filter->count < filter->size) {
-        filter->count++;
-    }
-    return filter->sum / filter->count;
-}
+#ifdef DEBUG_STREAM_DATA
+  static int ra_filter_run(ra_filter_t * filter, int value) {
+      if(!filter->values){
+          return value;
+      }
+      filter->sum -= filter->values[filter->index];
+      filter->values[filter->index] = value;
+      filter->sum += filter->values[filter->index];
+      filter->index++;
+      filter->index = filter->index % filter->size;
+      if (filter->count < filter->size) {
+          filter->count++;
+      }
+      return filter->sum / filter->count;
+  }
+#endif
 
 static void rgb_print(dl_matrix3du_t *image_matrix, uint32_t color, const char * str){
     fb_data_t fb;
@@ -325,13 +329,17 @@ static esp_err_t stream_handler(httpd_req_t *req){
     uint8_t * _jpg_buf = NULL;
     char * part_buf[64];
     dl_matrix3du_t *image_matrix = NULL;
-    bool detected = false;
     int face_id = 0;
-    int64_t fr_start = 0;
-    int64_t fr_ready = 0;
-    int64_t fr_face = 0;
-    int64_t fr_recognize = 0;
-    int64_t fr_encode = 0;
+    #ifdef DEBUG_STREAM_DATA
+      bool detected = false;
+      int64_t fr_start = 0;
+      int64_t fr_face = 0;
+      int64_t fr_recognize = 0;
+      int64_t fr_encode = 0;
+      int64_t fr_ready = 0;
+    #endif
+
+    Serial.println("Stream started:");
 
     flashLED(75); // little flash of status LED
 
@@ -348,18 +356,22 @@ static esp_err_t stream_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     while(true){
-        detected = false;
+        #ifdef DEBUG_STREAM_DATA
+          detected = false;
+        #endif
         face_id = 0;
         fb = esp_camera_fb_get();
         if (!fb) {
             Serial.println("Camera capture failed");
             res = ESP_FAIL;
         } else {
-            fr_start = esp_timer_get_time();
-            fr_ready = fr_start;
-            fr_face = fr_start;
-            fr_encode = fr_start;
-            fr_recognize = fr_start;
+            #ifdef DEBUG_STREAM_DATA
+              fr_start = esp_timer_get_time();
+              fr_ready = fr_start;
+              fr_face = fr_start; 
+              fr_encode = fr_start;
+              fr_recognize = fr_start;
+            #endif
             if(!detection_enabled || fb->width > 400){
                 if(fb->format != PIXFORMAT_JPEG){
                     bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
@@ -385,20 +397,28 @@ static esp_err_t stream_handler(httpd_req_t *req){
                         Serial.println("fmt2rgb888 failed");
                         res = ESP_FAIL;
                     } else {
-                        fr_ready = esp_timer_get_time();
+                        #ifdef DEBUG_STREAM_DATA
+                          fr_ready = esp_timer_get_time();
+                        #endif
                         box_array_t *net_boxes = NULL;
                         if(detection_enabled){
                             net_boxes = face_detect(image_matrix, &mtmn_config);
                         }
-                        fr_face = esp_timer_get_time();
-                        fr_recognize = fr_face;
+                        #ifdef DEBUG_STREAM_DATA
+                          fr_face = esp_timer_get_time();
+                          fr_recognize = fr_face;
+                        #endif
                         if (net_boxes || fb->format != PIXFORMAT_JPEG){
                             if(net_boxes){
-                                detected = true;
+                                #ifdef DEBUG_STREAM_DATA
+                                  detected = true;
+                                #endif
                                 if(recognition_enabled){
                                     face_id = run_face_recognition(image_matrix, net_boxes);
                                 }
-                                fr_recognize = esp_timer_get_time();
+                                #ifdef DEBUG_STREAM_DATA
+                                  fr_recognize = esp_timer_get_time();
+                                #endif
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
                                 free(net_boxes->score);
                                 free(net_boxes->box);
@@ -415,7 +435,9 @@ static esp_err_t stream_handler(httpd_req_t *req){
                             _jpg_buf = fb->buf;
                             _jpg_buf_len = fb->len;
                         }
-                        fr_encode = esp_timer_get_time();
+                        #ifdef DEBUG_STREAM_DATA
+                          fr_encode = esp_timer_get_time();
+                        #endif
                     }
                     dl_matrix3du_free(image_matrix);
                 }
@@ -442,25 +464,26 @@ static esp_err_t stream_handler(httpd_req_t *req){
         if(res != ESP_OK){
             break;
         }
-        int64_t fr_end = esp_timer_get_time();
 
-        int64_t ready_time = (fr_ready - fr_start)/1000;
-        int64_t face_time = (fr_face - fr_ready)/1000;
-        int64_t recognize_time = (fr_recognize - fr_face)/1000;
-        int64_t encode_time = (fr_encode - fr_recognize)/1000;
-        int64_t process_time = (fr_encode - fr_start)/1000;
-        
-        int64_t frame_time = fr_end - last_frame;
-        last_frame = fr_end;
-        frame_time /= 1000;
-        uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
-        Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
-            (uint32_t)(_jpg_buf_len),
-            (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
-            avg_frame_time, 1000.0 / avg_frame_time,
-            (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
-            (detected)?"DETECTED ":"", face_id
-        );
+        #ifdef DEBUG_STREAM_DATA
+          int64_t fr_end = esp_timer_get_time();
+          int64_t ready_time = (fr_ready - fr_start)/1000;
+          int64_t face_time = (fr_face - fr_ready)/1000;
+          int64_t recognize_time = (fr_recognize - fr_face)/1000;
+          int64_t encode_time = (fr_encode - fr_recognize)/1000;
+          int64_t process_time = (fr_encode - fr_start)/1000;
+          int64_t frame_time = fr_end - last_frame;
+          last_frame = fr_end;
+          frame_time /= 1000;
+          uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
+          Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
+              (uint32_t)(_jpg_buf_len),
+              (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
+              avg_frame_time, 1000.0 / avg_frame_time,
+              (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
+              (detected)?"DETECTED ":"", face_id
+          );
+        #endif
     }
 
     last_frame = 0;
@@ -545,7 +568,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
       Serial.print("Lamp: ");
       lampVal = val;
-      if (lampVal > 100) lampVal = 100;  // normalise 0-255 (pwm range) just in case..
+      if (lampVal > 100) lampVal = 100;  // normalise 0-255 (pwm range) just in case..f
       if (lampVal < 0 ) lampVal = 0;
       // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
       int brightness = pow (2, (lampVal / lampR)) - 1;
@@ -605,7 +628,6 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
-    // Serial.printf("Status Rotate \"%s\"\n",myRotation); 
     p+=sprintf(p, "\"rotate\":\"%s\"", myRotation);
     *p++ = '}';
     *p++ = 0;
