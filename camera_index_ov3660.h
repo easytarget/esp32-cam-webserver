@@ -541,11 +541,11 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <div class="input-group" id="rotate-group">
-                            <label for="rotate">Rotate</label>
-                            <select id="rotate" class="rotate-action">
-                                <option value="0" selected="selected">None</option>
-                                <option value="90">Rotate Right</option>
-                                <option value="-90">Rotate Left</option>
+                            <label for="rotate">Rotate in Browser</label>
+                            <select id="rotate" class="default-action">
+                                <option value="90">90&deg; (Right)</option>
+                                <option value="0" selected="selected">0&deg; (None)</option>
+                                <option value="-90">-90&deg; (Left)</option>
                             </select>
                         </div>
                         <div class="input-group" id="bpc-group">
@@ -644,6 +644,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
     const lampGroup = document.getElementById('lamp-group')
     const camName = document.getElementById('cam_name')
     const codeVer = document.getElementById('code_ver')
+    const rotate = document.getElementById('rotate')
+    
     
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
@@ -671,6 +673,11 @@ document.addEventListener('DOMContentLoaded', function (event) {
         window.document.title = value;
       } else if(el.id === "code_ver"){
         codeVer.innerHTML = value;
+      } else if(el.id === "rotate"){
+        rotate.value = value;
+        // setting value does not induce a onchange event
+        // this sets the figure transform css values
+        rotate.onchange();
       }
     }
   }
