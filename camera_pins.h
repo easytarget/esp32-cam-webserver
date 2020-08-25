@@ -148,5 +148,5 @@
 
 #else
 // that went badly...
-#error "Camera model not selected"
+#error "Camera model not selected, did you forget to uncomment it in myconfig?"
 #endif

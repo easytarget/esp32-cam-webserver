@@ -14,13 +14,13 @@ const char* password = "my-access-point-password";
 //  (nb: this is not the network hostname)
 #define CAM_NAME "ESP32 camera server"
 
-// Initial rotation 
+// Initial rotation (one of: -90,0,90)
 // #define CAM_ROTATION 0
 
 // Uncomment to disable the led/lamp feature
 // #define LAMP_DISABLE
 
-// Uncomment to select your board model
+// Uncomment one, and only one, of the lines below to select your board model.
 // Remember to select the appropriate board in the Boards Manager of your IDE/toolchain
 #define CAMERA_MODEL_AI_THINKER       // default
 //#define CAMERA_MODEL_WROVER_KIT
@@ -28,7 +28,3 @@ const char* password = "my-access-point-password";
 //#define CAMERA_MODEL_M5STACK_PSRAM
 //#define CAMERA_MODEL_M5STACK_WIDE
 //#define CAMERA_MODEL_M5STACK_NO_PSRAM
-
-// Select camera module used on the board
-#define CAMERA_MODULE_OV2640          // default
-//#define CAMERA_MODULE_OV3660

@@ -40,7 +40,6 @@
   #define WIFI_AP_ENABLE
   // Default Board and Camera:
   #define CAMERA_MODEL_AI_THINKER
-  #define CAMERA_MODULE_OV2640
 #endif
 
 // A Name for the Camera. (can be set in myconfig.h)
