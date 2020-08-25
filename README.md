@@ -19,9 +19,10 @@ I have four [AI-THINKER ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thi
 
 * For some other good examples and information on ESP32 based webcams I also recommend the sketches here:
 https://github.com/raphaelbs/esp32-cam-ai-thinker
-
 * The AI thinker wiki can be quite informative, when run through an online translator and read sensibly:
 https://wiki.ai-thinker.com/esp32-cam
+* Default pinouts are also included for WRover Kit, ESP Eye and M5Stack esp32 camera modules. 
+  I do not have any of these boards, so they are untested by me. Please [let me know](https://github.com/easytarget/esp32-cam-webserver/issues) if you find issues or have a board not [in the list](./camera_pins.h).
 
 ## Troubleshooting:
 
@@ -31,13 +32,14 @@ https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 ## Setup:
 
 * For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
-* Follow [This Guide](https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md) to set up the Espressif Arduino core in the IDE.
-* The AI-THINKER board requires use of an external **3.3v** serial adapter to program; I use a `FTDI Friend` adapter, for more about this read AdaFruits excellent [FTDI Friend guide](https://learn.adafruit.com/ftdi-friend). 
+* Make sure you are using the [latest version](https://www.arduino.cc/en/main/software#download) of the IDE and then follow [This Guide](https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md) to set up the Espressif Arduino core for the IDE.
+* If you have a development board (anything that can be programmed via a standard USB cable/jack on the board itself) you are in luck. Just plug it in and skip ahead to the [config](#config) section. Remember to set your board model.
+* The AI-THINKER board requires use of an external **3.3v** serial adapter to program; I use a `FTDI Friend` adapter, for more about this read AdaFruits excellent [FTDI Friend guide](https://learn.adafruit.com/ftdi-friend).
 * Be careful not to use a 5v serial adapter since this will damage the ESP32.
 
-### Wiring
+### Wiring for AI-THINKER Boards (and similar clone-alikes)
 
-Is pretty simple, see the diagram below.
+Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below.
 ![Hoockup](Docs/hookup.png)
 * Connect the **RX** line from the serial adapter to the **TX** pin on ESP32
 * The adapters **TX** line goes to the ESP32 **RX** pin
@@ -46,13 +48,15 @@ Is pretty simple, see the diagram below.
 
 ### Config
 
-You need to set the Board you are using in the main `esp32-cam-webserver.ino` sketch file, it defaults to the AI-THINKER, but the WRover Kit, ESP Eye and M5Stack are also availiable.
+By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
 
-You can also set the camera name plus SSID and password for your WiFi network in that file, or follow the notes about using a separate file for your settings.
+To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` 
+
+You can now set a camera name, board model, wifi and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
-Assuming you are using the latest Espressif Arduino core the AI-THINKER board will appear in the ESP32 Arduino section of the boards list. 
+Assuming you are using the latest Espressif Arduino core the AI-THINKER board (or whatever you use) will appear in the ESP32 Arduino section of the boards list. 
 
 ![IDE board config](Docs/board-selection-small.png)
 
@@ -65,6 +69,7 @@ If you have a status LED configured it will give a single slow flash when it beg
 Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
 
 ## My Modifications:
+
 The basic example is extended to allow control of a high power LED FlashLamps, which are present on my modules. It can also blink a status LED to show when it connects to WiFi.
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
@@ -78,13 +83,24 @@ The web UI has had minor changes to add the lamp control (only when enabled), I 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
 ## Notes: 
+
 * I only have AI-THINKER modules with OV2640 camera installed; so I have only been able to test with this combination. I have attempted to preserve all the code for other boards and the OV3660 module, and I have merged all changes for the WebUI etc, but I cannot guarantee operation for these.
 * I created a small board with a handy switch for power, a pushbutton for the GPIO0 programming switch, and a socket for the AI-THINKER board. This proved very useful for development work and programming multiple devices.
 * I found some excellent [cases on Thingieverse](https://www.thingiverse.com/thing:3708345).
 
 ![Cameras and a Programmer](Docs/webcams.programmer.jpg)
 
+## Contributing
+
+Contributions are welcome!
+
+To make a PR please first fork the repo in github, and make a branch in that fork with a sensible name. Apply your changes to that branch (and test if you can), commit and then create a PR to merge to a branch of the same name in my repo.
+
+Please do not submit PR's onto the master branch of my repo unless they are very trivial (spellings etc). Make sure your changes are consistent with the style and purpose of the existing code; and provide a coherent explanation of what/why in the PR. 
+
 ## Plans
+
+You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
 * Improve Wifi, add a captive portal for setup and fallback, better disconnect/reconnect behaviour.
 * The module has a SD/TF card slot; this is currently unused, but I would like to add the ability to store snapshots; recording Video at low resolution may be possible, but the card interface is too slow for HD video as far as I know.
 * Remove face rcognition to save a Mb+ of code space and then implement over the air updates.
