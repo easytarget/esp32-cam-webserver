@@ -156,23 +156,33 @@ void setup() {
   }
 
   sensor_t * s = esp_camera_sensor_get();
-  //initial sensors are flipped vertically and colors are a bit saturated
+  // Dump camera module, warn for unsupported modules.
+  switch (s->id.PID) {
+    case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
+    case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
+    case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
+    case OV3660_PID: Serial.println("OV3660 camera module detected"); break;
+    // case OV5640_PID: Serial.println("WARNING: OV5640 camera module is not properly supported, will fallback to OV2640 operation"); break;
+    default: Serial.println("WARNING: Camera module is unknown and not properly supported, will fallback to OV2640 operation");
+  }
+
+  // OV3660 initial sensors are flipped vertically and colors are a bit saturated
   if (s->id.PID == OV3660_PID) {
     s->set_vflip(s, 1);//flip it back
     s->set_brightness(s, 1);//up the blightness just a bit
     s->set_saturation(s, -2);//lower the saturation
   }
+
   //drop down frame size for higher initial frame rate
   s->set_framesize(s, FRAMESIZE_SVGA);
 
-#if defined(CAMERA_MODEL_M5STACK_WIDE)
-  s->set_vflip(s, 1);
-  s->set_hmirror(s, 1);
-#endif
+  #if defined(CAMERA_MODEL_M5STACK_WIDE)
+    s->set_vflip(s, 1);
+    s->set_hmirror(s, 1);
+  #endif
 
   // Feedback that hardware init is complete and we are now attempting to connect
   Serial.println("Wifi Initialisation");
-  Serial.println();
   flashLED(400);
   delay(100);
 
@@ -207,7 +217,6 @@ void setup() {
 #endif
 
   // feedback that we are connected
-  Serial.println("");
   Serial.println("WiFi connected");
   flashLED(200);
   delay(100);
@@ -218,6 +227,7 @@ void setup() {
   // Start the Stream server, and the handler processes for the Web UI.
   startCameraServer();
 
+  Serial.println();
   Serial.print("Camera Ready!  Use 'http://");
 #ifdef WIFI_AP_ENABLE
   Serial.print(WiFi.softAPIP());
@@ -225,6 +235,7 @@ void setup() {
   Serial.print(WiFi.localIP());
 #endif
   Serial.println("' to connect");
+  Serial.println();
 }
 
 // Notification LED 
