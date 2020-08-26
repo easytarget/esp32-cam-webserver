@@ -14,7 +14,8 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                 font-size: 16px
             }
 
-            a { color: #EFEFEF;
+            a {
+                color: #EFEFEF;
                 text-decoration: underline
             }
 
@@ -582,7 +583,9 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                             <div id="cam_name" class="default-action"></div>
                         </div>
                         <div class="input-group" id="code_ver-group">
-                            <label for="code_ver"><a href="https://github.com/easytarget/esp32-cam-webserver" alt="Open Source">Firmware</a>:</label>
+                            <label for="code_ver">
+                            <a href="https://github.com/easytarget/esp32-cam-webserver"
+                               title="Homepage" target="_blank">Firmware</a>:</label>
                             <div id="code_ver" class="default-action"></div>
                         </div>
 
