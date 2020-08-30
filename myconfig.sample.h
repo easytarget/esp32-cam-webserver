@@ -22,9 +22,12 @@ const char* password = "my-access-point-password";
 
 // Uncomment one, and only one, of the lines below to select your board model.
 // Remember to select the appropriate board in the Boards Manager of your IDE/toolchain
+// This is not optional
 #define CAMERA_MODEL_AI_THINKER       // default
 //#define CAMERA_MODEL_WROVER_KIT
 //#define CAMERA_MODEL_ESP_EYE
 //#define CAMERA_MODEL_M5STACK_PSRAM
+//#define CAMERA_MODEL_M5STACK_V2_PSRAM
 //#define CAMERA_MODEL_M5STACK_WIDE
-//#define CAMERA_MODEL_M5STACK_NO_PSRAM
+//#define CAMERA_MODEL_M5STACK_ESP32CAM   // Originally: CAMERA_MODEL_M5STACK_NO_PSRAM
+//#define CAMERA_MODEL_TTGO_T_JOURNAL
