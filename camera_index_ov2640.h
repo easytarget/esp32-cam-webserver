@@ -372,7 +372,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                 <div id="sidebar">
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
-                        <div class="input-group" id="lamp-group">
+                        <div class="input-group hidden" id="lamp-group">
                             <label for="lamp">Light</label>
                             <div class="range-min">Off</div>
                             <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
@@ -384,7 +384,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
-                                <option value="7" selected="selected">SVGA(800x600)</option>
+                                <option value="7">SVGA(800x600)</option>
                                 <option value="6">VGA(640x480)</option>
                                 <option value="5">CIF(400x296)</option>
                                 <option value="4">QVGA(320x240)</option>
