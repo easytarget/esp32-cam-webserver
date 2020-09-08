@@ -33,11 +33,11 @@ const char* password = "my-password";
 
 // Static network settings for use when connected to existing network when DHCP is unavailable/unreliable
 // You must define all three: IP, Gateway and NetMask
-// #define ST_IP      192,168,0,44
-// #define ST_GATEWAY 192,168,0,1 
+// #define ST_IP      192,168,0,16
+// #define ST_GATEWAY 192,168,0,2 
 // #define ST_NETMASK 255,255,255,0
 // one or two optional DNS servers can be supplied, but these are not used by current code.
-// #define ST_DNS1 192,168,0,1
+// #define ST_DNS1 192,168,0,2
 // #define ST_DNS2 8,8,8,8
 
 

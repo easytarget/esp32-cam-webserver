@@ -6,6 +6,8 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>ESP32 OV3660</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <style>
             body {
                 font-family: Arial,Helvetica,sans-serif;
@@ -619,9 +621,26 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
     </body>
 
     <script>
+    
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin;
   var streamURL = 'Undefined';
+
+  const lampGroup = document.getElementById('lamp-group')
+  const streamGroup = document.getElementById('stream-group')
+  const camName = document.getElementById('cam_name')
+  const codeVer = document.getElementById('code_ver')
+  const rotate = document.getElementById('rotate')
+  const view = document.getElementById('stream')
+  const viewContainer = document.getElementById('stream-container')
+  const stillButton = document.getElementById('get-still')
+  const streamButton = document.getElementById('toggle-stream')
+  const enrollButton = document.getElementById('face_enroll')
+  const closeButton = document.getElementById('close-stream')
+  const streamLink = document.getElementById('stream_url')
+  const detect = document.getElementById('face_detect')
+  const recognize = document.getElementById('face_recognize')
+  const framesize = document.getElementById('framesize')
 
   const hide = el => {
     el.classList.add('hidden')
@@ -652,13 +671,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
       el.value = value
     }
 
-    const lampGroup = document.getElementById('lamp-group')
-    const streamGroup = document.getElementById('stream-group')
-    const camName = document.getElementById('cam_name')
-    const codeVer = document.getElementById('code_ver')
-    const rotate = document.getElementById('rotate')
-    
-    
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
     } else if(!updateRemote){
@@ -695,6 +707,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
         stream_url.style.textDecoration = "underline";
         stream_url.style.cursor = "pointer";
         streamURL = value;
+        streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
         show(streamGroup)
       } 
     }
@@ -747,13 +760,8 @@ document.addEventListener('DOMContentLoaded', function (event) {
         })
     })
 
-  const view = document.getElementById('stream')
-  const viewContainer = document.getElementById('stream-container')
-  const stillButton = document.getElementById('get-still')
-  const streamButton = document.getElementById('toggle-stream')
-  const enrollButton = document.getElementById('face_enroll')
-  const closeButton = document.getElementById('close-stream')
-  const streamLink = document.getElementById('stream_url')
+  // Put some helpful text on the 'Still' button
+  stillButton.setAttribute("title", `You can also browse to '${baseHost}/capture' for standalone images`);
 
   const stopStream = () => {
     window.stop();
@@ -767,11 +775,12 @@ document.addEventListener('DOMContentLoaded', function (event) {
     streamButton.innerHTML = 'Stop Stream';
   }
 
+  // Attach actions to controls
+  
   streamLink.onclick = () => {
     window.open(streamURL, "_blank");
   }
 
-  // Attach actions to buttons
   stillButton.onclick = () => {
     stopStream();
     view.src = `${baseHost}/capture?_cb=${Date.now()}`;
@@ -834,11 +843,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
   }
 
   // Detection and framesize
-  const detect = document.getElementById('face_detect')
-  const recognize = document.getElementById('face_recognize')
-  const framesize = document.getElementById('framesize')
-  const rotate = document.getElementById('rotate')
-
   rotate.onchange = () => {
     rot = rotate.value;
     if (rot == -90) {

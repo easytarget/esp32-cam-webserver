@@ -338,7 +338,7 @@ void setLamp(int newVal) {
     int brightness = round((pow(2,(1+(newVal*0.02)))-2)/6*pwmMax);
     ledcWrite(lampChannel, brightness);
     Serial.print("Lamp: ");
-    Serial.print(lampVal);
+    Serial.print(newVal);
     Serial.print("%, pwm = ");
     Serial.println(brightness);
   }
