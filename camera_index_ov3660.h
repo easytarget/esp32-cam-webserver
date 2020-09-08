@@ -598,7 +598,7 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         <div class="input-group" id="code_ver-group">
                             <label for="code_ver">
                             <a href="https://github.com/easytarget/esp32-cam-webserver"
-                               title="Homepage" target="_blank">Firmware</a>:</label>
+                               title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a>:</label>
                             <div id="code_ver" class="default-action"></div>
                         </div>
                         <div class="input-group hidden" id="stream-group">
@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   }
 
   const startStream = () => {
-    view.src = `${streamBase}:${streamPort}/stream`;
+    view.src = streamURL;
     show(viewContainer);
     view.scrollIntoView(false);
     streamButton.innerHTML = 'Stop Stream';
