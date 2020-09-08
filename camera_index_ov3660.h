@@ -372,7 +372,7 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                 <div id="sidebar">
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
-                        <div class="input-group" id="lamp-group">
+                        <div class="input-group hidden" id="lamp-group">
                             <label for="lamp">Light</label>
                             <div class="range-min">Off</div>
                             <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
@@ -385,7 +385,7 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
-                                <option value="7" selected="selected">SVGA(800x600)</option>
+                                <option value="7">SVGA(800x600)</option>
                                 <option value="6">VGA(640x480)</option>
                                 <option value="5">CIF(400x296)</option>
                                 <option value="4">QVGA(320x240)</option>
@@ -532,14 +532,14 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <div class="input-group" id="hmirror-group">
-                            <label for="hmirror">H-Mirror</label>
+                            <label for="hmirror">H-Mirror Stream</label>
                             <div class="switch">
                                 <input id="hmirror" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="hmirror"></label>
                             </div>
                         </div>
                         <div class="input-group" id="vflip-group">
-                            <label for="vflip">V-Flip</label>
+                            <label for="vflip">V-Flip Stream</label>
                             <div class="switch">
                                 <input id="vflip" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="vflip"></label>
@@ -601,6 +601,10 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                title="Homepage" target="_blank">Firmware</a>:</label>
                             <div id="code_ver" class="default-action"></div>
                         </div>
+                        <div class="input-group hidden" id="stream-group">
+                            <label for="stream_port"><div id="stream_reference">Stream Port:</div></label>
+                            <div id="stream_port" class="default-action">Unknown</div>
+                        </div>
 
                     </nav>
                 </div>
@@ -616,8 +620,10 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
 
     <script>
 document.addEventListener('DOMContentLoaded', function (event) {
-  var baseHost = document.location.origin
-  var streamUrl = baseHost + ':81'
+  var baseHost = document.location.origin;
+  var streamHost = document.location.hostname;
+  var streamPort = 81;
+  var streamBase = 'http://' + streamHost;
 
   const hide = el => {
     el.classList.add('hidden')
@@ -649,6 +655,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     const lampGroup = document.getElementById('lamp-group')
+    const streamGroup = document.getElementById('stream-group')
     const camName = document.getElementById('cam_name')
     const codeVer = document.getElementById('code_ver')
     const rotate = document.getElementById('rotate')
@@ -683,9 +690,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
       } else if(el.id === "rotate"){
         rotate.value = value;
         // setting value does not induce a onchange event
-        // this sets the figure transform css values
         rotate.onchange();
-      }
+      } else if(el.id === "stream_port"){
+        streamPort = value;
+        stream_port.innerHTML = value;
+        stream_reference.innerHTML = '<a href="' + streamBase + ':' + value + '/stream' +'" title="Open Stream in new window" target="_blank">Stream Port</a>:';
+        show(streamGroup)
+      } 
     }
   }
 
@@ -745,40 +756,40 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
   const stopStream = () => {
     window.stop();
-    streamButton.innerHTML = 'Start Stream'
+    streamButton.innerHTML = 'Start Stream';
   }
 
   const startStream = () => {
-    view.src = `${streamUrl}/stream`
-    show(viewContainer)
+    view.src = `${streamBase}:${streamPort}/stream`;
+    show(viewContainer);
     view.scrollIntoView(false);
-    streamButton.innerHTML = 'Stop Stream'
+    streamButton.innerHTML = 'Stop Stream';
   }
 
   // Attach actions to buttons
   stillButton.onclick = () => {
-    stopStream()
-    view.src = `${baseHost}/capture?_cb=${Date.now()}`
-    show(viewContainer)
+    stopStream();
+    view.src = `${baseHost}/capture?_cb=${Date.now()}`;
+    show(viewContainer);
     view.scrollIntoView(false);
   }
 
   closeButton.onclick = () => {
-    stopStream()
-    hide(viewContainer)
+    stopStream();
+    hide(viewContainer);
   }
 
   streamButton.onclick = () => {
     const streamEnabled = streamButton.innerHTML === 'Stop Stream'
     if (streamEnabled) {
-      stopStream()
+      stopStream();
     } else {
-      startStream()
+      startStream();
     }
   }
 
   enrollButton.onclick = () => {
-    updateConfig(enrollButton)
+    updateConfig(enrollButton);
   }
 
   // Attach default on change action
@@ -875,5 +886,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 </html>
 )=====";
-
 size_t index_ov3660_html_len = sizeof(index_ov3660_html);

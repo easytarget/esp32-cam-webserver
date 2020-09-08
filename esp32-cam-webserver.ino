@@ -28,10 +28,12 @@
  *
  */
 
+// Primary config, or defaults.
 #if __has_include("myconfig.h")
   // I keep my settings in a seperate header file
   #include "myconfig.h"
 #else
+  #warning "Using Default Settings: Copy myconfig.sample.h to myconfig.h and edit that to set your personal defaults"
   // These are the defaults.. dont edit these.
   // copy myconfig.sample.h to myconfig.h and edit that instead
   //  SSID, Password and Mode
@@ -42,11 +44,29 @@
   #define CAMERA_MODEL_AI_THINKER
 #endif
 
-// A Name for the Camera. (can be set in myconfig.h)
+// Pin Mappings
+#include "camera_pins.h"
+
+// Declare external function from app_httpd.cpp
+void startCameraServer(int hPort, int sPort);
+
+// A Name for the Camera. (set in myconfig.h)
 #ifdef CAM_NAME
   char myName[] = CAM_NAME;
 #else
   char myName[] = "ESP32 camera server";
+#endif
+
+// Ports for http and stream (override in myconfig.h)
+#if defined(HTTP_PORT)
+  int httpPort = HTTP_PORT;
+#else
+  int httpPort = 80;
+#endif
+#if defined(STREAM_PORT)
+  int streamPort = STREAM_PORT;
+#else
+  int streamPort = 81;
 #endif
 
 // This will be displayed to identify the firmware
@@ -55,13 +75,15 @@ char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 // current rotation direction
 char myRotation[5];
 
-#include "camera_pins.h"
-
-// Illumination LED's
-#ifdef LAMP_DISABLE
-  int lampVal = -1; // lamp disabled by config
-#elif LAMP_PIN 
-  int lampVal = 0; // current lamp value, range 0-100, default off
+// Illumination LAMP/LED
+#if defined(LAMP_DISABLE)
+  int lampVal = -1; // lamp is disabled in config
+#elif defined(LAMP_PIN)
+  #if defined(LAMP_DEFAULT)
+    int lampVal = constrain(LAMP_DEFAULT,0,100); // initial lamp value, range 0-100
+  #else
+    int lampVal = 0; //default to off
+  #endif
 #else 
   int lampVal = -1; // no lamp pin assigned
 #endif         
@@ -69,11 +91,20 @@ char myRotation[5];
 int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
 const int pwmresolution = 9;   // duty cycle bit range
-// https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
-const int pwmIntervals = 100;  // The number of Steps between the output being on and off
-float lampR;                   // The R value in the PWM graph equation (calculated in setup)
+const int pwmMax = pow(2,pwmresolution)-1;
 
-void startCameraServer();
+#if defined(FACE_DETECTION)
+  int8_t detection_enabled = 1;
+  #if defined(FACE_RECOGNITION)
+    int8_t recognition_enabled = 1;
+  #else
+    int8_t recognition_enabled = 0;
+  #endif
+#else
+  int8_t detection_enabled = 0;
+  int8_t recognition_enabled = 0;
+#endif
+
 
 void setup() {
   Serial.begin(115200);
@@ -87,7 +118,7 @@ void setup() {
 
   // initial rotation
   // can be set in myconfig.h
-  #ifndef CAM_ROTATION
+  #if !defined(CAM_ROTATION)
     #define CAM_ROTATION 0
   #endif
 
@@ -96,21 +127,19 @@ void setup() {
   int n __attribute__((unused)) = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION); 
 
 
-#ifdef LED_PIN  // If we have a notification LED set it to output
+  #if defined(LED_PIN)  // If we have a notification LED, set it to output
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LED_OFF);
-#endif
+  #endif
 
-#ifdef LAMP_PIN
-  // ledcXXX functions are esp32 core pwm control functions
-  ledcSetup(lampChannel, pwmfreq, pwmresolution); // configure LED PWM channel
-  ledcWrite(lampChannel, 0);                      // Off by default
-  ledcAttachPin(LAMP_PIN, lampChannel);           // attach the GPIO pin to the channel 
-  // Calculate the PWM scaling R factor: 
-  // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
-  lampR = (pwmIntervals * log10(2))/(log10(pow(2,pwmresolution)));
-#endif
-
+  if (lampVal != -1) {
+    ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
+    setLamp(lampVal);                                // set default value
+    ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+  } else {
+    Serial.println("No lamp, or lamp disabled in config");
+  }
+   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -132,7 +161,7 @@ void setup() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  //init with high specs to pre-allocate larger buffers
+  //init with highest supported specs to pre-allocate large buffers
   if(psramFound()){
     config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10;
@@ -143,10 +172,10 @@ void setup() {
     config.fb_count = 1;
   }
 
-#if defined(CAMERA_MODEL_ESP_EYE)
-  pinMode(13, INPUT_PULLUP);
-  pinMode(14, INPUT_PULLUP);
-#endif
+  #if defined(CAMERA_MODEL_ESP_EYE)
+    pinMode(13, INPUT_PULLUP);
+    pinMode(14, INPUT_PULLUP);
+  #endif
 
   // camera init
   esp_err_t err = esp_camera_init(&config);
@@ -173,12 +202,25 @@ void setup() {
     s->set_saturation(s, -2);//lower the saturation
   }
 
-  //drop down frame size for higher initial frame rate
-  s->set_framesize(s, FRAMESIZE_SVGA);
-
+  // M5 Stack Wide has special needs
   #if defined(CAMERA_MODEL_M5STACK_WIDE)
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);
+  #endif
+
+  // Config can override mirror and flip
+  #if defined(H_MIRROR)
+    s->set_hmirror(s, H_MIRROR);
+  #endif
+  #if defined(V_FLIP)
+    s->set_vflip(s, V_FLIP);
+  #endif
+
+  // set initial frame rate
+  #if defined(DEFAULT_RESOLUTION)
+    s->set_framesize(s, DEFAULT_RESOLUTION);
+  #else
+    s->set_framesize(s, FRAMESIZE_SVGA);
   #endif
 
   // Feedback that hardware init is complete and we are now attempting to connect
@@ -186,61 +228,90 @@ void setup() {
   flashLED(400);
   delay(100);
 
-#ifdef WIFI_AP_ENABLE
-  #ifdef AP_CHAN
-    WiFi.softAP(ssid, password, AP_CHAN);
-    Serial.println("Setting up Fixed Channel AccessPoint");
-    Serial.print("SSID     : ");
+  #if defined(WIFI_AP_ENABLE)
+    #if defined(AP_ADDRESS)
+      IPAddress local_IP(AP_ADDRESS);
+      IPAddress gateway(AP_ADDRESS);
+      IPAddress subnet(255,255,255,0);
+      WiFi.softAPConfig(local_IP, gateway, subnet);
+    #endif
+    #if defined(AP_CHAN)
+      WiFi.softAP(ssid, password, AP_CHAN);
+      Serial.println("Setting up Fixed Channel AccessPoint");
+      Serial.print("SSID     : ");
+      Serial.println(ssid);
+      Serial.print("Password : ");
+      Serial.println(password);
+      Serial.print("Channel  : ");    
+      Serial.println(AP_CHAN);
+    # else
+      WiFi.softAP(ssid, password);
+      Serial.println("Setting up AccessPoint");
+      Serial.print("SSID     : ");
+      Serial.println(ssid);
+      Serial.print("Password : ");
+      Serial.println(password);
+    #endif
+  #else
+    Serial.print("Connecting to Wifi Network: ");
     Serial.println(ssid);
-    Serial.print("Password : ");
-    Serial.println(password);
-    Serial.print("Channel  : ");    
-    Serial.println(AP_CHAN);
-  # else
-    WiFi.softAP(ssid, password);
-    Serial.println("Setting up AccessPoint");
-    Serial.print("SSID     : ");
-    Serial.println(ssid);
-    Serial.print("Password : ");
-    Serial.println(password);
+    #if defined(ST_IP)
+      #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK) 
+        #error "You must supply both Gateway and NetMask when specifying a static IP address"
+      #endif
+      IPAddress staticIP(ST_IP);
+      IPAddress gateway(ST_GATEWAY);
+      IPAddress subnet(ST_NETMASK);
+      #if !defined(ST_DNS1)
+        WiFi.config(staticIP, gateway, subnet);
+      #else
+        IPAddress dns1(ST_DNS1);
+        #if !defined(ST_DNS2)
+          WiFi.config(staticIP, gateway, subnet, dns1);
+        #else
+          IPAddress dns2(ST_DNS2);
+          WiFi.config(staticIP, gateway, subnet, dns1, dns2);
+        #endif
+      #endif
+    #endif
+      
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
+                   // - It would be good to do something else here as a future enhancement.
+                   //   (eg: go to a captive AP config portal to configure the wifi)
+    }
+
+    // feedback that we are connected
+    Serial.println("WiFi connected");
+    flashLED(200);
+    delay(100);
+    flashLED(200);
+    delay(100);
+    flashLED(200);
   #endif
-#else
-  Serial.print("Connecting to Wifi Network: ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
-                 // - It would be good to do something else here as a future enhancement.
-                 //   (eg: go to a captive AP config portal to configure the wifi)
-  }
-#endif
-
-  // feedback that we are connected
-  Serial.println("WiFi connected");
-  flashLED(200);
-  delay(100);
-  flashLED(200);
-  delay(100);
-  flashLED(200);
 
   // Start the Stream server, and the handler processes for the Web UI.
-  startCameraServer();
+  startCameraServer(httpPort, streamPort);
 
   Serial.println();
   Serial.print("Camera Ready!  Use 'http://");
-#ifdef WIFI_AP_ENABLE
-  Serial.print(WiFi.softAPIP());
-#else
-  Serial.print(WiFi.localIP());
-#endif
-  Serial.println("' to connect");
+  #if defined(WIFI_AP_ENABLE)
+    Serial.print(WiFi.softAPIP());
+  #else
+    Serial.print(WiFi.localIP());
+  #endif
+  if (httpPort != 80) {
+    Serial.print(":");
+    Serial.print(httpPort);
+  }
+  Serial.println("/' to connect");
   Serial.println();
 }
 
 // Notification LED 
-void flashLED(int flashtime)
-{
+void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
   digitalWrite(LED_PIN, LED_ON);  // On at full power.
   delay(flashtime);               // delay
@@ -250,6 +321,17 @@ void flashLED(int flashtime)
 #endif
 } 
 
+// Lamp Control
+void setLamp(int newVal) {
+  if (newVal != -1) {
+    int brightness = pwmMax * float(newVal*0.01);  // calculate value
+    ledcWrite(lampChannel, brightness);            // and set it
+    Serial.print("Lamp: ");
+    Serial.print(lampVal);
+    Serial.print("%, pwm = ");
+    Serial.println(brightness);
+  }
+} 
 
 void loop() {
   // Just loop forever.

@@ -22,16 +22,18 @@
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
 
-// Function+Globals needed for led and Lamp levels
-void flashLED(int flashtime); 
-extern int lampVal;        // The current Lamp value
-extern int lampChannel;    // PWM channel Lamp is attached to 
-extern float lampR;        // The R value in the graph equation
+// Functions from the main .ino
+void flashLED(int flashtime);
+void setLamp(int newVal);
 
-// Info we pass to the webapp
+// External variables declared in main .ino
 extern char myName[];
 extern char myVer[];
 extern char myRotation[];
+extern int lampVal;     // The current Lamp value
+extern int streamPort;  // Port number for stream URL
+extern int8_t detection_enabled;
+extern int8_t recognition_enabled;
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -72,8 +74,6 @@ httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
 
 static mtmn_config_t mtmn_config = {0};
-static int8_t detection_enabled = 0;
-static int8_t recognition_enabled = 0;
 static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
@@ -566,16 +566,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         }
     }
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
-      Serial.print("Lamp: ");
-      lampVal = val;
-      if (lampVal > 100) lampVal = 100;  // normalise 0-255 (pwm range) just in case..f
-      if (lampVal < 0 ) lampVal = 0;
-      // https://diarmuid.ie/blog/pwm-exponential-led-fading-on-arduino-or-other-platforms
-      int brightness = pow (2, (lampVal / lampR)) - 1;
-      ledcWrite(lampChannel, brightness);
-      Serial.print(lampVal);
-      Serial.print("%, pwm = ");
-      Serial.println(brightness);
+      lampVal = constrain(val,0,100);
+      setLamp(lampVal);
     }
     else {
         res = -1;
@@ -628,7 +620,9 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
-    p+=sprintf(p, "\"rotate\":\"%s\"", myRotation);
+    p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
+    p+=sprintf(p, "\"stream_port\":%i,", streamPort);
+    p+=sprintf(p, "\"http\":%i", 80);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
@@ -649,7 +643,7 @@ static esp_err_t index_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
 }
 
-void startCameraServer(){
+void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
     httpd_uri_t index_uri = {
@@ -706,6 +700,8 @@ void startCameraServer(){
     
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
     
+    config.server_port = hPort;
+    config.ctrl_port = hPort;
     Serial.printf("Starting web server on port: '%d'\n", config.server_port);
     if (httpd_start(&camera_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(camera_httpd, &index_uri);
@@ -714,8 +710,9 @@ void startCameraServer(){
         httpd_register_uri_handler(camera_httpd, &capture_uri);
     }
 
-    config.server_port += 1;
-    config.ctrl_port += 1;
+
+    config.server_port = sPort;
+    config.ctrl_port = sPort;
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);

@@ -588,6 +588,10 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                                title="Homepage" target="_blank">Firmware</a>:</label>
                             <div id="code_ver" class="default-action"></div>
                         </div>
+                        <div class="input-group hidden" id="stream-group">
+                            <label for="stream_port"><div id="stream_reference">Stream Port:</div></label>
+                            <div id="stream_port" class="default-action">Unknown</div>
+                        </div>
 
                     </nav>
                 </div>
@@ -603,8 +607,10 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
 
     <script>
 document.addEventListener('DOMContentLoaded', function (event) {
-  var baseHost = document.location.origin
-  var streamUrl = baseHost + ':81'
+  var baseHost = document.location.origin;
+  var streamHost = document.location.hostname;
+  var streamPort = 81;
+  var streamBase = 'http://' + streamHost;
 
   const hide = el => {
     el.classList.add('hidden')
@@ -636,6 +642,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
     }
 
     const lampGroup = document.getElementById('lamp-group')
+    const streamGroup = document.getElementById('stream-group')
     const camName = document.getElementById('cam_name')
     const codeVer = document.getElementById('code_ver')
     const rotate = document.getElementById('rotate')
@@ -672,9 +679,13 @@ document.addEventListener('DOMContentLoaded', function (event) {
       } else if(el.id === "rotate"){
         rotate.value = value;
         // setting value does not induce a onchange event
-        // this sets the figure transform css values
         rotate.onchange();
-      }
+      } else if(el.id === "stream_port"){
+        streamPort = value;
+        stream_port.innerHTML = value;
+        stream_reference.innerHTML = '<a href="' + streamBase + ':' + value + '/stream' +'" title="Open Stream in new window" target="_blank">Stream Port</a>:';
+        show(streamGroup)
+      } 
     }
   }
 
@@ -734,40 +745,40 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
   const stopStream = () => {
     window.stop();
-    streamButton.innerHTML = 'Start Stream'
+    streamButton.innerHTML = 'Start Stream';
   }
 
   const startStream = () => {
-    view.src = `${streamUrl}/stream`
-    show(viewContainer)
+    view.src = `${streamBase}:${streamPort}/stream`;
+    show(viewContainer);
     view.scrollIntoView(false);
-    streamButton.innerHTML = 'Stop Stream'
+    streamButton.innerHTML = 'Stop Stream';
   }
 
   // Attach actions to buttons
   stillButton.onclick = () => {
-    stopStream()
-    view.src = `${baseHost}/capture?_cb=${Date.now()}`
-    show(viewContainer)
+    stopStream();
+    view.src = `${baseHost}/capture?_cb=${Date.now()}`;
+    show(viewContainer);
     view.scrollIntoView(false);
   }
 
   closeButton.onclick = () => {
-    stopStream()
-    hide(viewContainer)
+    stopStream();
+    hide(viewContainer);
   }
 
   streamButton.onclick = () => {
     const streamEnabled = streamButton.innerHTML === 'Stop Stream'
     if (streamEnabled) {
-      stopStream()
+      stopStream();
     } else {
-      startStream()
+      startStream();
     }
   }
 
   enrollButton.onclick = () => {
-    updateConfig(enrollButton)
+    updateConfig(enrollButton);
   }
 
   // Attach default on change action
