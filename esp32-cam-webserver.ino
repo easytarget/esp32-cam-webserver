@@ -334,8 +334,9 @@ void flashLED(int flashtime) {
 // Lamp Control
 void setLamp(int newVal) {
   if (newVal != -1) {
-    int brightness = pwmMax * float(newVal*0.01);  // calculate value
-    ledcWrite(lampChannel, brightness);            // and set it
+    // Apply a logarithmic function to the scale.
+    int brightness = round((pow(2,(1+(newVal*0.02)))-2)/6*pwmMax);
+    ledcWrite(lampChannel, brightness);
     Serial.print("Lamp: ");
     Serial.print(lampVal);
     Serial.print("%, pwm = ");

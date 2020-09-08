@@ -52,7 +52,7 @@ By default the sketch assumes you have an AI-THINKER board, it creates an Access
 
 To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` 
 
-You can now set a camera name, board model, wifi and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
+You can now set a camera name, board model, wifi settings and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
