@@ -589,8 +589,8 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                             <div id="code_ver" class="default-action"></div>
                         </div>
                         <div class="input-group hidden" id="stream-group">
-                            <label for="stream_port"><div id="stream_reference">Stream Port:</div></label>
-                            <div id="stream_port" class="default-action">Unknown</div>
+                            <label for="stream_url"><div id="stream_reference">Stream URL:</div></label>
+                            <div id="stream_url" class="default-action">Unknown</div>
                         </div>
 
                     </nav>
@@ -608,9 +608,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
     <script>
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin;
-  var streamHost = document.location.hostname;
-  var streamPort = 81;
-  var streamBase = 'http://' + streamHost;
+  var streamURL = 'StreamURLisUndefined';
 
   const hide = el => {
     el.classList.add('hidden')
@@ -680,10 +678,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
         rotate.value = value;
         // setting value does not induce a onchange event
         rotate.onchange();
-      } else if(el.id === "stream_port"){
-        streamPort = value;
-        stream_port.innerHTML = value;
-        stream_reference.innerHTML = '<a href="' + streamBase + ':' + value + '/stream' +'" title="Open Stream in new window" target="_blank">Stream Port</a>:';
+      } else if(el.id === "stream_url"){
+        stream_url.innerHTML = value;
+        streamURL = value;
+        stream_reference.innerHTML = '<a href="' + value + '" title="Open Stream in new window" target="_blank">Stream URL</a>:';
         show(streamGroup)
       } 
     }

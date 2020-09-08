@@ -31,7 +31,7 @@ extern char myName[];
 extern char myVer[];
 extern char myRotation[];
 extern int lampVal;     // The current Lamp value
-extern int streamPort;  // Port number for stream URL
+extern int streamPort;  // Port number for stream
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 
@@ -585,6 +585,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 }
 
 static esp_err_t status_handler(httpd_req_t *req){
+    char streamURL[48];  // Stream URL
+    sprintf(streamURL, "http://10.0.0.122:%d/", streamPort);
+
     static char json_response[1024];
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
@@ -621,7 +624,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
-    p+=sprintf(p, "\"stream_port\":%i,", streamPort);
+    p+=sprintf(p, "\"stream_url\":\"%s\",", streamURL);
     p+=sprintf(p, "\"http\":%i", 80);
     *p++ = '}';
     *p++ = 0;
@@ -675,7 +678,7 @@ void startCameraServer(int hPort, int sPort){
     };
 
    httpd_uri_t stream_uri = {
-        .uri       = "/stream",
+        .uri       = "/",
         .method    = HTTP_GET,
         .handler   = stream_handler,
         .user_ctx  = NULL

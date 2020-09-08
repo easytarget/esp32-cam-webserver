@@ -58,15 +58,13 @@ void startCameraServer(int hPort, int sPort);
 #endif
 
 // Ports for http and stream (override in myconfig.h)
+int httpPort = 80;
 #if defined(HTTP_PORT)
-  int httpPort = HTTP_PORT;
-#else
-  int httpPort = 80;
+  httpPort = HTTP_PORT;
 #endif
+int streamPort = 81;
 #if defined(STREAM_PORT)
-  int streamPort = STREAM_PORT;
-#else
-  int streamPort = 81;
+  streamPort = STREAM_PORT;
 #endif
 
 // This will be displayed to identify the firmware
