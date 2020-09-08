@@ -27,13 +27,13 @@ void flashLED(int flashtime);
 void setLamp(int newVal);
 
 // External variables declared in main .ino
-extern char myName[];
-extern char myVer[];
-extern char myRotation[];
-extern int lampVal;     // The current Lamp value
-extern int streamPort;  // Port number for stream
-extern int8_t detection_enabled;
-extern int8_t recognition_enabled;
+extern char myName[];               // Camera Name
+extern char myVer[];                // Firmware Build Info
+extern char myRotation[];           // Rotation
+extern int lampVal;                 // The current Lamp value
+extern char streamURL[];            // Stream URL
+extern int8_t detection_enabled;    // Face detection enable
+extern int8_t recognition_enabled;  // Face recognition enable
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -585,8 +585,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 }
 
 static esp_err_t status_handler(httpd_req_t *req){
-    char streamURL[48];  // Stream URL
-    sprintf(streamURL, "http://10.0.0.122:%d/", streamPort);
+
 
     static char json_response[1024];
     sensor_t * s = esp_camera_sensor_get();

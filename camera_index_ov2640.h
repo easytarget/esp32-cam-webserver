@@ -589,7 +589,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
                             <div id="code_ver" class="default-action"></div>
                         </div>
                         <div class="input-group hidden" id="stream-group">
-                            <label for="stream_url"><div id="stream_reference">Stream URL:</div></label>
+                            <label for="stream_url">Stream URL:</label>
                             <div id="stream_url" class="default-action">Unknown</div>
                         </div>
 
@@ -608,7 +608,7 @@ const uint8_t index_ov2640_html[] PROGMEM = R"=====(
     <script>
 document.addEventListener('DOMContentLoaded', function (event) {
   var baseHost = document.location.origin;
-  var streamURL = 'StreamURLisUndefined';
+  var streamURL = 'Undefined';
 
   const hide = el => {
     el.classList.add('hidden')
@@ -680,8 +680,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
         rotate.onchange();
       } else if(el.id === "stream_url"){
         stream_url.innerHTML = value;
+        stream_url.setAttribute("title", "Open raw stream URL in new window");
+        stream_url.style.textDecoration = "underline";
+        stream_url.style.cursor = "pointer";
         streamURL = value;
-        stream_reference.innerHTML = '<a href="' + value + '" title="Open Stream in new window" target="_blank">Stream URL</a>:';
         show(streamGroup)
       } 
     }
@@ -740,6 +742,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   const streamButton = document.getElementById('toggle-stream')
   const enrollButton = document.getElementById('face_enroll')
   const closeButton = document.getElementById('close-stream')
+  const streamLink = document.getElementById('stream_url')
 
   const stopStream = () => {
     window.stop();
@@ -751,6 +754,10 @@ document.addEventListener('DOMContentLoaded', function (event) {
     show(viewContainer);
     view.scrollIntoView(false);
     streamButton.innerHTML = 'Stop Stream';
+  }
+
+  streamLink.onclick = () => {
+    window.open(streamURL, "_blank");
   }
 
   // Attach actions to buttons

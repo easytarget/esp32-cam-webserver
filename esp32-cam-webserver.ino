@@ -51,21 +51,27 @@
 void startCameraServer(int hPort, int sPort);
 
 // A Name for the Camera. (set in myconfig.h)
-#ifdef CAM_NAME
+#if defined(CAM_NAME)
   char myName[] = CAM_NAME;
 #else
   char myName[] = "ESP32 camera server";
 #endif
 
 // Ports for http and stream (override in myconfig.h)
-int httpPort = 80;
 #if defined(HTTP_PORT)
-  httpPort = HTTP_PORT;
+  int httpPort = HTTP_PORT;
+#else
+  int httpPort = 80;
 #endif
-int streamPort = 81;
+
 #if defined(STREAM_PORT)
-  streamPort = STREAM_PORT;
+  int streamPort = STREAM_PORT;
+#else
+  int streamPort = 81;
 #endif
+
+// The stream URL
+char streamURL[64] = {"Undefined"};  // Stream URL to pass to the app.
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
@@ -293,19 +299,25 @@ void setup() {
   // Start the Stream server, and the handler processes for the Web UI.
   startCameraServer(httpPort, streamPort);
 
-  Serial.println();
-  Serial.print("Camera Ready!  Use 'http://");
+  IPAddress ip;
+  char httpURL[64] = {"Unknown"};
+  
   #if defined(WIFI_AP_ENABLE)
-    Serial.print(WiFi.softAPIP());
+    ip = WiFi.softAPIP();
   #else
-    Serial.print(WiFi.localIP());
+    ip = WiFi.localIP();
   #endif
+
+  // Construct the App URL
   if (httpPort != 80) {
-    Serial.print(":");
-    Serial.print(httpPort);
+    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+  } else {
+    sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
   }
-  Serial.println("/' to connect");
-  Serial.println();
+  // Construct the Stream URL
+  sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
+
+  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n\n", httpURL);
 }
 
 // Notification LED 
