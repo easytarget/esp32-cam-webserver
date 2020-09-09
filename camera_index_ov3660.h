@@ -6,6 +6,8 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>ESP32 OV3660</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <style>
             body {
                 font-family: Arial,Helvetica,sans-serif;
@@ -372,7 +374,7 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                 <div id="sidebar">
                     <input type="checkbox" id="nav-toggle-cb" checked="checked">
                     <nav id="menu">
-                        <div class="input-group" id="lamp-group">
+                        <div class="input-group hidden" id="lamp-group">
                             <label for="lamp">Light</label>
                             <div class="range-min">Off</div>
                             <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
@@ -385,7 +387,7 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                                 <option value="10">UXGA(1600x1200)</option>
                                 <option value="9">SXGA(1280x1024)</option>
                                 <option value="8">XGA(1024x768)</option>
-                                <option value="7" selected="selected">SVGA(800x600)</option>
+                                <option value="7">SVGA(800x600)</option>
                                 <option value="6">VGA(640x480)</option>
                                 <option value="5">CIF(400x296)</option>
                                 <option value="4">QVGA(320x240)</option>
@@ -532,14 +534,14 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                             </div>
                         </div>
                         <div class="input-group" id="hmirror-group">
-                            <label for="hmirror">H-Mirror</label>
+                            <label for="hmirror">H-Mirror Stream</label>
                             <div class="switch">
                                 <input id="hmirror" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="hmirror"></label>
                             </div>
                         </div>
                         <div class="input-group" id="vflip-group">
-                            <label for="vflip">V-Flip</label>
+                            <label for="vflip">V-Flip Stream</label>
                             <div class="switch">
                                 <input id="vflip" type="checkbox" class="default-action" checked="checked">
                                 <label class="slider" for="vflip"></label>
@@ -598,8 +600,12 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
                         <div class="input-group" id="code_ver-group">
                             <label for="code_ver">
                             <a href="https://github.com/easytarget/esp32-cam-webserver"
-                               title="Homepage" target="_blank">Firmware</a>:</label>
+                               title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a>:</label>
                             <div id="code_ver" class="default-action"></div>
+                        </div>
+                        <div class="input-group hidden" id="stream-group">
+                            <label for="stream_url">Stream URL:</label>
+                            <div id="stream_url" class="default-action">Unknown</div>
                         </div>
 
                     </nav>
@@ -615,9 +621,26 @@ const uint8_t index_ov3660_html[] PROGMEM = R"=====(
     </body>
 
     <script>
+    
 document.addEventListener('DOMContentLoaded', function (event) {
-  var baseHost = document.location.origin
-  var streamUrl = baseHost + ':81'
+  var baseHost = document.location.origin;
+  var streamURL = 'Undefined';
+
+  const lampGroup = document.getElementById('lamp-group')
+  const streamGroup = document.getElementById('stream-group')
+  const camName = document.getElementById('cam_name')
+  const codeVer = document.getElementById('code_ver')
+  const rotate = document.getElementById('rotate')
+  const view = document.getElementById('stream')
+  const viewContainer = document.getElementById('stream-container')
+  const stillButton = document.getElementById('get-still')
+  const streamButton = document.getElementById('toggle-stream')
+  const enrollButton = document.getElementById('face_enroll')
+  const closeButton = document.getElementById('close-stream')
+  const streamLink = document.getElementById('stream_url')
+  const detect = document.getElementById('face_detect')
+  const recognize = document.getElementById('face_recognize')
+  const framesize = document.getElementById('framesize')
 
   const hide = el => {
     el.classList.add('hidden')
@@ -648,12 +671,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
       el.value = value
     }
 
-    const lampGroup = document.getElementById('lamp-group')
-    const camName = document.getElementById('cam_name')
-    const codeVer = document.getElementById('code_ver')
-    const rotate = document.getElementById('rotate')
-    
-    
     if (updateRemote && initialValue !== value) {
       updateConfig(el);
     } else if(!updateRemote){
@@ -683,9 +700,16 @@ document.addEventListener('DOMContentLoaded', function (event) {
       } else if(el.id === "rotate"){
         rotate.value = value;
         // setting value does not induce a onchange event
-        // this sets the figure transform css values
         rotate.onchange();
-      }
+      } else if(el.id === "stream_url"){
+        stream_url.innerHTML = value;
+        stream_url.setAttribute("title", "Open raw stream URL in new window");
+        stream_url.style.textDecoration = "underline";
+        stream_url.style.cursor = "pointer";
+        streamURL = value;
+        streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
+        show(streamGroup)
+      } 
     }
   }
 
@@ -736,49 +760,50 @@ document.addEventListener('DOMContentLoaded', function (event) {
         })
     })
 
-  const view = document.getElementById('stream')
-  const viewContainer = document.getElementById('stream-container')
-  const stillButton = document.getElementById('get-still')
-  const streamButton = document.getElementById('toggle-stream')
-  const enrollButton = document.getElementById('face_enroll')
-  const closeButton = document.getElementById('close-stream')
+  // Put some helpful text on the 'Still' button
+  stillButton.setAttribute("title", `You can also browse to '${baseHost}/capture' for standalone images`);
 
   const stopStream = () => {
     window.stop();
-    streamButton.innerHTML = 'Start Stream'
+    streamButton.innerHTML = 'Start Stream';
   }
 
   const startStream = () => {
-    view.src = `${streamUrl}/stream`
-    show(viewContainer)
+    view.src = streamURL;
+    show(viewContainer);
     view.scrollIntoView(false);
-    streamButton.innerHTML = 'Stop Stream'
+    streamButton.innerHTML = 'Stop Stream';
   }
 
-  // Attach actions to buttons
+  // Attach actions to controls
+  
+  streamLink.onclick = () => {
+    window.open(streamURL, "_blank");
+  }
+
   stillButton.onclick = () => {
-    stopStream()
-    view.src = `${baseHost}/capture?_cb=${Date.now()}`
-    show(viewContainer)
+    stopStream();
+    view.src = `${baseHost}/capture?_cb=${Date.now()}`;
+    show(viewContainer);
     view.scrollIntoView(false);
   }
 
   closeButton.onclick = () => {
-    stopStream()
-    hide(viewContainer)
+    stopStream();
+    hide(viewContainer);
   }
 
   streamButton.onclick = () => {
     const streamEnabled = streamButton.innerHTML === 'Stop Stream'
     if (streamEnabled) {
-      stopStream()
+      stopStream();
     } else {
-      startStream()
+      startStream();
     }
   }
 
   enrollButton.onclick = () => {
-    updateConfig(enrollButton)
+    updateConfig(enrollButton);
   }
 
   // Attach default on change action
@@ -818,11 +843,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
   }
 
   // Detection and framesize
-  const detect = document.getElementById('face_detect')
-  const recognize = document.getElementById('face_recognize')
-  const framesize = document.getElementById('framesize')
-  const rotate = document.getElementById('rotate')
-
   rotate.onchange = () => {
     rot = rotate.value;
     if (rot == -90) {
@@ -875,5 +895,4 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
 </html>
 )=====";
-
 size_t index_ov3660_html_len = sizeof(index_ov3660_html);

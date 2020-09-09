@@ -1,6 +1,5 @@
-[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver) `- Master branch status`
+# Espressives ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
-# Espressives ESP32-CAM example revisited.
 ## Taken from the ESP examples, and modified for reality
 This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
 
@@ -52,7 +51,7 @@ By default the sketch assumes you have an AI-THINKER board, it creates an Access
 
 To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` 
 
-You can now set a camera name, board model, wifi and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
+You can now set a camera name, board model, wifi settings and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
