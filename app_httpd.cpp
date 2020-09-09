@@ -639,7 +639,7 @@ static esp_err_t favicon_16x16_handler(httpd_req_t *req){
     flashLED(75);
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
+    return httpd_resp_send(req, (const char *)favicon_16x16_png, favicon_16x16_png_len);
 }
 
 static esp_err_t favicon_32x32_handler(httpd_req_t *req){
@@ -648,7 +648,7 @@ static esp_err_t favicon_32x32_handler(httpd_req_t *req){
     flashLED(75);
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
+    return httpd_resp_send(req, (const char *)favicon_32x32_png, favicon_32x32_png_len);
 }
 
 static esp_err_t favicon_ico_handler(httpd_req_t *req){
@@ -705,16 +705,16 @@ void startCameraServer(int hPort, int sPort){
     };
 
     httpd_uri_t favicon_16x16_uri = {
-        .uri       = "/favicon.ico",
+        .uri       = "/favicon-16x16.png",
         .method    = HTTP_GET,
-        .handler   = favicon_ico_handler,
+        .handler   = favicon_16x16_handler,
         .user_ctx  = NULL
     };
 
     httpd_uri_t favicon_32x32_uri = {
-        .uri       = "/favicon.ico",
+        .uri       = "/favicon-16x16.png",
         .method    = HTTP_GET,
-        .handler   = favicon_ico_handler,
+        .handler   = favicon_32x32_handler,
         .user_ctx  = NULL
     };
 
