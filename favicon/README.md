@@ -1,6 +1,6 @@
 # Favicons 
 
-Source: ![A logo I created from the espressif logo, using inkscape](Docs/logo.svg)
+Source: ![A logo I created from the espressif logo, using inkscape](../Docs/logo.svg)
 
 ## The 16x16 and 32x32 png images were extracted from a Favicon Package
 
