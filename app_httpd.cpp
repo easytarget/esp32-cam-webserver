@@ -19,6 +19,7 @@
 
 #include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
+#include "favicon/favicons.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
 
@@ -632,6 +633,33 @@ static esp_err_t status_handler(httpd_req_t *req){
     return httpd_resp_send(req, json_response, strlen(json_response));
 }
 
+static esp_err_t favicon_16x16_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "image/png");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)favicon_16x16_png, favicon_16x16_png_len);
+}
+
+static esp_err_t favicon_32x32_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "image/png");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)favicon_32x32_png, favicon_32x32_png_len);
+}
+
+static esp_err_t favicon_ico_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "image/x-icon");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
+}
+
 static esp_err_t index_handler(httpd_req_t *req){
     flashLED(75);  // a little feedback to user
     delay(75);
@@ -676,6 +704,27 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
+    httpd_uri_t favicon_16x16_uri = {
+        .uri       = "/favicon-16x16.png",
+        .method    = HTTP_GET,
+        .handler   = favicon_16x16_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t favicon_32x32_uri = {
+        .uri       = "/favicon-32x32.png",
+        .method    = HTTP_GET,
+        .handler   = favicon_32x32_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t favicon_ico_uri = {
+        .uri       = "/favicon.ico",
+        .method    = HTTP_GET,
+        .handler   = favicon_ico_handler,
+        .user_ctx  = NULL
+    };
+
    httpd_uri_t stream_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
@@ -710,6 +759,9 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &cmd_uri);
         httpd_register_uri_handler(camera_httpd, &status_uri);
         httpd_register_uri_handler(camera_httpd, &capture_uri);
+        httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
+        httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
+        httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
     }
 
 
@@ -718,5 +770,8 @@ void startCameraServer(int hPort, int sPort){
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
     }
 }

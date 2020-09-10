@@ -99,6 +99,25 @@ Please do not submit PR's onto the master branch of my repo unless they are very
 
 ## Plans
 
+Time allowing; my Current plan is:
+
+V3 Options, UI and server enhancements; 
+* All the primary config options moved to the `myconfig.h` file. 
+* Miniviewer, favicons
+* UI now shows stream links and build info
+* Nearly Complete
+
+V4 Preferences; 
+* Cam module preferences and face recognition Db saved between sessions in LittleFS (formerly SPIFS).
+* Upload/Download FaceDB as Json document in browser
+* Investigate using SD card to capture images
+* Not started; will have to wait until I have time.
+
+V5 Remove face recognition entirely;
+* Dont try to make it optional, this is a code and maintenance nightmare. V4 can be maintained on a branch for those who need it.
+* implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
+* UI Skinning/Theming
+
 You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
 * Improve Wifi, add a captive portal for setup and fallback, better disconnect/reconnect behaviour.
 * The module has a SD/TF card slot; this is currently unused, but I would like to add the ability to store snapshots; recording Video at low resolution may be possible, but the card interface is too slow for HD video as far as I know.

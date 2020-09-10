@@ -1,5 +1,5 @@
 //File: index_ov3660.html
-const uint8_t index_ov3660_html[] PROGMEM = R"=====(
+const uint8_t index_ov3660_html[] = R"=====(
 <!doctype html>
 <html>
     <head>
