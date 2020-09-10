@@ -44,12 +44,12 @@ const uint8_t miniviewer_html[] = R"=====(
         margin-right: 10px;
       }
 
-      #content {
-        display: flex;
+ /*     #content {
+        display: block;
         flex-wrap: wrap;
         align-items: stretch
       }
-
+*/
       figure {
         padding: 0px;
         margin: 0;
@@ -65,18 +65,22 @@ const uint8_t miniviewer_html[] = R"=====(
 
       figure img {
         display: block;
-        width: 100%;
+/*        width: 100%;
+          no max-width:  */
+        max-width: 100%;
+        width: auto;
         height: auto;
         border-radius: 4px;
         margin-top: 8px;
       }
 
-      @media (min-width: 800px) and (orientation:landscape) {
+/*      @media (min-width: 800px) and (orientation:landscape) {
         #content {
           display:flex;
           flex-wrap: nowrap;
           align-items: stretch
         }
+
 
         figure img {
           display: block;
@@ -99,7 +103,7 @@ const uint8_t miniviewer_html[] = R"=====(
           margin-inline-end: 0
         }
       }
-
+*/
       section#buttons {
         display: flex;
         flex-wrap: nowrap;
@@ -550,6 +554,7 @@ const uint8_t miniviewer_html[] = R"=====(
         hide(waitSettings);
         show(settings);
         show(streamButton);
+        startStream();
       })
   
     // Put some helpful text on the 'Still' button
