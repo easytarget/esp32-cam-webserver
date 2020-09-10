@@ -19,6 +19,7 @@
 
 #include "camera_index_ov2640.h"
 #include "camera_index_ov3660.h"
+#include "miniviewer.h"
 #include "favicon/favicons.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
@@ -570,6 +571,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       lampVal = constrain(val,0,100);
       setLamp(lampVal);
     }
+    else if(!strcmp(variable, "rotate")) {
+      sprintf(myRotation, "%i", val);
+    }
     else {
         res = -1;
     }
@@ -660,6 +664,15 @@ static esp_err_t favicon_ico_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
 }
 
+static esp_err_t miniviewer_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
+}
+
 static esp_err_t index_handler(httpd_req_t *req){
     flashLED(75);  // a little feedback to user
     delay(75);
@@ -701,6 +714,13 @@ void startCameraServer(int hPort, int sPort){
         .uri       = "/capture",
         .method    = HTTP_GET,
         .handler   = capture_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t miniviewer_uri = {
+        .uri       = "/view",
+        .method    = HTTP_GET,
+        .handler   = miniviewer_handler,
         .user_ctx  = NULL
     };
 
@@ -759,6 +779,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &cmd_uri);
         httpd_register_uri_handler(camera_httpd, &status_uri);
         httpd_register_uri_handler(camera_httpd, &capture_uri);
+        httpd_register_uri_handler(camera_httpd, &miniviewer_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);

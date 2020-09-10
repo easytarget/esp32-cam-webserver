@@ -695,6 +695,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
       } else if(el.id === "cam_name"){
         camName.innerHTML = value;
         window.document.title = value;
+        console.log('Name set to: ' + value);
       } else if(el.id === "code_ver"){
         codeVer.innerHTML = value;
       } else if(el.id === "rotate"){
@@ -709,6 +710,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
         streamURL = value;
         streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
         show(streamGroup)
+        console.log('Stream set to:' + value);
       } 
     }
   }
@@ -844,6 +846,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
 
   // Detection and framesize
   rotate.onchange = () => {
+    updateConfig(rotate);
     rot = rotate.value;
     if (rot == -90) {
       viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
