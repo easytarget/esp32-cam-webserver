@@ -770,8 +770,8 @@ void startCameraServer(int hPort, int sPort){
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
+        httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
     }
 }
