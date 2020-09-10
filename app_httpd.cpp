@@ -572,8 +572,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       setLamp(lampVal);
     }
     else if(!strcmp(variable, "rotate")) {
-      Serial.print("Rotate: ");
-      Serial.println(val);
+      sprintf(myRotation, "%i", val);
     }
     else {
         res = -1;
