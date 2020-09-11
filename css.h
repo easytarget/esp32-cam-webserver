@@ -74,36 +74,6 @@ figure img {
   margin-top: 8px;
 }
 
-/*      @media (min-width: 800px) and (orientation:landscape) {
-  #content {
-    display:flex;
-    flex-wrap: nowrap;
-    align-items: stretch
-  }
-
-
-  figure img {
-    display: block;
-    max-width: 100%;
-    max-height: calc(100vh - 40px);
-    width: auto;
-    height: auto
-  }
-
-  figure {
-    padding: 0 0 0 0px;
-    margin: 0;
-    -webkit-margin-before: 0;
-    margin-block-start: 0;
-    -webkit-margin-after: 0;
-    margin-block-end: 0;
-    -webkit-margin-start: 0;
-    margin-inline-start: 0;
-    -webkit-margin-end: 0;
-    margin-inline-end: 0
-  }
-}
-*/
 section#buttons {
   display: flex;
   flex-wrap: nowrap;
@@ -343,7 +313,7 @@ select {
 .close {
   position: absolute;
   z-index: 99;
-  right: 5px;
+  left: 5px;
   top: 5px;
   background: #ff3034;
   width: 16px;

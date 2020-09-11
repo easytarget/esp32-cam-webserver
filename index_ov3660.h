@@ -13,7 +13,35 @@ const uint8_t index_ov3660_html[] = R"=====(
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/style.css">
     <style>
-    // style overrides here
+      @media (min-width: 800px) and (orientation:landscape) {
+        #content {
+          display:flex;
+          flex-wrap: nowrap;
+          align-items: stretch
+        }
+      
+      
+        figure img {
+          display: block;
+          max-width: 100%;
+          max-height: calc(100vh - 40px);
+          width: auto;
+          height: auto
+        }
+      
+        figure {
+          padding: 0 0 0 0px;
+          margin: 0;
+          -webkit-margin-before: 0;
+          margin-block-start: 0;
+          -webkit-margin-after: 0;
+          margin-block-end: 0;
+          -webkit-margin-start: 0;
+          margin-inline-start: 0;
+          -webkit-margin-end: 0;
+          margin-inline-end: 0
+        }
+      }
     </style>
   </head>
 
@@ -21,7 +49,7 @@ const uint8_t index_ov3660_html[] = R"=====(
     <section class="main">
       <div id="logo">
         <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
-        <button id="swap-player" style="float:left;">Simple</button>
+        <button id="swap-viewer" style="float:left;" title="Swap to simple viewer">Simple</button>
         <button id="get-still" style="float:left;">Get Still</button>
         <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
@@ -264,7 +292,6 @@ const uint8_t index_ov3660_html[] = R"=====(
                 <div id="stream_url" class="default-action">Unknown</div>
               </div>
             </nav>
-          /* </input> */
         </div>
         <figure>
           <div id="stream-container" class="image-container hidden">
@@ -298,7 +325,8 @@ const uint8_t index_ov3660_html[] = R"=====(
     const detect = document.getElementById('face_detect')
     const recognize = document.getElementById('face_recognize')
     const framesize = document.getElementById('framesize')
-  
+    const swapButton = document.getElementById('swap-viewer')
+
     const hide = el => {
       el.classList.add('hidden')
     }
@@ -420,7 +448,7 @@ const uint8_t index_ov3660_html[] = R"=====(
         hide(waitSettings);
         show(settings);
         show(streamButton);
-        startStream();
+        //startStream();
       })
 
     // Put some helpful text on the 'Still' button
@@ -559,6 +587,11 @@ const uint8_t index_ov3660_html[] = R"=====(
         disable(enrollButton)
       }
     }
+
+    swapButton.onclick = () => {
+      window.open('/','_self');
+    }
+
   })
   </script>
 </html>

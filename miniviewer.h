@@ -18,7 +18,7 @@ const uint8_t miniviewer_html[] = R"=====(
     <section class="main">
       <div id="logo">
         <label for="nav-toggle-cb" id="nav-toggle" style="float:left;" title="Settings">&#9776;&nbsp;</label>
-        <button id="swap-player" style="float:left;">Full</button>
+        <button id="swap-viewer" style="float:left;" title="Swap to full feature viewer">Full</button>
         <button id="get-still" style="float:left;">Get Still</button>
         <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
@@ -26,7 +26,7 @@ const uint8_t miniviewer_html[] = R"=====(
       <div id="content">
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb">
-            <nav id="menu">
+            <nav id="menu" style="width:24em;">
               <div class="input-group hidden" id="lamp-group">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
@@ -47,13 +47,14 @@ const uint8_t miniviewer_html[] = R"=====(
                   <option value="0">QQVGA(160x120)</option>
                 </select>
               </div>
-              <!-- Hide the next two entries, but they need to be present so that we
-                  can pass settings to them for use in the script -->
+              <!-- Hide the next entries, they are present in the body so that we
+                  can pass settings to/from them for use in the scripting, not for user setting -->
               <div id="rotate" class="action-setting hidden"></div>
               <div id="cam_name" class="action-setting hidden"></div>
               <div id="stream_url" class="action-setting hidden"></div>
+              <div id="detect" class="action-setting hidden"></div> 
+              <div id="recognize" class="action-setting hidden"></div>
             </nav>
-          /* </input> */
         </div>
         <figure>
           <div id="stream-container" class="image-container hidden">
@@ -79,6 +80,7 @@ const uint8_t miniviewer_html[] = R"=====(
     const stillButton = document.getElementById('get-still')
     const streamButton = document.getElementById('toggle-stream')
     const closeButton = document.getElementById('close-stream')
+    const swapButton = document.getElementById('swap-viewer')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -256,6 +258,10 @@ const uint8_t miniviewer_html[] = R"=====(
         updateValue(detect, false)
         updateValue(recognize, false)
       }
+    }
+
+    swapButton.onclick = () => {
+      window.open('/','_self');
     }
 
   })

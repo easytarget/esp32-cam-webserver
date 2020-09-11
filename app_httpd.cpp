@@ -17,8 +17,8 @@
 #include "img_converters.h"
 #include "Arduino.h"
 
-#include "camera_index_ov2640.h"
-#include "camera_index_ov3660.h"
+#include "index_ov2640.h"
+#include "index_ov3660.h"
 #include "miniviewer.h"
 #include "css.h"
 #include "favicon/favicons.h"
