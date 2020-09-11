@@ -16,15 +16,18 @@ const uint8_t index_ov3660_html[] = R"=====(
     // style overrides here
     </style>
   </head>
+
   <body>
     <section class="main">
       <div id="logo">
         <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <button id="swap-player" style="float:left;">Simple</button>
         <button id="get-still" style="float:left;">Get Still</button>
-        <button id="toggle-stream" style="float:left;">Start Stream</button>
+        <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
+        <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
       </div>
       <div id="content">
-        <div id="sidebar">
+        <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
               <div class="input-group hidden" id="lamp-group">
@@ -277,7 +280,9 @@ const uint8_t index_ov3660_html[] = R"=====(
   document.addEventListener('DOMContentLoaded', function (event) {
     var baseHost = document.location.origin;
     var streamURL = 'Undefined';
-  
+
+    const settings = document.getElementById('sidebar')
+    const waitSettings = document.getElementById('wait-settings')
     const lampGroup = document.getElementById('lamp-group')
     const streamGroup = document.getElementById('stream-group')
     const camName = document.getElementById('cam_name')
@@ -300,17 +305,17 @@ const uint8_t index_ov3660_html[] = R"=====(
     const show = el => {
       el.classList.remove('hidden')
     }
-  
+
     const disable = el => {
       el.classList.add('disabled')
       el.disabled = true
     }
-  
+
     const enable = el => {
       el.classList.remove('disabled')
       el.disabled = false
     }
-  
+
     const updateValue = (el, value, updateRemote) => {
       updateRemote = updateRemote == null ? true : updateRemote
       let initialValue
@@ -350,10 +355,10 @@ const uint8_t index_ov3660_html[] = R"=====(
           console.log('Name set to: ' + value);
         } else if(el.id === "code_ver"){
           codeVer.innerHTML = value;
+          console.log('Firmware Build: ' + value);
         } else if(el.id === "rotate"){
           rotate.value = value;
-          // setting value does not induce a onchange event
-          rotate.onchange();
+          applyRotation();
         } else if(el.id === "stream_url"){
           stream_url.innerHTML = value;
           stream_url.setAttribute("title", "Open raw stream URL in new window");
@@ -362,11 +367,11 @@ const uint8_t index_ov3660_html[] = R"=====(
           streamURL = value;
           streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
           show(streamGroup)
-          console.log('Stream set to:' + value);
+          console.log('Stream URL set to:' + value);
         } 
       }
     }
-  
+
     function updateConfig (el) {
       let value
       switch (el.type) {
@@ -384,15 +389,15 @@ const uint8_t index_ov3660_html[] = R"=====(
         default:
           return
       }
-  
+
       const query = `${baseHost}/control?var=${el.id}&val=${value}`
-  
+
       fetch(query)
         .then(response => {
           console.log(`request to ${query} finished, status: ${response.status}`)
         })
     }
-  
+
     document
       .querySelectorAll('.close')
       .forEach(el => {
@@ -400,7 +405,7 @@ const uint8_t index_ov3660_html[] = R"=====(
           hide(el.parentNode)
         }
       })
-  
+
     // read initial values
     fetch(`${baseHost}/status`)
       .then(function (response) {
@@ -412,41 +417,58 @@ const uint8_t index_ov3660_html[] = R"=====(
           .forEach(el => {
             updateValue(el, state[el.id], false)
           })
+        hide(waitSettings);
+        show(settings);
+        show(streamButton);
+        startStream();
       })
-  
+
     // Put some helpful text on the 'Still' button
     stillButton.setAttribute("title", `You can also browse to '${baseHost}/capture' for standalone images`);
-  
+
     const stopStream = () => {
       window.stop();
       streamButton.innerHTML = 'Start Stream';
+      hide(viewContainer);
     }
-  
+
     const startStream = () => {
       view.src = streamURL;
-      show(viewContainer);
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
+      show(viewContainer);
     }
-  
+
+    const applyRotation = () => {
+      rot = rotate.value;
+      if (rot == -90) {
+        viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+      } else if (rot == 90) {
+        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
+      } else {
+        viewContainer.style.transform = `rotate(0deg)`
+      }
+       console.log('Rotation ' + rot + ' applied');
+   }
+
     // Attach actions to controls
     
     streamLink.onclick = () => {
       window.open(streamURL, "_blank");
     }
-  
+
     stillButton.onclick = () => {
       stopStream();
       view.src = `${baseHost}/capture?_cb=${Date.now()}`;
-      show(viewContainer);
       view.scrollIntoView(false);
+      show(viewContainer);
     }
-  
+
     closeButton.onclick = () => {
       stopStream();
       hide(viewContainer);
     }
-  
+
     streamButton.onclick = () => {
       const streamEnabled = streamButton.innerHTML === 'Stop Stream'
       if (streamEnabled) {
@@ -455,18 +477,18 @@ const uint8_t index_ov3660_html[] = R"=====(
         startStream();
       }
     }
-  
+
     enrollButton.onclick = () => {
       updateConfig(enrollButton);
     }
-  
+
     // Attach default on change action
     document
       .querySelectorAll('.default-action')
       .forEach(el => {
         el.onchange = () => updateConfig(el)
       })
-  
+
     // Custom actions
     // Gain
     const agc = document.getElementById('agc')
@@ -498,17 +520,10 @@ const uint8_t index_ov3660_html[] = R"=====(
   
     // Detection and framesize
     rotate.onchange = () => {
+      applyRotation();
       updateConfig(rotate);
-      rot = rotate.value;
-      if (rot == -90) {
-        viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
-      } else if (rot == 90) {
-        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
-      } else {
-        viewContainer.style.transform = `rotate(0deg)`
-      }
     }
-  
+
     framesize.onchange = () => {
       updateConfig(framesize)
       if (framesize.value > 5) {
@@ -548,4 +563,5 @@ const uint8_t index_ov3660_html[] = R"=====(
   </script>
 </html>
 )=====";
+
 size_t index_ov3660_html_len = sizeof(index_ov3660_html);

@@ -18,6 +18,7 @@ const uint8_t miniviewer_html[] = R"=====(
     <section class="main">
       <div id="logo">
         <label for="nav-toggle-cb" id="nav-toggle" style="float:left;" title="Settings">&#9776;&nbsp;</label>
+        <button id="swap-player" style="float:left;">Full</button>
         <button id="get-still" style="float:left;">Get Still</button>
         <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
@@ -72,7 +73,6 @@ const uint8_t miniviewer_html[] = R"=====(
     const settings = document.getElementById('sidebar')
     const waitSettings = document.getElementById('wait-settings')
     const lampGroup = document.getElementById('lamp-group')
-    const streamGroup = document.getElementById('stream-group')
     const rotate = document.getElementById('rotate')
     const view = document.getElementById('stream')
     const viewContainer = document.getElementById('stream-container')
@@ -121,10 +121,11 @@ const uint8_t miniviewer_html[] = R"=====(
         } else if(el.id === "cam_name"){
           window.document.title = value;
           console.log('Name set to: ' + value);
+        } else if(el.id === "code_ver"){
+          console.log('Firmware Build: ' + value);
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
-          console.log('Rotate initial value: ' + rotate.value);
         } else if(el.id === "stream_url"){
           streamURL = value;
           streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
@@ -245,10 +246,18 @@ const uint8_t miniviewer_html[] = R"=====(
     // Custom actions
     // Detection and framesize
     rotate.onchange = () => {
-      console.log('Rotation changed');
       applyRotation();
       updateConfig(rotate);
     }
+
+    framesize.onchange = () => {
+      updateConfig(framesize)
+      if (framesize.value > 5) {
+        updateValue(detect, false)
+        updateValue(recognize, false)
+      }
+    }
+
   })
   </script>
 </html>
