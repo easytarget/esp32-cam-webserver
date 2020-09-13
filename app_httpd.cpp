@@ -592,7 +592,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
 static esp_err_t status_handler(httpd_req_t *req){
 
-
     static char json_response[1024];
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
@@ -631,6 +630,20 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
     p+=sprintf(p, "\"stream_url\":\"%s\",", streamURL);
     p+=sprintf(p, "\"http\":%i", 80);
+    *p++ = '}';
+    *p++ = 0;
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+static esp_err_t info_handler(httpd_req_t *req){
+    static char json_response[256];
+    char * p = json_response;
+    *p++ = '{';
+    p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
+    p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
+    p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
@@ -681,6 +694,15 @@ static esp_err_t miniviewer_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
+}
+
+static esp_err_t streamviewer_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)streamviewer_html, streamviewer_html_len);
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
@@ -769,6 +791,19 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
+    httpd_uri_t streamviewer_uri = {
+        .uri       = "/view",
+        .method    = HTTP_GET,
+        .handler   = streamviewer_handler,
+        .user_ctx  = NULL
+    };
+
+    httpd_uri_t info_uri = {
+        .uri       = "/info",
+        .method    = HTTP_GET,
+        .handler   = info_handler,
+        .user_ctx  = NULL
+    };
 
     ra_filter_init(&ra_filter, 20);
     
@@ -809,6 +844,8 @@ void startCameraServer(int hPort, int sPort){
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);
+        httpd_register_uri_handler(stream_httpd, &nfo_uri);
+        httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
