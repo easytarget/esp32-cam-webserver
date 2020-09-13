@@ -19,7 +19,7 @@
 
 #include "index_ov2640.h"
 #include "index_ov3660.h"
-#include "miniviewer.h"
+#include "viewers.h"
 #include "css.h"
 #include "favicon/favicons.h"
 
@@ -628,8 +628,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
-    p+=sprintf(p, "\"stream_url\":\"%s\",", streamURL);
-    p+=sprintf(p, "\"http\":%i", 80);
+    p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
@@ -644,6 +643,7 @@ static esp_err_t info_handler(httpd_req_t *req){
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
+    p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
@@ -844,7 +844,7 @@ void startCameraServer(int hPort, int sPort){
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         httpd_register_uri_handler(stream_httpd, &stream_uri);
-        httpd_register_uri_handler(stream_httpd, &nfo_uri);
+        httpd_register_uri_handler(stream_httpd, &info_uri);
         httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);

@@ -1,5 +1,8 @@
-//File: index_ov2640.html
-const uint8_t miniviewer_html[] = R"=====(
+/*
+ * Miniviewer and streamviewer
+ */
+
+ const uint8_t miniviewer_html[] = R"=====(
 <!doctype html>
 <html>
   <head>
@@ -110,7 +113,7 @@ const uint8_t miniviewer_html[] = R"=====(
         initialValue = el.value
         el.value = value
       }
-  
+
       if (updateRemote && initialValue !== value) {
         updateConfig(el);
       } else if(!updateRemote){
@@ -279,3 +282,175 @@ const uint8_t miniviewer_html[] = R"=====(
 )=====";
 
 size_t miniviewer_html_len = sizeof(miniviewer_html);
+
+/* Stream Viewer */
+
+ const uint8_t streamviewer_html[] = R"=====(
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title id="title">ESP32-CAM StreamViewer</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <style>
+      /* No stylesheet, define all style elements here */
+      body {
+        font-family: Arial,Helvetica,sans-serif;
+        background: #181818;
+        color: #EFEFEF;
+        font-size: 16px
+      }
+
+      figure {
+        padding: 0px;
+        margin: 0;
+        -webkit-margin-before: 0;
+        margin-block-start: 0;
+        -webkit-margin-after: 0;
+        margin-block-end: 0;
+        -webkit-margin-start: 0;
+        margin-inline-start: 0;
+        -webkit-margin-end: 0;
+        margin-inline-end: 0
+      }
+
+      figure img {
+        display: block;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        border-radius: 4px;
+        margin-top: 8px;
+      }
+
+      .image-container {
+        position: relative;
+        min-width: 160px;
+        transform-origin: top left
+      }
+
+      .loader {
+        border: 0.5em solid #f3f3f3; /* Light grey */
+        border-top: 0.5em solid #000000; /* white */
+        border-radius: 50%;
+        width: 1em;
+        height: 1em;
+        -webkit-animation: spin 2s linear infinite; /* Safari */
+        animation: spin 2s linear infinite;
+      }
+
+      @-webkit-keyframes spin {   /* Safari */
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="main">
+      <div id="logo">
+        <div id="wait-settings" style="float:left;" class="loader" title="Waiting for stream settings to load"></div>
+      </div>
+      <div>
+        <div style="display: none;">
+              <!-- Hide the next entries, they are present in the body so that we
+                  can pass settings to/from them for use in the scripting -->
+              <div id="rotate" class="action-setting hidden"></div>
+              <div id="cam_name" class="action-setting hidden"></div>
+              <div id="code_ver" class="action-setting hidden"></div>
+              <div id="stream_url" class="action-setting hidden"></div>
+        </div>
+        <figure>
+          <div id="stream-container" class="image-container" style="display: none;">
+            <img id="stream" src="">
+          </div>
+        </figure>
+      </div>
+    </section>
+  </body>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function (event) {
+    var baseHost = document.location.origin;
+
+    const rotate = document.getElementById('rotate')
+    const view = document.getElementById('stream')
+    const viewContainer = document.getElementById('stream-container')
+    const spinner = document.getElementById('wait-settings')
+
+    const updateValue = (el, value, updateRemote) => {
+      updateRemote = updateRemote == null ? true : updateRemote
+      let initialValue
+      if (el.type === 'checkbox') {
+        initialValue = el.checked
+        value = !!value
+        el.checked = value
+      } else {
+        initialValue = el.value
+        el.value = value
+      }
+
+      if (updateRemote && initialValue !== value) {
+        updateConfig(el);
+      } else if(!updateRemote){
+        if(el.id === "cam_name"){
+          window.document.title = value;
+          viewContainer.setAttribute("title", value);
+          console.log('Name set to: ' + value);
+        } else if(el.id === "code_ver"){
+          console.log('Firmware Build: ' + value);
+        } else if(el.id === "rotate"){
+          rotate.value = value;
+          applyRotation();
+        } else if(el.id === "stream_url"){
+          streamURL = value;
+          console.log('Stream URL set to:' + value);
+        } 
+      }
+    }
+
+    // read initial values
+    fetch(`${baseHost}/info`)
+      .then(function (response) {
+        return response.json()
+      })
+      .then(function (state) {
+        document
+          .querySelectorAll('.action-setting')
+          .forEach(el => {
+            updateValue(el, state[el.id], false)
+          })
+        spinner.style.display = `none`;
+        startStream();
+      })
+
+    const startStream = () => {
+      view.src = streamURL;
+      view.scrollIntoView(false);
+      viewContainer.style.display = `block`;
+    }
+
+    const applyRotation = () => {
+      rot = rotate.value;
+      if (rot == -90) {
+        viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+      } else if (rot == 90) {
+        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`;
+      } else {
+        viewContainer.style.transform = `rotate(0deg)`;
+      }
+       console.log('Rotation ' + rot + ' applied');
+   }
+  })
+  </script>
+</html>
+)=====";
+
+size_t streamviewer_html_len = sizeof(streamviewer_html);
