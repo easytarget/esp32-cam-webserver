@@ -24,7 +24,6 @@ const uint8_t index_ov2640_html[] = R"=====(
         figure img {
           display: block;
           max-width: 100%;
-          max-height: calc(100vh - 40px);
           width: auto;
           height: auto
         }
@@ -460,19 +459,19 @@ const uint8_t index_ov2640_html[] = R"=====(
       rot = rotate.value;
       if (rot == -90) {
         viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
-        closeBurron.classList.remove('close-rot-none');
-        closeBurron.classList.remove('close-rot-right');
-        closeBurron.classList.add('close-rot-left');
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-left');
       } else if (rot == 90) {
         viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`;
-        closeBurron.classList.remove('close-rot-left');
-        closeBurron.classList.remove('close-rot-none');
-        closeBurron.classList.add('close-rot-right');
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.add('close-rot-right');
       } else {
         viewContainer.style.transform = `rotate(0deg)`;
-        closeBurron.classList.remove('close-rot-left');
-        closeBurron.classList.remove('close-rot-right');
-        closeBurron.classList.add('close-rot-none');
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-none');
       }
       console.log('Rotation ' + rot + ' applied');
     }

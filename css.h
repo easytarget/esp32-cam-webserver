@@ -34,7 +34,7 @@ section.main {
 #menu {
   display: none;
   flex-wrap: nowrap;
-  min-width: 340px;
+  width: 340px;
   background: #363636;
   padding: 8px;
   border-radius: 4px;
@@ -328,7 +328,7 @@ select {
   top: 5px;
 }
 
-,close-rot-left {
+.close-rot-left {
   right: 5px;
   top: 5px;
 }

@@ -24,7 +24,6 @@ const uint8_t index_ov3660_html[] = R"=====(
         figure img {
           display: block;
           max-width: 100%;
-          max-height: calc(100vh - 40px);
           width: auto;
           height: auto
         }
@@ -295,7 +294,7 @@ const uint8_t index_ov3660_html[] = R"=====(
         </div>
         <figure>
           <div id="stream-container" class="image-container hidden">
-            <div class="close" id="close-stream">×</div>
+            <div class="close close-rot-none" id="close-stream">×</div>
             <img id="stream" src="">
           </div>
         </figure>
@@ -471,13 +470,22 @@ const uint8_t index_ov3660_html[] = R"=====(
       rot = rotate.value;
       if (rot == -90) {
         viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-left');
       } else if (rot == 90) {
-        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`
+        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`;
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.add('close-rot-right');
       } else {
-        viewContainer.style.transform = `rotate(0deg)`
+        viewContainer.style.transform = `rotate(0deg)`;
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-none');
       }
-       console.log('Rotation ' + rot + ' applied');
-   }
+      console.log('Rotation ' + rot + ' applied');
+    }
 
     // Attach actions to controls
     
