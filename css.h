@@ -313,8 +313,6 @@ select {
 .close {
   position: absolute;
   z-index: 99;
-  left: 5px;
-  top: 5px;
   background: #ff3034;
   width: 16px;
   height: 16px;
@@ -323,6 +321,21 @@ select {
   text-align: center;
   line-height: 18px;
   cursor: pointer
+}
+
+.close-rot-none {
+  left: 5px;
+  top: 5px;
+}
+
+,close-rot-left {
+  right: 5px;
+  top: 5px;
+}
+
+.close-rot-right {
+  left: 5px;
+  bottom: 5px;
 }
 
 .hidden {
