@@ -17,9 +17,10 @@
 #include "img_converters.h"
 #include "Arduino.h"
 
-#include "camera_index_ov2640.h"
-#include "camera_index_ov3660.h"
+#include "index_ov2640.h"
+#include "index_ov3660.h"
 #include "miniviewer.h"
+#include "css.h"
 #include "favicon/favicons.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
@@ -664,6 +665,15 @@ static esp_err_t favicon_ico_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
 }
 
+static esp_err_t style_handler(httpd_req_t *req){
+    flashLED(75);  // a little feedback to user
+    delay(75);
+    flashLED(75);
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)style_css, style_css_len);
+}
+
 static esp_err_t miniviewer_handler(httpd_req_t *req){
     flashLED(75);  // a little feedback to user
     delay(75);
@@ -724,6 +734,13 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
+    httpd_uri_t style_uri = {
+        .uri       = "/style.css",
+        .method    = HTTP_GET,
+        .handler   = style_handler,
+        .user_ctx  = NULL
+    };
+
     httpd_uri_t favicon_16x16_uri = {
         .uri       = "/favicon-16x16.png",
         .method    = HTTP_GET,
@@ -780,6 +797,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &status_uri);
         httpd_register_uri_handler(camera_httpd, &capture_uri);
         httpd_register_uri_handler(camera_httpd, &miniviewer_uri);
+        httpd_register_uri_handler(camera_httpd, &style_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
