@@ -300,12 +300,13 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
         font-family: Arial,Helvetica,sans-serif;
         background: #181818;
         color: #EFEFEF;
-        font-size: 16px
+        font-size: 16px;
+        margin: 0px;
       }
 
       figure {
         padding: 0px;
-        margin: 0;
+        margin: 0px;
         -webkit-margin-before: 0;
         margin-block-start: 0;
         -webkit-margin-after: 0;
@@ -317,23 +318,20 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
       }
 
       figure img {
+        object-fit: contain;
         display: block;
-        max-width: 100%;
-        width: auto;
-        height: auto;
-        border-radius: 4px;
-        margin-top: 8px;
+        width: 100vw;
+        height: 100vh;
       }
 
       .image-container {
         position: relative;
-        min-width: 160px;
         transform-origin: top left
       }
 
       .loader {
-        border: 0.5em solid #f3f3f3; /* Light grey */
-        border-top: 0.5em solid #000000; /* white */
+        border: 0.5em solid #f3f3f3;
+        border-top: 0.5em solid #000000;
         border-radius: 50%;
         width: 1em;
         height: 1em;
@@ -402,7 +400,7 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
       } else if(!updateRemote){
         if(el.id === "cam_name"){
           window.document.title = value;
-          viewContainer.setAttribute("title", value);
+          viewContainer.setAttribute("title", value + "\n(doubleclick for fullscreen)");
           console.log('Name set to: ' + value);
         } else if(el.id === "code_ver"){
           console.log('Firmware Build: ' + value);
@@ -447,6 +445,18 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
         viewContainer.style.transform = `rotate(0deg)`;
       }
        console.log('Rotation ' + rot + ' applied');
+
+    view.ondblclick = () => {
+      if (view.requestFullscreen) {
+        view.requestFullscreen();
+      } else if (view.mozRequestFullScreen) { /* Firefox */
+        view.mozRequestFullScreen();
+      } else if (view.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        view.webkitRequestFullscreen();
+      } else if (view.msRequestFullscreen) { /* IE/Edge */
+        view.msRequestFullscreen();
+      }
+    }
    }
   })
   </script>
