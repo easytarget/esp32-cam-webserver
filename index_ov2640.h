@@ -8,7 +8,7 @@ const uint8_t index_ov2640_html[] = R"=====(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ESP32 OV3660</title>
+    <title>ESP32 OV2640</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/style.css">
@@ -19,15 +19,14 @@ const uint8_t index_ov2640_html[] = R"=====(
           flex-wrap: nowrap;
           align-items: stretch
         }
-      
-      
+
         figure img {
           display: block;
           max-width: 100%;
           width: auto;
           height: auto
         }
-      
+
         figure {
           padding: 0 0 0 0px;
           margin: 0;
@@ -270,11 +269,11 @@ const uint8_t index_ov2640_html[] = R"=====(
               <div class="input-group" id="code_ver-group">
                 <label for="code_ver">
                 <a href="https://github.com/easytarget/esp32-cam-webserver"
-                  title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a>:</label>
+                  title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a></label>
                 <div id="code_ver" class="default-action"></div>
               </div>
               <div class="input-group hidden" id="stream-group">
-                <label for="stream_url">Stream URL:</label>
+                <label for="stream_url" id="stream_link">Stream URL</label>
                 <div id="stream_url" class="default-action">Unknown</div>
               </div>
             </nav>
@@ -307,7 +306,7 @@ const uint8_t index_ov2640_html[] = R"=====(
     const streamButton = document.getElementById('toggle-stream')
     const enrollButton = document.getElementById('face_enroll')
     const closeButton = document.getElementById('close-stream')
-    const streamLink = document.getElementById('stream_url')
+    const streamLink = document.getElementById('stream_link')
     const detect = document.getElementById('face_detect')
     const recognize = document.getElementById('face_recognize')
     const framesize = document.getElementById('framesize')
@@ -341,7 +340,7 @@ const uint8_t index_ov2640_html[] = R"=====(
         initialValue = el.value
         el.value = value
       }
-  
+
       if (updateRemote && initialValue !== value) {
         updateConfig(el);
       } else if(!updateRemote){
@@ -377,9 +376,9 @@ const uint8_t index_ov2640_html[] = R"=====(
           applyRotation();
         } else if(el.id === "stream_url"){
           stream_url.innerHTML = value;
-          stream_url.setAttribute("title", "Open raw stream URL in new window");
-          stream_url.style.textDecoration = "underline";
-          stream_url.style.cursor = "pointer";
+          stream_link.setAttribute("title", "Open stream viewer ( " + value + "view )");
+          stream_link.style.textDecoration = "underline";
+          stream_link.style.cursor = "pointer";
           streamURL = value;
           streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
           show(streamGroup)
@@ -479,7 +478,7 @@ const uint8_t index_ov2640_html[] = R"=====(
     // Attach actions to controls
     
     streamLink.onclick = () => {
-      window.open(streamURL, "_blank");
+      window.open(streamURL + "view", "_blank");
     }
 
     stillButton.onclick = () => {
@@ -529,7 +528,7 @@ const uint8_t index_ov2640_html[] = R"=====(
         show(agcGain)
       }
     }
-  
+
     // Exposure
     const aec = document.getElementById('aec')
     const exposure = document.getElementById('aec_value-group')
@@ -537,7 +536,7 @@ const uint8_t index_ov2640_html[] = R"=====(
       updateConfig(aec)
       aec.checked ? hide(exposure) : show(exposure)
     }
-  
+
     // AWB
     const awb = document.getElementById('awb_gain')
     const wb = document.getElementById('wb_mode-group')
@@ -545,7 +544,7 @@ const uint8_t index_ov2640_html[] = R"=====(
       updateConfig(awb)
       awb.checked ? show(wb) : hide(wb)
     }
-  
+
     // Detection and framesize
     rotate.onchange = () => {
       applyRotation();
@@ -559,7 +558,7 @@ const uint8_t index_ov2640_html[] = R"=====(
         updateValue(recognize, false)
       }
     }
-  
+
     detect.onchange = () => {
       if (framesize.value > 5) {
         alert("Please select CIF or lower resolution before enabling this feature!");
@@ -572,7 +571,7 @@ const uint8_t index_ov2640_html[] = R"=====(
         updateValue(recognize, false)
       }
     }
-  
+
     recognize.onchange = () => {
       if (framesize.value > 5) {
         alert("Please select CIF or lower resolution before enabling this feature!");

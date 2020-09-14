@@ -34,7 +34,7 @@ section.main {
 #menu {
   display: none;
   flex-wrap: nowrap;
-  width: 340px;
+  width: 380px;
   background: #363636;
   padding: 8px;
   border-radius: 4px;
@@ -63,10 +63,6 @@ figure {
 
 figure img {
   display: block;
-/* 
-    no max-width:
-    width: 100%;
-*/
   max-width: 100%;
   width: auto;
   height: auto;
