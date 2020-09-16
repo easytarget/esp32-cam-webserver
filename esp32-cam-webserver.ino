@@ -109,6 +109,29 @@ const int pwmMax = pow(2,pwmresolution)-1;
   int8_t recognition_enabled = 0;
 #endif
 
+// Notification LED 
+void flashLED(int flashtime) {
+#ifdef LED_PIN                    // If we have it; flash it.
+  digitalWrite(LED_PIN, LED_ON);  // On at full power.
+  delay(flashtime);               // delay
+  digitalWrite(LED_PIN, LED_OFF); // turn Off
+#else
+  return;                         // No notifcation LED, do nothing, no delay
+#endif
+} 
+
+// Lamp Control
+void setLamp(int newVal) {
+  if (newVal != -1) {
+    // Apply a logarithmic function to the scale.
+    int brightness = round((pow(2,(1+(newVal*0.02)))-2)/6*pwmMax);
+    ledcWrite(lampChannel, brightness);
+    Serial.print("Lamp: ");
+    Serial.print(newVal);
+    Serial.print("%, pwm = ");
+    Serial.println(brightness);
+  }
+} 
 
 void setup() {
   Serial.begin(115200);
@@ -319,30 +342,6 @@ void setup() {
 
   Serial.printf("\nCamera Ready!\nUse '%s' to connect\n\n", httpURL);
 }
-
-// Notification LED 
-void flashLED(int flashtime) {
-#ifdef LED_PIN                    // If we have it; flash it.
-  digitalWrite(LED_PIN, LED_ON);  // On at full power.
-  delay(flashtime);               // delay
-  digitalWrite(LED_PIN, LED_OFF); // turn Off
-#else
-  return;                         // No notifcation LED, do nothing, no delay
-#endif
-} 
-
-// Lamp Control
-void setLamp(int newVal) {
-  if (newVal != -1) {
-    // Apply a logarithmic function to the scale.
-    int brightness = round((pow(2,(1+(newVal*0.02)))-2)/6*pwmMax);
-    ledcWrite(lampChannel, brightness);
-    Serial.print("Lamp: ");
-    Serial.print(newVal);
-    Serial.print("%, pwm = ");
-    Serial.println(brightness);
-  }
-} 
 
 void loop() {
   // Just loop forever.
