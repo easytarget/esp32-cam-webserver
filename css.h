@@ -116,8 +116,8 @@ section#buttons {
 
 button {
   display: block;
-  margin: 5px;
-  padding: 0 12px;
+  margin: 3px;
+  padding: 0 8px;
   border: 0;
   line-height: 28px;
   cursor: pointer;
@@ -365,4 +365,4 @@ select {
 }
 )=====";
 
-size_t style_css_len = sizeof(index_ov2640_html);
+size_t style_css_len = sizeof(style_css);
