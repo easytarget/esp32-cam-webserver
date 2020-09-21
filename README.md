@@ -1,12 +1,18 @@
 # ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
-## Taken from the ESP examples, and modified for reality
+## Taken from the ESP examples, and expanded
 This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
 
 https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
 
-- The example they have is nice, but a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
-- There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
+But expanded with:
+* More options for default network and camera settings
+* Control of on-board lamps, view rotation in the browser
+* Dedicated standalone stream viewer
+* Lots of minor fixes and tweaks
+
+The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
+* There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
 
 ![My Gods, it's full of cats!](Docs/mygodsitsfullofcats.png)
 
@@ -49,7 +55,9 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
 
 By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
 
-To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` 
+To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h`
+
+Additional boot-time changes to other camera properties can be made in the main sketch file; see the comments [around line 253](https://github.com/easytarget/esp32-cam-webserver/blob/doc-options/esp32-cam-webserver.ino#L253).
 
 You can now set a camera name, board model, wifi settings and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
 
@@ -74,6 +82,8 @@ The basic example is extended to allow control of a high power LED FlashLamps, w
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
+
+The streamviewer, lamp control, and all the other new features have been added. I have tried to retain the basic structure of the original example,extending where necesscary.
 
 I have left all the Face Recognition code untouched, it works, and with good lighting and camera position it can work quite well. But you can only use it in low-resolution modes, and it is not something I will be using.
 
