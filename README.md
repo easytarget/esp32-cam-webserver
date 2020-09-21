@@ -11,8 +11,8 @@ But expanded with:
 * Dedicated standalone stream viewer
 * Lots of minor fixes and tweaks
 
-- The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
-- There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
+The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
+* There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
 
 ![My Gods, it's full of cats!](Docs/mygodsitsfullofcats.png)
 
