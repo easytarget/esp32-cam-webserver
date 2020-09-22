@@ -76,12 +76,12 @@ char streamURL[64] = {"Undefined"};  // Stream URL to pass to the app.
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
-  // initial rotation
-  // can be set in myconfig.h
-  #if !defined(CAM_ROTATION)
-    #define CAM_ROTATION 0
-  #endif
-  int myRotation = CAM_ROTATION;
+// initial rotation
+// can be set in myconfig.h
+#if !defined(CAM_ROTATION)
+  #define CAM_ROTATION 0
+#endif
+int myRotation = CAM_ROTATION;
 
 // Illumination LAMP/LED
 #if defined(LAMP_DISABLE)
