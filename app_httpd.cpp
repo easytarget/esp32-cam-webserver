@@ -26,8 +26,8 @@
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
 
 // Functions from the main .ino
-void flashLED(int flashtime);
-void setLamp(int newVal);
+extern void flashLED(int flashtime);
+extern void setLamp(int newVal);
 
 // External variables declared in main .ino
 extern char myName[];               // Camera Name
@@ -93,7 +93,7 @@ static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     return filter;
 }
 
-#ifdef DEBUG_STREAM_DATA
+#if defined(DEBUG_STREAM_DATA)
   static int ra_filter_run(ra_filter_t * filter, int value) {
       if(!filter->values){
           return value;
@@ -333,7 +333,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
     char * part_buf[64];
     dl_matrix3du_t *image_matrix = NULL;
     int face_id = 0;
-    #ifdef DEBUG_STREAM_DATA
+    #if defined(DEBUG_STREAM_DATA)
       bool detected = false;
       int64_t fr_start = 0;
       int64_t fr_face = 0;
@@ -359,7 +359,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     while(true){
-        #ifdef DEBUG_STREAM_DATA
+        #if defined (DEBUG_STREAM_DATA)
           detected = false;
         #endif
         face_id = 0;
@@ -368,7 +368,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
             Serial.println("Camera capture failed");
             res = ESP_FAIL;
         } else {
-            #ifdef DEBUG_STREAM_DATA
+            #if defined(DEBUG_STREAM_DATA)
               fr_start = esp_timer_get_time();
               fr_ready = fr_start;
               fr_face = fr_start; 
@@ -400,26 +400,26 @@ static esp_err_t stream_handler(httpd_req_t *req){
                         Serial.println("fmt2rgb888 failed");
                         res = ESP_FAIL;
                     } else {
-                        #ifdef DEBUG_STREAM_DATA
+                        #if defined(DEBUG_STREAM_DATA)
                           fr_ready = esp_timer_get_time();
                         #endif
                         box_array_t *net_boxes = NULL;
                         if(detection_enabled){
                             net_boxes = face_detect(image_matrix, &mtmn_config);
                         }
-                        #ifdef DEBUG_STREAM_DATA
+                        #if defined(DEBUG_STREAM_DATA)
                           fr_face = esp_timer_get_time();
                           fr_recognize = fr_face;
                         #endif
                         if (net_boxes || fb->format != PIXFORMAT_JPEG){
                             if(net_boxes){
-                                #ifdef DEBUG_STREAM_DATA
+                                #if defined(DEBUG_STREAM_DATA)
                                   detected = true;
                                 #endif
                                 if(recognition_enabled){
                                     face_id = run_face_recognition(image_matrix, net_boxes);
                                 }
-                                #ifdef DEBUG_STREAM_DATA
+                                #if defined(DEBUG_STREAM_DATA)
                                   fr_recognize = esp_timer_get_time();
                                 #endif
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
@@ -438,7 +438,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                             _jpg_buf = fb->buf;
                             _jpg_buf_len = fb->len;
                         }
-                        #ifdef DEBUG_STREAM_DATA
+                        #if defined(DEBUG_STREAM_DATA)
                           fr_encode = esp_timer_get_time();
                         #endif
                     }
@@ -718,6 +718,8 @@ static esp_err_t index_handler(httpd_req_t *req){
 
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 20; // we use more than the default 8...
+
 
     httpd_uri_t index_uri = {
         .uri       = "/",
@@ -782,7 +784,7 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
-   httpd_uri_t stream_uri = {
+    httpd_uri_t stream_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
         .handler   = stream_handler,

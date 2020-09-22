@@ -48,7 +48,7 @@
 #include "camera_pins.h"
 
 // Declare external function from app_httpd.cpp
-void startCameraServer(int hPort, int sPort);
+extern void startCameraServer(int hPort, int sPort);
 
 // A Name for the Camera. (set in myconfig.h)
 #if defined(CAM_NAME)
@@ -147,20 +147,12 @@ void setup() {
   Serial.print("Code Built: ");
   Serial.println(myVer);
 
-
   #if defined(LED_PIN)  // If we have a notification LED, set it to output
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LED_OFF);
   #endif
 
-  if (lampVal != -1) {
-    ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-    setLamp(lampVal);                                // set default value
-    ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
-  } else {
-    Serial.println("No lamp, or lamp disabled in config");
-  }
-   
+  // Create camera config structure; and populate with hardware and other defaults 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -271,7 +263,20 @@ void setup() {
   //s->set_dcw(s, 1);            // 0 = disable , 1 = enable
   //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
 
-  // Feedback that hardware init is complete and we are now attempting to connect
+
+  // We now have our config defined; setup the hardware.
+
+  // Initialise and set the lamp
+  if (lampVal != -1) {
+    ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
+    setLamp(lampVal);                                // set default value
+    ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+  } else {
+    Serial.println("No lamp, or lamp disabled in config");
+  }
+
+  // Feedback that we are now attempting to connect
+  Serial.println();
   Serial.println("Wifi Initialisation");
   flashLED(400);
   delay(100);
@@ -361,7 +366,9 @@ void setup() {
   // Construct the Stream URL
   sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
 
-  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n\n", httpURL);
+  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+  Serial.printf("Raw stream URL is '%s'\n", streamURL);
+  Serial.printf("Stream viewer available at '%sview'", streamURL);
 }
 
 void loop() {
