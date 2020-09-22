@@ -76,8 +76,12 @@ char streamURL[64] = {"Undefined"};  // Stream URL to pass to the app.
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
-// current rotation direction
-char myRotation[5];
+  // initial rotation
+  // can be set in myconfig.h
+  #if !defined(CAM_ROTATION)
+    #define CAM_ROTATION 0
+  #endif
+  int myRotation = CAM_ROTATION;
 
 // Illumination LAMP/LED
 #if defined(LAMP_DISABLE)
@@ -142,16 +146,6 @@ void setup() {
   Serial.println(myName);
   Serial.print("Code Built: ");
   Serial.println(myVer);
-
-  // initial rotation
-  // can be set in myconfig.h
-  #if !defined(CAM_ROTATION)
-    #define CAM_ROTATION 0
-  #endif
-
-  // set the initialisation for image rotation
-  // ToDo; might be better to handle this with an enum?
-  int n __attribute__((unused)) = snprintf(myRotation,sizeof(myRotation),"%d",CAM_ROTATION); 
 
 
   #if defined(LED_PIN)  // If we have a notification LED, set it to output

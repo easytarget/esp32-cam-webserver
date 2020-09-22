@@ -32,7 +32,7 @@ void setLamp(int newVal);
 // External variables declared in main .ino
 extern char myName[];               // Camera Name
 extern char myVer[];                // Firmware Build Info
-extern char myRotation[];           // Rotation
+extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
 extern char streamURL[];            // Stream URL
 extern int8_t detection_enabled;    // Face detection enable
@@ -555,6 +555,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "special_effect")) res = s->set_special_effect(s, val);
     else if(!strcmp(variable, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(variable, "ae_level")) res = s->set_ae_level(s, val);
+    else if(!strcmp(variable, "rotate")) myRotation = val;
     else if(!strcmp(variable, "face_detect")) {
         detection_enabled = val;
         if(!detection_enabled) {
@@ -571,9 +572,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
       lampVal = constrain(val,0,100);
       setLamp(lampVal);
-    }
-    else if(!strcmp(variable, "rotate")) {
-      sprintf(myRotation, "%i", val);
     }
     else {
         res = -1;
@@ -627,7 +625,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
-    p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
+    p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
     p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
     *p++ = 0;
@@ -642,7 +640,7 @@ static esp_err_t info_handler(httpd_req_t *req){
     *p++ = '{';
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
     p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
-    p+=sprintf(p, "\"rotate\":\"%s\",", myRotation);
+    p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
     p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
     *p++ = 0;
