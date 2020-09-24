@@ -70,6 +70,10 @@ extern void startCameraServer(int hPort, int sPort);
   int streamPort = 81;
 #endif
 
+#if !defined(WIFI_WATCHDOG)
+  #define WIFI_WATCHDOG 5
+#endif
+
 // The stream URL
 char streamURL[64] = {"Undefined"};  // Stream URL to pass to the app.
 
@@ -263,7 +267,6 @@ void setup() {
   //s->set_dcw(s, 1);            // 0 = disable , 1 = enable
   //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
 
-
   // We now have our config defined; setup the hardware.
 
   // Initialise and set the lamp
@@ -282,26 +285,9 @@ void setup() {
   startCameraServer(httpPort, streamPort);
 }
 
-void loop() {
-  // Just loop forever.
-  // The stream and URI handler processes initiated by the startCameraServer() call at the
-  // end of setup() will handle the camera and UI processing from now on.
-  delay(10000);
-
-  // Make sure we are still connected to the wifi, reconnect if necissary
-  WifiSetup();
-}
-
-void WifiSetup(){
-  // No need to do anything if we are already connected.
-  if (WiFi.status() == WL_CONNECTED){
-    return;
-  }
+bool WifiSetup(){
   // Feedback that we are now attempting to connect
-  Serial.println();
-  Serial.println("Wifi Initialisation");
   flashLED(400);
-  delay(100);
 
   #if defined(WIFI_AP_ENABLE)
     #if defined(AP_ADDRESS)
@@ -327,6 +313,7 @@ void WifiSetup(){
       Serial.print("Password : ");
       Serial.println(password);
     #endif
+    return true;  // Assume succes for AP setup
   #else
     Serial.print("Connecting to Wifi Network: ");
     Serial.println(ssid);
@@ -349,43 +336,54 @@ void WifiSetup(){
         #endif
       #endif
     #endif
-      
+
     WiFi.begin(ssid, password);
 
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(250);  // Wait for Wifi to connect. If this fails wifi the code basically hangs here.
-                   // - It would be good to do something else here as a future enhancement.
-                   //   (eg: go to a captive AP config portal to configure the wifi)
+    unsigned long start = millis(); 
+    while ((millis() - start <= WIFI_WATCHDOG)) {
+      if (WiFi.status() == WL_CONNECTED) return true;
+      delay(200);
     }
-
-    // feedback that we are connected
-    Serial.println("WiFi connected");
-    flashLED(200);
-    delay(100);
-    flashLED(200);
-    delay(100);
-    flashLED(200);
+    return false;
   #endif
+}
 
-    IPAddress ip;
-  char httpURL[64] = {"Unknown"};
-  
-  #if defined(WIFI_AP_ENABLE)
-    ip = WiFi.softAPIP();
-  #else
-    ip = WiFi.localIP();
-  #endif
-
-  // Construct the App URL
-  if (httpPort != 80) {
-    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+void loop() {
+  // Just loop forever, reconnecting Wifi As necesscary.
+  // The stream and URI handler processes initiated by the startCameraServer() call at the
+  // end of setup() will handle the camera and UI processing from now on.
+  if (WiFi.status() == WL_CONNECTED) {
+    // We are connected, wait a bit and re-check
+    delay(WIFI_WATCHDOG);
   } else {
-    sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+    if (WifiSetup()) {
+      // find our IP address
+      IPAddress ip;
+      char httpURL[64] = {"Unknown"};
+      #if defined(WIFI_AP_ENABLE)
+        ip = WiFi.softAPIP();
+      #else
+        ip = WiFi.localIP();
+      #endif
+      // Construct the App URL
+      if (httpPort != 80) {
+        sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+      } else {
+        sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+      }
+      // Construct the Stream URL
+      sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
+      // Inform the user
+      Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+      Serial.printf("Raw stream URL is '%s'\n", streamURL);
+      Serial.printf("Stream viewer available at '%sview'\n", streamURL);
+      // Burst flash the LED to show we are connected
+      for (int i = 0; i < 5; i++) {
+        flashLED(80);
+        delay(120);
+      }
+    } else {
+      Serial.println("Wifi Connection failed, retrying.");
+    }
   }
-  // Construct the Stream URL
-  sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
-
-  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
-  Serial.printf("Raw stream URL is '%s'\n", streamURL);
-  Serial.printf("Stream viewer available at '%sview'\n", streamURL);
 }
