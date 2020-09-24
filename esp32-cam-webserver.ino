@@ -275,6 +275,28 @@ void setup() {
     Serial.println("No lamp, or lamp disabled in config");
   }
 
+  // Connect to the wifi.
+  WifiSetup();
+
+  // Start the Stream server, and the handler processes for the Web UI.
+  startCameraServer(httpPort, streamPort);
+}
+
+void loop() {
+  // Just loop forever.
+  // The stream and URI handler processes initiated by the startCameraServer() call at the
+  // end of setup() will handle the camera and UI processing from now on.
+  delay(10000);
+
+  // Make sure we are still connected to the wifi, reconnect if necissary
+  WifiSetup();
+}
+
+void WifiSetup(){
+  // No need to do anything if we are already connected.
+  if (WiFi.status() == WL_CONNECTED){
+    return;
+  }
   // Feedback that we are now attempting to connect
   Serial.println();
   Serial.println("Wifi Initialisation");
@@ -345,10 +367,7 @@ void setup() {
     flashLED(200);
   #endif
 
-  // Start the Stream server, and the handler processes for the Web UI.
-  startCameraServer(httpPort, streamPort);
-
-  IPAddress ip;
+    IPAddress ip;
   char httpURL[64] = {"Unknown"};
   
   #if defined(WIFI_AP_ENABLE)
@@ -368,12 +387,5 @@ void setup() {
 
   Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
   Serial.printf("Raw stream URL is '%s'\n", streamURL);
-  Serial.printf("Stream viewer available at '%sview'", streamURL);
-}
-
-void loop() {
-  // Just loop forever.
-  // The stream and URI handler processes initiated by the startCameraServer() call at the
-  // end of setup() will handle the camera and UI processing from now on.
-  delay(10000);
+  Serial.printf("Stream viewer available at '%sview'\n", streamURL);
 }
