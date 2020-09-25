@@ -71,7 +71,7 @@ extern void startCameraServer(int hPort, int sPort);
 #endif
 
 #if !defined(WIFI_WATCHDOG)
-  #define WIFI_WATCHDOG 5
+  #define WIFI_WATCHDOG 5000
 #endif
 
 // The stream URL
@@ -139,7 +139,77 @@ void setLamp(int newVal) {
     Serial.print("%, pwm = ");
     Serial.println(brightness);
   }
-} 
+}
+
+void WifiSetup(){
+  // Feedback that we are now attempting to connect
+  flashLED(400);
+
+  #if defined(WIFI_AP_ENABLE)
+    #if defined(AP_ADDRESS)
+      // User has specified the AP details, pre-configure AP
+      IPAddress local_IP(AP_ADDRESS);
+      IPAddress gateway(AP_ADDRESS);
+      IPAddress subnet(255,255,255,0);
+      WiFi.softAPConfig(local_IP, gateway, subnet);
+    #endif
+    #if defined(AP_CHAN)
+      WiFi.softAP(ssid, password, AP_CHAN);
+      Serial.println("Setting up Fixed Channel AccessPoint");
+      Serial.print("SSID     : ");
+      Serial.println(ssid);
+      Serial.print("Password : ");
+      Serial.println(password);
+      Serial.print("Channel  : ");    
+      Serial.println(AP_CHAN);
+    # else
+      WiFi.softAP(ssid, password);
+      Serial.println("Setting up AccessPoint");
+      Serial.print("SSID     : ");
+      Serial.println(ssid);
+      Serial.print("Password : ");
+      Serial.println(password);
+    #endif
+  #else
+    Serial.printf("Connecting to Wifi Network: %s ", ssid);
+    #if defined(ST_IP)
+      #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK) 
+        #error "You must supply both Gateway and NetMask when specifying a static IP address"
+      #endif
+      IPAddress staticIP(ST_IP);
+      IPAddress gateway(ST_GATEWAY);
+      IPAddress subnet(ST_NETMASK);
+      #if !defined(ST_DNS1)
+        WiFi.config(staticIP, gateway, subnet);
+      #else
+        IPAddress dns1(ST_DNS1);
+        #if !defined(ST_DNS2)
+          WiFi.config(staticIP, gateway, subnet, dns1);
+        #else
+          IPAddress dns2(ST_DNS2);
+          WiFi.config(staticIP, gateway, subnet, dns1, dns2);
+        #endif
+      #endif
+    #endif
+
+    // Initiate network connection request
+    WiFi.begin(ssid, password);
+
+    // Wait to connect, or timeout
+    unsigned long start = millis(); 
+    while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
+      delay(WIFI_WATCHDOG / 10);
+      Serial.print('.');
+    }
+    
+    // If we have connected, show details
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println(" Succeeded");
+    } else {
+      Serial.println(" Failed");
+    }
+  #endif
+}
 
 void setup() {
   Serial.begin(115200);
@@ -278,112 +348,67 @@ void setup() {
     Serial.println("No lamp, or lamp disabled in config");
   }
 
-  // Connect to the wifi.
-  WifiSetup();
-
-  // Start the Stream server, and the handler processes for the Web UI.
-  startCameraServer(httpPort, streamPort);
-}
-
-bool WifiSetup(){
-  // Feedback that we are now attempting to connect
-  flashLED(400);
-
+  // We need a working Wifi before we can start the http handlers
+  Serial.println("Starting WiFi");
   #if defined(WIFI_AP_ENABLE)
-    #if defined(AP_ADDRESS)
-      IPAddress local_IP(AP_ADDRESS);
-      IPAddress gateway(AP_ADDRESS);
-      IPAddress subnet(255,255,255,0);
-      WiFi.softAPConfig(local_IP, gateway, subnet);
-    #endif
-    #if defined(AP_CHAN)
-      WiFi.softAP(ssid, password, AP_CHAN);
-      Serial.println("Setting up Fixed Channel AccessPoint");
-      Serial.print("SSID     : ");
-      Serial.println(ssid);
-      Serial.print("Password : ");
-      Serial.println(password);
-      Serial.print("Channel  : ");    
-      Serial.println(AP_CHAN);
-    # else
-      WiFi.softAP(ssid, password);
-      Serial.println("Setting up AccessPoint");
-      Serial.print("SSID     : ");
-      Serial.println(ssid);
-      Serial.print("Password : ");
-      Serial.println(password);
-    #endif
-    return true;  // Assume succes for AP setup
+    WifiSetup();
   #else
-    Serial.print("Connecting to Wifi Network: ");
-    Serial.println(ssid);
-    #if defined(ST_IP)
-      #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK) 
-        #error "You must supply both Gateway and NetMask when specifying a static IP address"
-      #endif
-      IPAddress staticIP(ST_IP);
-      IPAddress gateway(ST_GATEWAY);
-      IPAddress subnet(ST_NETMASK);
-      #if !defined(ST_DNS1)
-        WiFi.config(staticIP, gateway, subnet);
-      #else
-        IPAddress dns1(ST_DNS1);
-        #if !defined(ST_DNS2)
-          WiFi.config(staticIP, gateway, subnet, dns1);
-        #else
-          IPAddress dns2(ST_DNS2);
-          WiFi.config(staticIP, gateway, subnet, dns1, dns2);
-        #endif
-      #endif
-    #endif
-
-    WiFi.begin(ssid, password);
-
-    unsigned long start = millis(); 
-    while ((millis() - start <= WIFI_WATCHDOG)) {
-      if (WiFi.status() == WL_CONNECTED) return true;
-      delay(200);
+    while (WiFi.status() != WL_CONNECTED) {
+      WifiSetup();
     }
-    return false;
   #endif
+
+  // Start the two http handlers for the HTTP UI and Stream.
+  startCameraServer(httpPort, streamPort);
+
+  // find our IP address
+  IPAddress ip;
+  char httpURL[64] = {"Unknown"};
+  #if defined(WIFI_AP_ENABLE)
+    ip = WiFi.softAPIP();
+  #else
+    ip = WiFi.localIP();
+  #endif
+  // Construct the App URL
+  if (httpPort != 80) {
+    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+  } else {
+    sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+  }
+  // Construct the Stream URL
+  sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
+  // Inform the user
+  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+  Serial.printf("Raw stream URL is '%s'\n", streamURL);
+  Serial.printf("Stream viewer available at '%sview'\n", streamURL);
+  // Burst flash the LED to show we are connected
+  for (int i = 0; i < 5; i++) {
+    flashLED(80);
+    delay(120);
+  }
 }
 
 void loop() {
   // Just loop forever, reconnecting Wifi As necesscary.
   // The stream and URI handler processes initiated by the startCameraServer() call at the
   // end of setup() will handle the camera and UI processing from now on.
-  if (WiFi.status() == WL_CONNECTED) {
-    // We are connected, wait a bit and re-check
+  #if defined(WIFI_AP_ENABLE)
     delay(WIFI_WATCHDOG);
-  } else {
-    if (WifiSetup()) {
-      // find our IP address
-      IPAddress ip;
-      char httpURL[64] = {"Unknown"};
-      #if defined(WIFI_AP_ENABLE)
-        ip = WiFi.softAPIP();
-      #else
-        ip = WiFi.localIP();
-      #endif
-      // Construct the App URL
-      if (httpPort != 80) {
-        sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
-      } else {
-        sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+  #else
+    static bool warned = false;
+    if (WiFi.status() == WL_CONNECTED) {
+      // We are connected, wait a bit and re-check
+      if (warned) {
+        Serial.println("WiFi reconnected");
+        warned = false;
       }
-      // Construct the Stream URL
-      sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
-      // Inform the user
-      Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
-      Serial.printf("Raw stream URL is '%s'\n", streamURL);
-      Serial.printf("Stream viewer available at '%sview'\n", streamURL);
-      // Burst flash the LED to show we are connected
-      for (int i = 0; i < 5; i++) {
-        flashLED(80);
-        delay(120);
-      }
+      delay(WIFI_WATCHDOG);
     } else {
-      Serial.println("Wifi Connection failed, retrying.");
+      if (!warned) {
+        Serial.println("WiFi disconnected, retrying");
+        warned = true;
+      }
+      WifiSetup();
     }
-  }
+  #endif
 }

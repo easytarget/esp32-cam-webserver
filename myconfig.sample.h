@@ -41,9 +41,9 @@ const char* password = "my-password";
 // #define ST_DNS2 8,8,8,8
 
 // Wifi Watchdog defines how long we spend waiting for a connection before retrying,
-// and how often we check to see if we are still connected.
+// and how often we check to see if we are still connected, milliseconds
 // You may wish to increase this if your WiFi is slow at conencting,
-/// #define WIFI_WATCHDOG = 5
+// #define WIFI_WATCHDOG = 5000
 
 
 /*
