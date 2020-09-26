@@ -45,7 +45,7 @@
 #endif
 
 // Pin Mappings
-#include "local/camera_pins.h"
+#include "camera_pins.h"
 
 // Declare external function from app_httpd.cpp
 extern void startCameraServer(int hPort, int sPort);
