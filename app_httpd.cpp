@@ -19,9 +19,9 @@
 
 #include "index_ov2640.h"
 #include "index_ov3660.h"
-#include "viewers.h"
+#include "local/viewers.h"
 #include "css.h"
-#include "favicon/favicons.h"
+#include "local/favicons.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
 
