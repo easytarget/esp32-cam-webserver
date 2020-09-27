@@ -22,6 +22,7 @@
 #include "viewers.h"
 #include "css.h"
 #include "favicons.h"
+#include "storage.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
 
@@ -37,6 +38,7 @@ extern int lampVal;                 // The current Lamp value
 extern char streamURL[];            // Stream URL
 extern int8_t detection_enabled;    // Face detection enable
 extern int8_t recognition_enabled;  // Face recognition enable
+extern bool filesystem;             // Save/restore features enabled
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -342,9 +344,11 @@ static esp_err_t stream_handler(httpd_req_t *req){
       int64_t fr_ready = 0;
     #endif
 
-    Serial.println("Stream started:");
+    Serial.println("Stream started");
 
-    flashLED(75); // little flash of status LED
+    flashLED(75); // double flash of status LED
+    delay(75);
+    flashLED(75);
 
     static int64_t last_frame = 0;
     if(!last_frame) {
@@ -498,6 +502,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     size_t buf_len;
     char variable[32] = {0,};
     char value[32] = {0,};
+    flashLED(75);
 
     buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len > 1) {
@@ -524,11 +529,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
-
+    
     int val = atoi(value);
     sensor_t * s = esp_camera_sensor_get();
     int res = 0;
-
     if(!strcmp(variable, "framesize")) {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
     }
@@ -570,29 +574,38 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         }
     }
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
-      lampVal = constrain(val,0,100);
-      setLamp(lampVal);
+        lampVal = constrain(val,0,100);
+        setLamp(lampVal);
+    }
+    else if(!strcmp(variable, "save_prefs")) {
+        if (filesystem) savePrefs(SPIFFS);
+    }
+    else if(!strcmp(variable, "clear_prefs")) {
+        if (filesystem) removePrefs(SPIFFS);
+    }
+    else if(!strcmp(variable, "reboot")) {
+        Serial.printf("\nREBOOT requested\n\n");
+        for (int i=0; i<100; i++) {
+          flashLED(20);
+          delay(20);
+        }
+        ESP.restart(); // Thats all folks...
     }
     else {
         res = -1;
     }
-
-
     if(res){
         return httpd_resp_send_500(req);
     }
-
-    flashLED(75); // little flash of status LED
-    
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     return httpd_resp_send(req, NULL, 0);
 }
 
 static esp_err_t status_handler(httpd_req_t *req){
-
     static char json_response[1024];
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
+    flashLED(75);
     *p++ = '{';
     p+=sprintf(p, "\"lamp\":%i,", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
@@ -635,6 +648,7 @@ static esp_err_t status_handler(httpd_req_t *req){
 }
 
 static esp_err_t info_handler(httpd_req_t *req){
+    flashLED(75);
     static char json_response[256];
     char * p = json_response;
     *p++ = '{';
@@ -650,8 +664,6 @@ static esp_err_t info_handler(httpd_req_t *req){
 }
 
 static esp_err_t favicon_16x16_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
     httpd_resp_set_type(req, "image/png");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
@@ -659,26 +671,57 @@ static esp_err_t favicon_16x16_handler(httpd_req_t *req){
 }
 
 static esp_err_t favicon_32x32_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
-    flashLED(75);
+    
     httpd_resp_set_type(req, "image/png");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)favicon_32x32_png, favicon_32x32_png_len);
 }
 
 static esp_err_t favicon_ico_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
     httpd_resp_set_type(req, "image/x-icon");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
 }
 
+static esp_err_t save_prefs_handler(httpd_req_t *req){
+    flashLED(75);
+    savePrefs(SPIFFS);
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    char resp[] = "Preferences saved";
+    return httpd_resp_send(req, resp, strlen(resp));
+}
+
+static esp_err_t remove_prefs_handler(httpd_req_t *req){
+    flashLED(75);
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    if (filesystem) {
+      removePrefs(SPIFFS);
+      char resp[] = "Preferences file removed, reboot will revert to default settings";
+      return httpd_resp_send(req, resp, strlen(resp));
+    } else {
+      char resp[] = "No internal filesystem; save/restore functions disabled";
+      return httpd_resp_send(req, resp, strlen(resp));
+    }
+}
+
+//  DEBUG
+extern void dumpPrefs(fs::FS &fs);
+static esp_err_t dump_prefs_handler(httpd_req_t *req){
+    flashLED(75);
+    dumpPrefs(SPIFFS);
+    Serial.printf("mtmn_config size: %u :: ra_filter size: %u :: id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    httpd_resp_set_type(req, "text/css");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    char resp[] = "DEBUG: Preferences file Dumped to serial";
+    return httpd_resp_send(req, resp, strlen(resp));
+}
+//  /DEBUG
+
+
 static esp_err_t style_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
     httpd_resp_set_type(req, "text/css");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
@@ -686,27 +729,24 @@ static esp_err_t style_handler(httpd_req_t *req){
 }
 
 static esp_err_t miniviewer_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
+    Serial.println("Simple viewer requested");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
 }
 
 static esp_err_t streamviewer_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
+    Serial.println("Stream Viewer requested");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)streamviewer_html, streamviewer_html_len);
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
-    flashLED(75);  // a little feedback to user
-    delay(75);
     flashLED(75);
+    Serial.println("Index page requested");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     sensor_t * s = esp_camera_sensor_get();
@@ -718,8 +758,7 @@ static esp_err_t index_handler(httpd_req_t *req){
 
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 20; // we use more than the default 8...
-
+    config.max_uri_handlers = 10; // we use more than the default 8 (on port 80)
 
     httpd_uri_t index_uri = {
         .uri       = "/",
@@ -727,77 +766,74 @@ void startCameraServer(int hPort, int sPort){
         .handler   = index_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t status_uri = {
         .uri       = "/status",
         .method    = HTTP_GET,
         .handler   = status_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t cmd_uri = {
         .uri       = "/control",
         .method    = HTTP_GET,
         .handler   = cmd_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t capture_uri = {
         .uri       = "/capture",
         .method    = HTTP_GET,
         .handler   = capture_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t miniviewer_uri = {
         .uri       = "/view",
         .method    = HTTP_GET,
         .handler   = miniviewer_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t style_uri = {
         .uri       = "/style.css",
         .method    = HTTP_GET,
         .handler   = style_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t favicon_16x16_uri = {
         .uri       = "/favicon-16x16.png",
         .method    = HTTP_GET,
         .handler   = favicon_16x16_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t favicon_32x32_uri = {
         .uri       = "/favicon-32x32.png",
         .method    = HTTP_GET,
         .handler   = favicon_32x32_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t favicon_ico_uri = {
         .uri       = "/favicon.ico",
         .method    = HTTP_GET,
         .handler   = favicon_ico_handler,
         .user_ctx  = NULL
     };
-
+    //  DEBUG
+    httpd_uri_t dump_prefs_uri = {
+        .uri       = "/dump",
+        .method    = HTTP_GET,
+        .handler   = dump_prefs_handler,
+        .user_ctx  = NULL
+    };
+    //  DEBUG
     httpd_uri_t stream_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
         .handler   = stream_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t streamviewer_uri = {
         .uri       = "/view",
         .method    = HTTP_GET,
         .handler   = streamviewer_handler,
         .user_ctx  = NULL
     };
-
     httpd_uri_t info_uri = {
         .uri       = "/info",
         .method    = HTTP_GET,
@@ -806,7 +842,6 @@ void startCameraServer(int hPort, int sPort){
     };
 
     ra_filter_init(&ra_filter, 20);
-    
     mtmn_config.type = FAST;
     mtmn_config.min_face = 80;
     mtmn_config.pyramid = 0.707;
@@ -820,7 +855,6 @@ void startCameraServer(int hPort, int sPort){
     mtmn_config.o_threshold.score = 0.7;
     mtmn_config.o_threshold.nms = 0.7;
     mtmn_config.o_threshold.candidate_number = 1;
-    
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
     
     config.server_port = hPort;
@@ -836,6 +870,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
+        httpd_register_uri_handler(camera_httpd, &dump_prefs_uri);  //  DEBUG
     }
 
 
@@ -850,4 +885,6 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
     }
+
+    Serial.printf("mtmn_config size: %u :: ra_filter size: %u :: id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
 }
