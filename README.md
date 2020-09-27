@@ -71,7 +71,7 @@ Compile and upload the code from the IDE, when the `Connecting...` appears in th
 
 Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.
 
-If you have a status LED configured it will give a single slow flash when it begins attempting to conenct to WiFi, and three short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.
+If you have a status LED configured it will give a double flash when it begins attempting to conenct to WiFi, and five short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.
 
 Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
 

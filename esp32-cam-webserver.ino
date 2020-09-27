@@ -47,6 +47,10 @@
 // Pin Mappings
 #include "camera_pins.h"
 
+// Internal filesystem (SPIFFS)
+// used for non-volatile camera settings and face DB store
+#include "storage.h"
+
 // Declare external function from app_httpd.cpp
 extern void startCameraServer(int hPort, int sPort);
 
@@ -105,6 +109,12 @@ const int pwmfreq = 50000;     // 50K pwm frequency
 const int pwmresolution = 9;   // duty cycle bit range
 const int pwmMax = pow(2,pwmresolution)-1;
 
+#if defined(HAS_FS)
+  bool filesystem = true;
+#else
+  bool filesystem = false;
+#endif
+
 #if defined(FACE_DETECTION)
   int8_t detection_enabled = 1;
   #if defined(FACE_RECOGNITION)
@@ -143,7 +153,9 @@ void setLamp(int newVal) {
 
 void WifiSetup(){
   // Feedback that we are now attempting to connect
-  flashLED(400);
+  flashLED(300);
+  delay(100);
+  flashLED(300);
 
   #if defined(WIFI_AP_ENABLE)
     #if defined(AP_ADDRESS)
@@ -205,6 +217,11 @@ void WifiSetup(){
     // If we have connected, show details
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println(" Succeeded");
+      // Burst flash the LED to show we are connected
+      for (int i = 0; i < 5; i++) {
+        flashLED(80);
+        delay(120);
+      }
     } else {
       Serial.println(" Failed");
     }
@@ -337,7 +354,19 @@ void setup() {
   //s->set_dcw(s, 1);            // 0 = disable , 1 = enable
   //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
 
-  // We now have our config defined; setup the hardware.
+  // We now have camera with default init
+  // check for saved preferences and apply them
+
+  if (filesystem) {
+    filesystemStart();
+    loadPrefs(SPIFFS);
+  } else {
+    Serial.println("No Internal Filesystem, cannot save preferences or face DB");
+  }
+
+  /* 
+   * Camera setup complete; initialise the rest of the hardware.
+   */
 
   // Initialise and set the lamp
   if (lampVal != -1) {
@@ -381,11 +410,6 @@ void setup() {
   Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
   Serial.printf("Raw stream URL is '%s'\n", streamURL);
   Serial.printf("Stream viewer available at '%sview'\n", streamURL);
-  // Burst flash the LED to show we are connected
-  for (int i = 0; i < 5; i++) {
-    flashLED(80);
-    delay(120);
-  }
 }
 
 void loop() {

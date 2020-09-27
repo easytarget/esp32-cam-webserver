@@ -239,7 +239,7 @@ const uint8_t index_ov2640_html[] = R"=====(
                 </div>
               </div>
               <div class="input-group" id="colorbar-group">
-                <label for="colorbar">Color Bar</label>
+                <label for="colorbar">Test Pattern</label>
                 <div class="switch">
                   <input id="colorbar" type="checkbox" class="default-action">
                   <label class="slider" for="colorbar"></label>
@@ -259,9 +259,20 @@ const uint8_t index_ov2640_html[] = R"=====(
                   <label class="slider" for="face_recognize"></label>
                 </div>
               </div>
-              <section id="buttons">
-                <button id="face_enroll" class="disabled" disabled="disabled">Enroll Face</button>
-              </section>
+              <div class="input-group" id="facedb-group">
+                <label for="face_enroll" style="line-height: 2em;">Face Database</label>
+                <button id="face_enroll" class="disabled" disabled="disabled" title="Enroll Faces in Database">Enroll</button>
+                <!--
+                <button id="save_face" title="Save Database on camera module">Save</button>
+                <button id="clear_face" title="Erase saved Database on camera module">Erase</button>
+                -->
+              </div>
+              <div class="input-group" id="preferences-group">
+                <label for="reboot" style="line-height: 2em;">Preferences</label>
+                <button id="reboot" title="Reboot the camera module">Reboot</button>
+                <button id="save_prefs" title="Save Preferences on camera module">Save</button>
+                <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
+              </div>
               <div class="input-group" id="cam_name-group">
                 <label for="cam_name">Name:</label>
                 <div id="cam_name" class="default-action"></div>
@@ -311,6 +322,11 @@ const uint8_t index_ov2640_html[] = R"=====(
     const recognize = document.getElementById('face_recognize')
     const framesize = document.getElementById('framesize')
     const swapButton = document.getElementById('swap-viewer')
+    const saveFaceButton = document.getElementById('save_face')
+    const clearFaceButton = document.getElementById('clear_face')
+    const savePrefsButton = document.getElementById('save_prefs')
+    const clearPrefsButton = document.getElementById('clear_prefs')
+    const rebootButton = document.getElementById('reboot')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -478,6 +494,7 @@ const uint8_t index_ov2640_html[] = R"=====(
     // Attach actions to controls
     
     streamLink.onclick = () => {
+      stopStream();
       window.open(streamURL + "view", "_blank");
     }
 
@@ -589,6 +606,38 @@ const uint8_t index_ov2640_html[] = R"=====(
 
     swapButton.onclick = () => {
       window.open('/view','_self');
+    }
+ 
+//    saveFaceButton.onclick = () => {
+//      if (confirm("Saving the current face database?")) {
+//        updateConfig(saveFaceButton);
+//      }
+//    }
+
+//    clearFaceButton.onclick = () => {
+//      if (confirm("Removing the face database?")) {
+//        updateConfig(clearFaceButton);
+//      }
+//    }
+
+    savePrefsButton.onclick = () => {
+      if (confirm("Save the current preferences?")) {
+        updateConfig(savePrefsButton);
+      }
+    }
+
+    clearPrefsButton.onclick = () => {
+      if (confirm("Remove the saved preferences?")) {
+        updateConfig(clearPrefsButton);
+      }
+    }
+
+    rebootButton.onclick = () => {
+      if (confirm("Reboot the Camera Module?")) {
+        updateConfig(rebootButton);
+        // Some sort of countdown here?
+        location.reload();
+      }
     }
 
   })
