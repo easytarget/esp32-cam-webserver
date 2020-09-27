@@ -111,7 +111,7 @@ String jsonExtract(String json, String name){
   else if(next == '.' || next == '-' || ('0' <= next  && next <= '9')){
     //Serial.println(".. a number");
     int i = start;
-    while(i++ < json.length() && json.charAt(i) == '.' || ('0' <= json.charAt(i)  && json.charAt(i) <= '9')){
+    while((i++ < json.length() && json.charAt(i) == '.') || ('0' <= json.charAt(i)  && json.charAt(i) <= '9')){
     }
     stop = i;
   }
