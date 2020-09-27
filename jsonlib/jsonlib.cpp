@@ -69,7 +69,7 @@ String jsonIndexList(String json, int idx){
 // return a sub-json struct
 String jsonExtract(String json, String name){
   char next;
-  int start, stop;
+  int start = 0, stop = 0;
   
   name = String("\"") + name + String("\"");
   if (json.indexOf(name) == std::string::npos) return json.substring(0,0);
