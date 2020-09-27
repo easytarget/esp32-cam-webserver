@@ -1,3 +1,6 @@
+#include "esp_camera.h"
+#include "jsonlib/jsonlib.cpp"
+
 #include "storage.h"
 
 // These are defined in the main .ino file
@@ -60,6 +63,7 @@ void dumpPrefs(fs::FS &fs){
 
 void loadPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
+    String prefs;
     Serial.printf("Loading preferences from file %s\n", PREFERENCES_FILE);
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
     if (!file) {
@@ -71,27 +75,20 @@ void loadPrefs(fs::FS &fs){
       Serial.println("Preferences file size is too large, maybe corrupt");
       return;
     }
-    // Allocate the memory for deserialisation
-    StaticJsonDocument<1023> doc;
-    // Parse the prefs file
-    DeserializationError err=deserializeJson(doc, file);
-    if(err) {
-      Serial.print(F("deserializeJson() failed with code: "));
-      Serial.println(err.c_str());
-      return;
-    }
+    while (file.available()) prefs += char(file.read());
+    
     // Sensor reference
     sensor_t * s = esp_camera_sensor_get();
-    // process all the settings we save
-    lampVal = doc["lamp"];
-    s->set_framesize(s, (framesize_t)doc["framesize"]);
-    s->set_quality(s, doc["quality"]);
-    s->set_contrast(s, doc["contrast"]);
-    s->set_brightness(s, doc["brightness"]);
-    s->set_saturation(s, doc["saturation"]);
-    s->set_special_effect(s, doc["special_effect"]);
-    s->set_hmirror(s, doc["hmirror"]);
-    s->set_vflip(s, doc["vflip"]);
+    // process all the settings
+    lampVal = jsonExtract(prefs, "lamp").toInt();
+    s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
+    s->set_quality(s, jsonExtract(prefs, "quality").toInt());
+    s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
+    s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
+    s->set_saturation(s, jsonExtract(prefs, "saturation").toInt());
+    s->set_special_effect(s, jsonExtract(prefs, "special_effect").toInt());
+    s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
+    s->set_vflip(s, jsonExtract(prefs, "vflip").toInt());
     // close the file
     file.close();
     dumpPrefs(SPIFFS);

@@ -607,7 +607,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     char * p = json_response;
     flashLED(75);
     *p++ = '{';
-    p+=sprintf(p, "\"lamp\":%i,", lampVal);
+    p+=sprintf(p, "\"lamp\":%d,", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);

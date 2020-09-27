@@ -1,9 +1,5 @@
 #include "FS.h"
 #include "SPIFFS.h"
-#include "esp_camera.h"
-#include <ArduinoJson.h>
-
-
 
 #define FORMAT_SPIFFS_IF_FAILED true
 
