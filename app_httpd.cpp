@@ -584,12 +584,14 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         if (filesystem) removePrefs(SPIFFS);
     }
     else if(!strcmp(variable, "reboot")) {
-        Serial.printf("\nREBOOT requested\n\n");
-        for (int i=0; i<100; i++) {
+        Serial.print("REBOOT requested");
+        for (int i=0; i<50; i++) {
           flashLED(20);
           delay(20);
+          Serial.print('.');
         }
-        ESP.restart(); // Thats all folks...
+        Serial.printf("\nThats all folks...\n\n");
+        ESP.restart();
     }
     else {
         res = -1;

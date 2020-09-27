@@ -4,7 +4,7 @@
 #define FORMAT_SPIFFS_IF_FAILED true
 
 #define PREFERENCES_FILE "/esp32cam-preferences.json"
-#define FACE_DB_FILE  "/esp32cam-facedb.json"
+#define FACE_DB_FILE  "/esp32cam-facedb"
 
 extern void loadPrefs(fs::FS &fs);
 extern void removePrefs(fs::FS &fs);

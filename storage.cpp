@@ -1,16 +1,13 @@
 #include "esp_camera.h"
 #include "jsonlib/jsonlib.cpp"
-
 #include "storage.h"
 
 // These are defined in the main .ino file
 extern void flashLED(int flashtime);
-
-extern char *myRotation;           // Rotation
+extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
 extern int8_t detection_enabled;    // Face detection enable
 extern int8_t recognition_enabled;  // Face recognition enable
-
 
 /*
  * Useful utility when debugging... 
@@ -63,6 +60,7 @@ void dumpPrefs(fs::FS &fs){
 
 void loadPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
+    // read file into a string
     String prefs;
     Serial.printf("Loading preferences from file %s\n", PREFERENCES_FILE);
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
@@ -76,19 +74,37 @@ void loadPrefs(fs::FS &fs){
       return;
     }
     while (file.available()) prefs += char(file.read());
-    
-    // Sensor reference
+    // get sensor reference
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
-    s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
+    s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
     s->set_saturation(s, jsonExtract(prefs, "saturation").toInt());
     s->set_special_effect(s, jsonExtract(prefs, "special_effect").toInt());
-    s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
+    s->set_wb_mode(s, jsonExtract(prefs, "wb_mode").toInt());
+    s->set_whitebal(s, jsonExtract(prefs, "awb").toInt());
+    s->set_awb_gain(s, jsonExtract(prefs, "awb_gain").toInt());
+    s->set_exposure_ctrl(s, jsonExtract(prefs, "aec").toInt());
+    s->set_aec2(s, jsonExtract(prefs, "aec2").toInt());
+    s->set_ae_level(s, jsonExtract(prefs, "ae_level").toInt());
+    s->set_aec_value(s, jsonExtract(prefs, "aec_value").toInt());
+    s->set_gain_ctrl(s, jsonExtract(prefs, "agc").toInt());
+    s->set_agc_gain(s, jsonExtract(prefs, "agc_gain").toInt());
+    s->set_gainceiling(s, (gainceiling_t)jsonExtract(prefs, "gainceiling").toInt());
+    s->set_bpc(s, jsonExtract(prefs, "bpc").toInt());
+    s->set_wpc(s, jsonExtract(prefs, "wpc").toInt());
+    s->set_raw_gma(s, jsonExtract(prefs, "raw_gma").toInt());
+    s->set_lenc(s, jsonExtract(prefs, "lenc").toInt());
     s->set_vflip(s, jsonExtract(prefs, "vflip").toInt());
+    s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
+    s->set_dcw(s, jsonExtract(prefs, "dcw").toInt());
+    s->set_colorbar(s, jsonExtract(prefs, "colorbar").toInt());
+    detection_enabled = jsonExtract(prefs, "face_detect").toInt();
+    recognition_enabled = jsonExtract(prefs, "face_recognize").toInt();
+    myRotation = jsonExtract(prefs, "rotate").toInt();
     // close the file
     file.close();
     dumpPrefs(SPIFFS);
@@ -114,7 +130,6 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
   p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
   p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
-  p+=sprintf(p, "\"sharpness\":%d,", s->status.sharpness);
   p+=sprintf(p, "\"special_effect\":%u,", s->status.special_effect);
   p+=sprintf(p, "\"wb_mode\":%u,", s->status.wb_mode);
   p+=sprintf(p, "\"awb\":%u,", s->status.awb);
@@ -156,7 +171,7 @@ void removePrefs(fs::FS &fs) {
 }
 
 void filesystemStart(){
-    while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
+  while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
     // if we sit in this loop something is wrong; 
     // if no existing spiffs partition exists one should be automagically created.
     Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation.");

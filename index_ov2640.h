@@ -239,7 +239,7 @@ const uint8_t index_ov2640_html[] = R"=====(
                 </div>
               </div>
               <div class="input-group" id="colorbar-group">
-                <label for="colorbar">Color Bar</label>
+                <label for="colorbar">Test Pattern</label>
                 <div class="switch">
                   <input id="colorbar" type="checkbox" class="default-action">
                   <label class="slider" for="colorbar"></label>
