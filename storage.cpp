@@ -170,6 +170,19 @@ void removePrefs(fs::FS &fs) {
   }
 }
 
+void saveFaceDB(fs::FS &fs) {
+  // Stub!
+  return;
+}
+void loadFaceDB(fs::FS &fs) {
+  // Stub!
+  return;
+}
+void removeFaceDB(fs::FS &fs) {
+  // Stub!
+  return;
+}
+
 void filesystemStart(){
   while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
     // if we sit in this loop something is wrong; 

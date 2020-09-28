@@ -9,4 +9,8 @@
 extern void loadPrefs(fs::FS &fs);
 extern void removePrefs(fs::FS &fs);
 extern void savePrefs(fs::FS &fs);
+extern void loadFaceDB(fs::FS &fs);
+extern void removeFaceDB(fs::FS &fs);
+extern void saveFaceDB(fs::FS &fs);
+
 extern void filesystemStart();

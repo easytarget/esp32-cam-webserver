@@ -529,7 +529,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
-    
+
     int val = atoi(value);
     sensor_t * s = esp_camera_sensor_get();
     int res = 0;
@@ -577,6 +577,12 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         lampVal = constrain(val,0,100);
         setLamp(lampVal);
     }
+    else if(!strcmp(variable, "save_face")) {
+        if (filesystem) saveFaceDB(SPIFFS);
+    }
+    else if(!strcmp(variable, "clear_face")) {
+        if (filesystem) removeFaceDB(SPIFFS);
+    }
     else if(!strcmp(variable, "save_prefs")) {
         if (filesystem) savePrefs(SPIFFS);
     }
@@ -607,7 +613,6 @@ static esp_err_t status_handler(httpd_req_t *req){
     static char json_response[1024];
     sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
-    flashLED(75);
     *p++ = '{';
     p+=sprintf(p, "\"lamp\":%d,", lampVal);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
@@ -650,7 +655,6 @@ static esp_err_t status_handler(httpd_req_t *req){
 }
 
 static esp_err_t info_handler(httpd_req_t *req){
-    flashLED(75);
     static char json_response[256];
     char * p = json_response;
     *p++ = '{';
@@ -666,47 +670,21 @@ static esp_err_t info_handler(httpd_req_t *req){
 }
 
 static esp_err_t favicon_16x16_handler(httpd_req_t *req){
-    flashLED(75);
     httpd_resp_set_type(req, "image/png");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)favicon_16x16_png, favicon_16x16_png_len);
 }
 
 static esp_err_t favicon_32x32_handler(httpd_req_t *req){
-    
     httpd_resp_set_type(req, "image/png");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)favicon_32x32_png, favicon_32x32_png_len);
 }
 
 static esp_err_t favicon_ico_handler(httpd_req_t *req){
-    flashLED(75);
     httpd_resp_set_type(req, "image/x-icon");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
-}
-
-static esp_err_t save_prefs_handler(httpd_req_t *req){
-    flashLED(75);
-    savePrefs(SPIFFS);
-    httpd_resp_set_type(req, "text/css");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    char resp[] = "Preferences saved";
-    return httpd_resp_send(req, resp, strlen(resp));
-}
-
-static esp_err_t remove_prefs_handler(httpd_req_t *req){
-    flashLED(75);
-    httpd_resp_set_type(req, "text/css");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    if (filesystem) {
-      removePrefs(SPIFFS);
-      char resp[] = "Preferences file removed, reboot will revert to default settings";
-      return httpd_resp_send(req, resp, strlen(resp));
-    } else {
-      char resp[] = "No internal filesystem; save/restore functions disabled";
-      return httpd_resp_send(req, resp, strlen(resp));
-    }
 }
 
 //  DEBUG
@@ -724,7 +702,6 @@ static esp_err_t dump_prefs_handler(httpd_req_t *req){
 
 
 static esp_err_t style_handler(httpd_req_t *req){
-    flashLED(75);
     httpd_resp_set_type(req, "text/css");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)style_css, style_css_len);

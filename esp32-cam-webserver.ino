@@ -360,6 +360,7 @@ void setup() {
   if (filesystem) {
     filesystemStart();
     loadPrefs(SPIFFS);
+    loadFaceDB(SPIFFS);
   } else {
     Serial.println("No Internal Filesystem, cannot save preferences or face DB");
   }
