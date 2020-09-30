@@ -19,6 +19,8 @@ before_script:
   - git submodule update --init --recursive
   - cd tools
   - python get.py
+  - pip install --user platformio
+  - platformio update
   
 script:
   - cd $TRAVIS_BUILD_DIR
@@ -27,6 +29,7 @@ script:
   - arduino --verbose --verify esp32-cam-webserver.ino
   - cp --preserve --verbose myconfig.sample.h myconfig.h
   - arduino --verbose --verify esp32-cam-webserver.ino
+  - platformio run
 
   
 notifications:
