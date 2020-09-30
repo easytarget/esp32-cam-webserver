@@ -19,7 +19,7 @@ before_script:
   - #git submodule update --init --recursive
   - #cd tools
   - #python get.py
-  - pip install platformio
+  - pip install --user platformio
   - platformio update
   
 script:
