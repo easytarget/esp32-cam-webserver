@@ -1,5 +1,5 @@
 #include "esp_camera.h"
-#include "jsonlib/jsonlib.cpp"
+#include "src/jsonlib/jsonlib.h"
 #include "storage.h"
 
 // These are defined in the main .ino file

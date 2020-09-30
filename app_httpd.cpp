@@ -21,7 +21,7 @@
 #include "index_ov3660.h"
 #include "viewers.h"
 #include "css.h"
-#include "favicons.h"
+#include "src/favicons.h"
 #include "storage.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
@@ -591,9 +591,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     }
     else if(!strcmp(variable, "reboot")) {
         Serial.print("REBOOT requested");
-        for (int i=0; i<50; i++) {
-          flashLED(20);
-          delay(20);
+        for (int i=0; i<20; i++) {
+          flashLED(50);
+          delay(50);
           Serial.print('.');
         }
         Serial.printf("\nThats all folks...\n\n");
