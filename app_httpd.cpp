@@ -802,13 +802,13 @@ void startCameraServer(int hPort, int sPort){
     };
     //  DEBUG
     httpd_uri_t stream_uri = {
-        .uri       = "/",
+        .uri       = "/stream",
         .method    = HTTP_GET,
         .handler   = stream_handler,
         .user_ctx  = NULL
     };
     httpd_uri_t streamviewer_uri = {
-        .uri       = "/view",
+        .uri       = "/",
         .method    = HTTP_GET,
         .handler   = streamviewer_handler,
         .user_ctx  = NULL

@@ -405,12 +405,12 @@ void setup() {
   } else {
     sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
   }
+  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
   // Construct the Stream URL
   sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
-  // Inform the user
-  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+  Serial.printf("Stream viewer available at '%s'\n", streamURL);
+  strcat(streamURL, "stream");
   Serial.printf("Raw stream URL is '%s'\n", streamURL);
-  Serial.printf("Stream viewer available at '%sview'\n", streamURL);
 }
 
 void loop() {
