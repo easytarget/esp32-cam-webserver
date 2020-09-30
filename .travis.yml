@@ -8,27 +8,27 @@ os:
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
-  - #wget http://downloads.arduino.cc/arduino-1.8.13-linux64.tar.xz
-  - #tar xf arduino-1.8.13-linux64.tar.xz
-  - #mv arduino-1.8.13 $HOME/arduino_ide
-  - #cd $HOME/arduino_ide/hardware
-  - #mkdir esp32
-  - #cd esp32
-  - #git clone --depth 1 https://github.com/espressif/arduino-esp32.git esp32
-  - #cd esp32
-  - #git submodule update --init --recursive
-  - #cd tools
-  - #python get.py
+  - wget http://downloads.arduino.cc/arduino-1.8.13-linux64.tar.xz
+  - tar xf arduino-1.8.13-linux64.tar.xz
+  - mv arduino-1.8.13 $HOME/arduino_ide
+  - cd $HOME/arduino_ide/hardware
+  - mkdir esp32
+  - cd esp32
+  - git clone --depth 1 https://github.com/espressif/arduino-esp32.git esp32
+  - cd esp32
+  - git submodule update --init --recursive
+  - cd tools
+  - python get.py
   - pip install --user platformio
   - platformio update
   
 script:
   - cd $TRAVIS_BUILD_DIR
-  - #export PATH="$HOME/arduino_ide:$PATH"
-  - #arduino --board esp32:esp32:esp32:PartitionScheme=huge_app,FlashFreq=80 --pref compiler.warning_level=all --save-prefs
-  - #arduino --verbose --verify esp32-cam-webserver.ino
-  - #cp --preserve --verbose myconfig.sample.h myconfig.h
-  - #arduino --verbose --verify esp32-cam-webserver.ino
+  - export PATH="$HOME/arduino_ide:$PATH"
+  - arduino --board esp32:esp32:esp32:PartitionScheme=huge_app,FlashFreq=80 --pref compiler.warning_level=all --save-prefs
+  - arduino --verbose --verify esp32-cam-webserver.ino
+  - cp --preserve --verbose myconfig.sample.h myconfig.h
+  - arduino --verbose --verify esp32-cam-webserver.ino
   - platformio run
 
   
