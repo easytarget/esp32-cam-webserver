@@ -659,7 +659,6 @@ static esp_err_t info_handler(httpd_req_t *req){
     char * p = json_response;
     *p++ = '{';
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
-    p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
     p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
