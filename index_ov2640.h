@@ -393,9 +393,9 @@ const uint8_t index_ov2640_html[] = R"=====(
           applyRotation();
         } else if(el.id === "stream_url"){
           streamURL = value;
-          viewerURL = value.split('/').slice(0, -1).join('/') + '/';
+          viewerURL = value + 'view';
           stream_url.innerHTML = value;
-          stream_link.setAttribute("title", "Open stream viewer ( " + viewerURL + " )");
+          stream_link.setAttribute("title", "Open stream viewer (" + viewerURL + ")");
           stream_link.style.textDecoration = "underline";
           stream_link.style.cursor = "pointer";
           streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
