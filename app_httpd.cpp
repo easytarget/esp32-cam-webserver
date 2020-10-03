@@ -762,8 +762,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     // Serial.printf("mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
-    d+= sprintf(d,"<button id=\"reboot\" title=\"Refresh this page\" onclick=\"location.reload();\">Refresh</button>\n");
-    d+= sprintf(d,"<button id=\"save_prefs\" title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
+    d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
+    d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
     d+= sprintf(d,"</div>\n</body>\n</html>\n");
     *d++ = 0;
     httpd_resp_set_type(req, "text/html");
