@@ -50,8 +50,15 @@
 // used for non-volatile camera settings and face DB store
 #include "storage.h"
 
+// Sketch Info
+int sketchSize;
+int sketchSpace;
+String sketchMD5;
+
 // IP address, netmask and gateway
-IPAddress ip, net, gw;
+IPAddress ip;
+IPAddress net;
+IPAddress gw;
 
 // Declare external function from app_httpd.cpp
 extern void startCameraServer(int hPort, int sPort);
@@ -413,6 +420,11 @@ void setup() {
   sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
   Serial.printf("Stream viewer available at '%s/view'\n", streamURL);
   Serial.printf("Raw stream URL is '%s'\n", streamURL);
+
+  // Used when dumpung status; slow functions, so do them here
+  sketchSize = ESP.getSketchSize();
+  sketchSpace = ESP.getFreeSketchSpace();
+  sketchMD5 = ESP.getSketchMD5();
 }
 
 void loop() {

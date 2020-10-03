@@ -32,19 +32,22 @@ extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
 
 // External variables declared in main .ino
-extern char myName[];               // Camera Name
-extern char myVer[];                // Firmware Build Info
-extern int myRotation;              // Rotation
-extern int lampVal;                 // The current Lamp value
-extern char streamURL[];            // Stream URL
-extern int8_t detection_enabled;    // Face detection enable
-extern int8_t recognition_enabled;  // Face recognition enable
-extern bool filesystem;             // Save/restore features enabled
+extern char myName[];
+extern char myVer[];
+extern int myRotation;
+extern int lampVal;
+extern char streamURL[];
+extern int8_t detection_enabled;
+extern int8_t recognition_enabled;
+extern bool filesystem;
 extern int httpPort;
 extern int streamPort;
 extern IPAddress ip;
 extern IPAddress net;
 extern IPAddress gw;
+extern int sketchSize;
+extern int sketchSpace;
+extern String sketchMD5;
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -708,19 +711,16 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
     d+= sprintf(d,"</head>\n<body>\n");
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n"); 
-    // Camera
-    // d+= sprintf(d,"<h2>Camera</h2>\n");
+    // Module
     d+= sprintf(d,"Name: %s<br>\n", myName);
     Serial.printf("Name: %s\n", myName);
     d+= sprintf(d,"Firmware: %s<br>\n", myVer);
     Serial.printf("Firmware: %s\n", myVer);
-    int sketchSize = ESP.getSketchSize();
-    int sketchSpace = ESP.getFreeSketchSpace();
     float sketchPct = 100 * sketchSize / sketchSpace;
     d+= sprintf(d,"Sketch Size: %i (total: %i, %.1f%% used)<br>\n", sketchSize, sketchSpace, sketchPct);
     Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
-    //String md5 = ESP.getSketchMD5() // Not sure this is really useful
-    //d+= sprintf(d,"md5: %s<br>\n", md5.c_str());
+    d+= sprintf(d,"MD5: %s<br>\n", sketchMD5.c_str());
+    Serial.printf("MD5: %s\n", sketchMD5.c_str());
     d+= sprintf(d,"ESP sdk: %s<br>\n", ESP.getSdkVersion());
     Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
     // Network
