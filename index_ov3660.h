@@ -19,26 +19,6 @@ const uint8_t index_ov3660_html[] = R"=====(
           flex-wrap: nowrap;
           align-items: stretch
         }
-
-        figure img {
-          display: block;
-          max-width: 100%;
-          width: auto;
-          height: auto
-        }
-
-        figure {
-          padding: 0 0 0 0px;
-          margin: 0;
-          -webkit-margin-before: 0;
-          margin-block-start: 0;
-          -webkit-margin-after: 0;
-          margin-block-end: 0;
-          -webkit-margin-start: 0;
-          margin-inline-start: 0;
-          -webkit-margin-end: 0;
-          margin-inline-end: 0
-        }
       }
     </style>
   </head>
@@ -316,6 +296,7 @@ const uint8_t index_ov3660_html[] = R"=====(
   document.addEventListener('DOMContentLoaded', function (event) {
     var baseHost = document.location.origin;
     var streamURL = 'Undefined';
+    var viewerURL = 'Undefined';
 
     const settings = document.getElementById('sidebar')
     const waitSettings = document.getElementById('wait-settings')
@@ -402,14 +383,16 @@ const uint8_t index_ov3660_html[] = R"=====(
           rotate.value = value;
           applyRotation();
         } else if(el.id === "stream_url"){
+          streamURL = value;
+          viewerURL = value + 'view';
           stream_url.innerHTML = value;
-          stream_link.setAttribute("title", "Open stream viewer ( " + value + "view )");
+          stream_link.setAttribute("title", "Open stream viewer (" + viewerURL + ")");
           stream_link.style.textDecoration = "underline";
           stream_link.style.cursor = "pointer";
-          streamURL = value;
           streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
           show(streamGroup)
-          console.log('Stream URL set to:' + value);
+          console.log('Stream URL set to: ' + streamURL);
+          console.log('Stream Viewer URL set to: ' + viewerURL);
         } 
       }
     }
@@ -506,7 +489,7 @@ const uint8_t index_ov3660_html[] = R"=====(
     
     streamLink.onclick = () => {
       stopStream();
-      window.open(streamURL + "view", "_blank");
+      window.open(viewerURL, "_blank");
     }
 
     stillButton.onclick = () => {

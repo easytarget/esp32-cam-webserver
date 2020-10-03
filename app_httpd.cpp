@@ -16,6 +16,7 @@
 #include "esp_camera.h"
 #include "img_converters.h"
 #include "Arduino.h"
+#include <WiFi.h>
 
 #include "index_ov2640.h"
 #include "index_ov3660.h"
@@ -31,14 +32,22 @@ extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
 
 // External variables declared in main .ino
-extern char myName[];               // Camera Name
-extern char myVer[];                // Firmware Build Info
-extern int myRotation;              // Rotation
-extern int lampVal;                 // The current Lamp value
-extern char streamURL[];            // Stream URL
-extern int8_t detection_enabled;    // Face detection enable
-extern int8_t recognition_enabled;  // Face recognition enable
-extern bool filesystem;             // Save/restore features enabled
+extern char myName[];
+extern char myVer[];
+extern int myRotation;
+extern int lampVal;
+extern char streamURL[];
+extern int8_t detection_enabled;
+extern int8_t recognition_enabled;
+extern bool filesystem;
+extern int httpPort;
+extern int streamPort;
+extern IPAddress ip;
+extern IPAddress net;
+extern IPAddress gw;
+extern int sketchSize;
+extern int sketchSpace;
+extern String sketchMD5;
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -659,7 +668,6 @@ static esp_err_t info_handler(httpd_req_t *req){
     char * p = json_response;
     *p++ = '{';
     p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
-    p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
     p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
@@ -687,19 +695,81 @@ static esp_err_t favicon_ico_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
 }
 
-//  DEBUG
-extern void dumpPrefs(fs::FS &fs);
-static esp_err_t dump_prefs_handler(httpd_req_t *req){
+static esp_err_t dump_handler(httpd_req_t *req){
     flashLED(75);
+    Serial.println("\nDump Requested");
+    Serial.print("Preferences file: ");
     dumpPrefs(SPIFFS);
-    Serial.printf("mtmn_config size: %u :: ra_filter size: %u :: id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
-    httpd_resp_set_type(req, "text/css");
+    static char dumpOut[1200] = "n";
+    char * d = dumpOut;
+    // Header
+    d+= sprintf(d,"<html><head><meta charset=\"utf-8\">\n");
+    d+= sprintf(d,"<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n");
+    d+= sprintf(d,"<title>%s - Status</title>\n", myName);
+    d+= sprintf(d,"<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n");
+    d+= sprintf(d,"<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n");
+    d+= sprintf(d,"<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
+    d+= sprintf(d,"</head>\n<body>\n");
+    d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n"); 
+    // Module
+    d+= sprintf(d,"Name: %s<br>\n", myName);
+    Serial.printf("Name: %s\n", myName);
+    d+= sprintf(d,"Firmware: %s<br>\n", myVer);
+    Serial.printf("Firmware: %s\n", myVer);
+    float sketchPct = 100 * sketchSize / sketchSpace;
+    d+= sprintf(d,"Sketch Size: %i (total: %i, %.1f%% used)<br>\n", sketchSize, sketchSpace, sketchPct);
+    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
+    d+= sprintf(d,"MD5: %s<br>\n", sketchMD5.c_str());
+    Serial.printf("MD5: %s\n", sketchMD5.c_str());
+    d+= sprintf(d,"ESP sdk: %s<br>\n", ESP.getSdkVersion());
+    Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
+    // Network
+    d+= sprintf(d,"<h2>WiFi</h2>\n");
+    String ssidName = WiFi.SSID();
+    d+= sprintf(d,"SSID: %s<br>\n", ssidName.c_str());
+    Serial.printf("Ssid: %s\n", ssidName.c_str());
+    d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
+    Serial.printf("Rssi: %i\n", WiFi.RSSI());
+    d+= sprintf(d,"Http port: %i, Stream port: %i<br>\n", httpPort, streamPort);
+    Serial.printf("Http port: %i, Stream port: %i\n", httpPort, streamPort);
+    d+= sprintf(d,"IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+    d+= sprintf(d,"Netmask: %d.%d.%d.%d<br>\n", net[0], net[1], net[2], net[3]);
+    Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
+    d+= sprintf(d,"Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
+    Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    // System
+    d+= sprintf(d,"<h2>System</h2>\n");
+    int64_t sec = esp_timer_get_time() / 1000000;
+    int64_t upDays = int64_t(floor(sec/86400));
+    int upHours = int64_t(floor(sec/3600)) % 24;
+    int upMin = int64_t(floor(sec/60)) % 60;
+    int upSec = sec % 60;
+    d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
+    Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
+    d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
+    Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
+    d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    if (filesystem) {
+        d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+        Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    }
+    // Following is debug while implementing FaceDB dump
+    // d+= sprintf(d,"mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u<br>\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    // Serial.printf("mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    // Footer
+    d+= sprintf(d,"<br><div class=\"input-group\">\n");
+    d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
+    d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
+    d+= sprintf(d,"</div>\n</body>\n</html>\n");
+    *d++ = 0;
+    httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    char resp[] = "DEBUG: Preferences file Dumped to serial";
-    return httpd_resp_send(req, resp, strlen(resp));
+    return httpd_resp_send(req, dumpOut, strlen(dumpOut));
 }
-//  /DEBUG
-
 
 static esp_err_t style_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/css");
@@ -737,7 +807,7 @@ static esp_err_t index_handler(httpd_req_t *req){
 
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 10; // we use more than the default 8 (on port 80)
+    config.max_uri_handlers = 12; // we use more than the default 8 (on port 80)
 
     httpd_uri_t index_uri = {
         .uri       = "/",
@@ -794,10 +864,10 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
     //  DEBUG
-    httpd_uri_t dump_prefs_uri = {
+    httpd_uri_t dump_uri = {
         .uri       = "/dump",
         .method    = HTTP_GET,
-        .handler   = dump_prefs_handler,
+        .handler   = dump_handler,
         .user_ctx  = NULL
     };
     //  DEBUG
@@ -835,11 +905,12 @@ void startCameraServer(int hPort, int sPort){
     mtmn_config.o_threshold.nms = 0.7;
     mtmn_config.o_threshold.candidate_number = 1;
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
-    
+
     config.server_port = hPort;
     config.ctrl_port = hPort;
     Serial.printf("Starting web server on port: '%d'\n", config.server_port);
     if (httpd_start(&camera_httpd, &config) == ESP_OK) {
+        // Note; config.max_uri_handlers (above) must be >= the number of handlers
         httpd_register_uri_handler(camera_httpd, &index_uri);
         httpd_register_uri_handler(camera_httpd, &cmd_uri);
         httpd_register_uri_handler(camera_httpd, &status_uri);
@@ -849,7 +920,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
-        httpd_register_uri_handler(camera_httpd, &dump_prefs_uri);  //  DEBUG
+        httpd_register_uri_handler(camera_httpd, &dump_uri);
     }
 
 
@@ -864,6 +935,4 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
     }
-
-    Serial.printf("mtmn_config size: %u :: ra_filter size: %u :: id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
 }

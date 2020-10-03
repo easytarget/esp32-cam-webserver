@@ -302,31 +302,16 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
         color: #EFEFEF;
         font-size: 16px;
         margin: 0px;
+        overflow:hidden;
       }
 
-      figure {
-        padding: 0px;
-        margin: 0px;
-        -webkit-margin-before: 0;
-        margin-block-start: 0;
-        -webkit-margin-after: 0;
-        margin-block-end: 0;
-        -webkit-margin-start: 0;
-        margin-inline-start: 0;
-        -webkit-margin-end: 0;
-        margin-inline-end: 0
-      }
-
-      figure img {
+      img {
         object-fit: contain;
         display: block;
+        margin: 0px;
+        padding: 0px;
         width: 100vw;
         height: 100vh;
-      }
-
-      .image-container {
-        position: relative;
-        transform-origin: top left
       }
 
       .loader {
@@ -353,34 +338,25 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
 
   <body>
     <section class="main">
-      <div id="logo">
-        <div id="wait-settings" style="float:left;" class="loader" title="Waiting for stream settings to load"></div>
+      <div id="wait-settings" style="float:left;" class="loader" title="Waiting for stream settings to load"></div>
+      <div style="display: none;">
+        <!-- Hide the next entries, they are present in the body so that we
+             can pass settings to/from them for use in the scripting -->
+        <div id="rotate" class="action-setting hidden">0</div>
+        <div id="cam_name" class="action-setting hidden"></div>
+        <div id="stream_url" class="action-setting hidden"></div>
       </div>
-      <div>
-        <div style="display: none;">
-              <!-- Hide the next entries, they are present in the body so that we
-                  can pass settings to/from them for use in the scripting -->
-              <div id="rotate" class="action-setting hidden"></div>
-              <div id="cam_name" class="action-setting hidden"></div>
-              <div id="code_ver" class="action-setting hidden"></div>
-              <div id="stream_url" class="action-setting hidden"></div>
-        </div>
-        <figure>
-          <div id="stream-container" class="image-container" style="display: none;">
-            <img id="stream" src="">
-          </div>
-        </figure>
-      </div>
+      <img id="stream" src="">
     </section>
   </body>
 
   <script>
   document.addEventListener('DOMContentLoaded', function (event) {
     var baseHost = document.location.origin;
+    var streamURL = 'Undefined';
 
     const rotate = document.getElementById('rotate')
-    const view = document.getElementById('stream')
-    const viewContainer = document.getElementById('stream-container')
+    const stream = document.getElementById('stream')
     const spinner = document.getElementById('wait-settings')
 
     const updateValue = (el, value, updateRemote) => {
@@ -400,13 +376,11 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
       } else if(!updateRemote){
         if(el.id === "cam_name"){
           window.document.title = value;
-          viewContainer.setAttribute("title", value + "\n(doubleclick for fullscreen)");
+          stream.setAttribute("title", value + "\n(doubleclick for fullscreen)");
           console.log('Name set to: ' + value);
-        } else if(el.id === "code_ver"){
-          console.log('Firmware Build: ' + value);
         } else if(el.id === "rotate"){
           rotate.value = value;
-          applyRotation();
+          console.log('Rotate recieved: ' + rotate.value);
         } else if(el.id === "stream_url"){
           streamURL = value;
           console.log('Stream URL set to:' + value);
@@ -426,38 +400,36 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
             updateValue(el, state[el.id], false)
           })
         spinner.style.display = `none`;
+        applyRotation();
         startStream();
       })
 
     const startStream = () => {
-      view.src = streamURL;
-      view.scrollIntoView(false);
-      viewContainer.style.display = `block`;
+      stream.src = streamURL;
+      stream.style.display = `block`;
     }
 
     const applyRotation = () => {
       rot = rotate.value;
       if (rot == -90) {
-        viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+        stream.style.transform = `rotate(-90deg)`;
       } else if (rot == 90) {
-        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`;
-      } else {
-        viewContainer.style.transform = `rotate(0deg)`;
+        stream.style.transform = `rotate(90deg)`;
       }
-       console.log('Rotation ' + rot + ' applied');
+      console.log('Rotation ' + rot + ' applied');
+    }
 
-    view.ondblclick = () => {
-      if (view.requestFullscreen) {
-        view.requestFullscreen();
-      } else if (view.mozRequestFullScreen) { /* Firefox */
-        view.mozRequestFullScreen();
-      } else if (view.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-        view.webkitRequestFullscreen();
-      } else if (view.msRequestFullscreen) { /* IE/Edge */
-        view.msRequestFullscreen();
+    stream.ondblclick = () => {
+      if (stream.requestFullscreen) {
+        stream.requestFullscreen();
+      } else if (stream.mozRequestFullScreen) { /* Firefox */
+        stream.mozRequestFullScreen();
+      } else if (stream.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        stream.webkitRequestFullscreen();
+      } else if (stream.msRequestFullscreen) { /* IE/Edge */
+        stream.msRequestFullscreen();
       }
     }
-   }
   })
   </script>
 </html>

@@ -4,24 +4,23 @@
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
  *  https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
- *  
+ *
  *  It is modified to allow control of Illumination LED Lamps's (present on some modules),
  *  greater feedback via a status LED, and the HTML contents are present in plain text
- *  for easy modification. 
- *  
+ *  for easy modification.
+ *
  *  A camera name can now be configured, and wifi details can be stored in an optional 
  *  header file to allow easier updated of the repo.
- *  
- *  The web UI has had minor changes to add the lamp control when present, I have made the 
- *  'Start Stream' controls more accessible, and add feedback of the camera name/firmware.
- *  
+ *
+ *  The web UI has had changes to add the lamp control, rotation, a standalone viewer,
+ *  more feeedback, new controls and other tweaks and changes,
  * note: Make sure that you have either selected ESP32 AI Thinker,
  *       or another board which has PSRAM enabled to use high resolution camera modes
  */
 
 
 /* 
- *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' to 'myconfig.h' AND EDIT THAT.
+ *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' TO 'myconfig.h' AND EDIT THAT.
  *
  * By default this sketch will assume an AI-THINKER ESP-CAM and create 
  * an accesspoint called "ESP32-CAM-CONNECT" (password: "InsecurePassword")
@@ -50,6 +49,16 @@
 // Internal filesystem (SPIFFS)
 // used for non-volatile camera settings and face DB store
 #include "storage.h"
+
+// Sketch Info
+int sketchSize;
+int sketchSpace;
+String sketchMD5;
+
+// IP address, netmask and gateway
+IPAddress ip;
+IPAddress net;
+IPAddress gw;
 
 // Declare external function from app_httpd.cpp
 extern void startCameraServer(int hPort, int sPort);
@@ -102,7 +111,7 @@ int myRotation = CAM_ROTATION;
   #endif
 #else 
   int lampVal = -1; // no lamp pin assigned
-#endif         
+#endif
 
 int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
@@ -213,7 +222,7 @@ void WifiSetup(){
       delay(WIFI_WATCHDOG / 10);
       Serial.print('.');
     }
-    
+
     // If we have connected, show details
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println(" Succeeded");
@@ -392,25 +401,30 @@ void setup() {
   startCameraServer(httpPort, streamPort);
 
   // find our IP address
-  IPAddress ip;
   char httpURL[64] = {"Unknown"};
   #if defined(WIFI_AP_ENABLE)
     ip = WiFi.softAPIP();
   #else
     ip = WiFi.localIP();
   #endif
+  net = WiFi.subnetMask();
+  gw = WiFi.gatewayIP();
   // Construct the App URL
   if (httpPort != 80) {
     sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
   } else {
     sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
   }
+  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
   // Construct the Stream URL
   sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
-  // Inform the user
-  Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+  Serial.printf("Stream viewer available at '%s/view'\n", streamURL);
   Serial.printf("Raw stream URL is '%s'\n", streamURL);
-  Serial.printf("Stream viewer available at '%sview'\n", streamURL);
+
+  // Used when dumpung status; slow functions, so do them here
+  sketchSize = ESP.getSketchSize();
+  sketchSpace = ESP.getFreeSketchSpace();
+  sketchMD5 = ESP.getSketchMD5();
 }
 
 void loop() {
