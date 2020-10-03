@@ -19,26 +19,6 @@ const uint8_t index_ov2640_html[] = R"=====(
           flex-wrap: nowrap;
           align-items: stretch
         }
-
-        figure img {
-          display: block;
-          max-width: 100%;
-          width: auto;
-          height: auto
-        }
-
-        figure {
-          padding: 0 0 0 0px;
-          margin: 0;
-          -webkit-margin-before: 0;
-          margin-block-start: 0;
-          -webkit-margin-after: 0;
-          margin-block-end: 0;
-          -webkit-margin-start: 0;
-          margin-inline-start: 0;
-          -webkit-margin-end: 0;
-          margin-inline-end: 0
-        }
       }
     </style>
   </head>
@@ -274,7 +254,8 @@ const uint8_t index_ov2640_html[] = R"=====(
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
               </div>
               <div class="input-group" id="cam_name-group">
-                <label for="cam_name">Name:</label>
+                <label for="cam_name">
+                <a href="/dump" title="System Info" target="_blank">Name</a></label>
                 <div id="cam_name" class="default-action"></div>
               </div>
               <div class="input-group" id="code_ver-group">

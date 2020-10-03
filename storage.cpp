@@ -44,7 +44,6 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
   }
 }
 
-//  DEBUG
 void dumpPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
     // Dump contents for debug
@@ -56,7 +55,6 @@ void dumpPrefs(fs::FS &fs){
     Serial.printf("%s not found, nothing to dump.\n", PREFERENCES_FILE);
   }
 }
-// /DEBUG
 
 void loadPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {

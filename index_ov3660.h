@@ -19,26 +19,6 @@ const uint8_t index_ov3660_html[] = R"=====(
           flex-wrap: nowrap;
           align-items: stretch
         }
-
-        figure img {
-          display: block;
-          max-width: 100%;
-          width: auto;
-          height: auto
-        }
-
-        figure {
-          padding: 0 0 0 0px;
-          margin: 0;
-          -webkit-margin-before: 0;
-          margin-block-start: 0;
-          -webkit-margin-after: 0;
-          margin-block-end: 0;
-          -webkit-margin-start: 0;
-          margin-inline-start: 0;
-          -webkit-margin-end: 0;
-          margin-inline-end: 0
-        }
       }
     </style>
   </head>
