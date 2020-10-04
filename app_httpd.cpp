@@ -180,7 +180,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
         fb_gfx_drawFastHLine(&fb, x, y+h-1, w, color);
         fb_gfx_drawFastVLine(&fb, x, y, h, color);
         fb_gfx_drawFastVLine(&fb, x+w-1, y, h, color);
-#if 0
+        #if 0
         // landmark
         int x0, y0, j;
         for (j = 0; j < 10; j+=2) {
@@ -188,7 +188,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
             y0 = (int)boxes->landmark[i].landmark_p[j+1];
             fb_gfx_fillRect(&fb, x0, y0, 3, 3, color);
         }
-#endif
+        #endif
     }
 }
 
@@ -738,6 +738,11 @@ static esp_err_t dump_handler(httpd_req_t *req){
     Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
     d+= sprintf(d,"Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
     Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    byte mac[6];
+    WiFi.macAddress(mac);
+    d+= sprintf(d,"MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
     int64_t sec = esp_timer_get_time() / 1000000;
