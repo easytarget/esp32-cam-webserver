@@ -602,10 +602,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         Serial.print("REBOOT requested");
         for (int i=0; i<20; i++) {
           flashLED(50);
-          delay(50);
+          delay(150);
           Serial.print('.');
         }
-        Serial.printf("\nThats all folks...\n\n");
+        Serial.printf("\n..Thats all folks!\n\n");
         ESP.restart();
     }
     else {

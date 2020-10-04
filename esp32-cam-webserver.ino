@@ -29,15 +29,12 @@
 
 // Primary config, or defaults.
 #if __has_include("myconfig.h")
-  // I keep my settings in a seperate header file
   #include "myconfig.h"
 #else
   #warning "Using Default Settings: Copy myconfig.sample.h to myconfig.h and edit that to set your personal defaults"
   // These are the defaults.. dont edit these.
   // copy myconfig.sample.h to myconfig.h and edit that instead
   //  SSID, Password and Mode
-  const char* ssid = "ESP32-CAM-CONNECT";
-  const char* password = "InsecurePassword";
   #define WIFI_AP_ENABLE
   // Default Board and Camera:
   #define CAMERA_MODEL_AI_THINKER
@@ -55,7 +52,7 @@ int sketchSize;
 int sketchSpace;
 String sketchMD5;
 
-// IP address, netmask and gateway
+// IP address, Netmask and Gateway, populated when connected
 IPAddress ip;
 IPAddress net;
 IPAddress gw;
@@ -82,6 +79,18 @@ extern void startCameraServer(int hPort, int sPort);
 #else
   int streamPort = 81;
 #endif
+
+#if defined(AP_SSID)
+  const char* ssidAP = AP_SSID;
+#else
+  const char* ssidAP = "ESP32-CAM-CONNECT";
+#endif
+#if defined(AP_PASS)
+ const char* passwordAP = AP_PASS;
+#else
+ const char* passwordAP = "InsecurePassword";
+#endif
+
 
 #if !defined(WIFI_WATCHDOG)
   #define WIFI_WATCHDOG 5000
@@ -139,9 +148,9 @@ const int pwmMax = pow(2,pwmresolution)-1;
 // Notification LED 
 void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
-  digitalWrite(LED_PIN, LED_ON);  // On at full power.
+  digitalWrite(LED_PIN, LED_OFF);  // On at full power.
   delay(flashtime);               // delay
-  digitalWrite(LED_PIN, LED_OFF); // turn Off
+  digitalWrite(LED_PIN, LED_ON); // turn Off
 #else
   return;                         // No notifcation LED, do nothing, no delay
 #endif
@@ -175,21 +184,21 @@ void WifiSetup(){
       WiFi.softAPConfig(local_IP, gateway, subnet);
     #endif
     #if defined(AP_CHAN)
-      WiFi.softAP(ssid, password, AP_CHAN);
+      WiFi.softAP(ssidAP, passwordAP, AP_CHAN);
       Serial.println("Setting up Fixed Channel AccessPoint");
       Serial.print("SSID     : ");
-      Serial.println(ssid);
+      Serial.println(ssidAP);
       Serial.print("Password : ");
-      Serial.println(password);
+      Serial.println(passwordAP);
       Serial.print("Channel  : ");    
       Serial.println(AP_CHAN);
     # else
-      WiFi.softAP(ssid, password);
+      WiFi.softAP(ssidAP, passwordAP);
       Serial.println("Setting up AccessPoint");
       Serial.print("SSID     : ");
-      Serial.println(ssid);
+      Serial.println(ssidAP);
       Serial.print("Password : ");
-      Serial.println(password);
+      Serial.println(passwordAP);
     #endif
   #else
     Serial.printf("Connecting to Wifi Network: %s ", ssid);
@@ -226,6 +235,20 @@ void WifiSetup(){
     // If we have connected, show details
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println(" Succeeded");
+
+      // find our IP details
+      #if defined(WIFI_AP_ENABLE)
+        ip = WiFi.softAPIP();
+      #else
+        ip = WiFi.localIP();
+      #endif
+      net = WiFi.subnetMask();
+      gw = WiFi.gatewayIP();
+
+      Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
+      Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
+      Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+
       // Burst flash the LED to show we are connected
       for (int i = 0; i < 5; i++) {
         flashLED(80);
@@ -249,7 +272,7 @@ void setup() {
 
   #if defined(LED_PIN)  // If we have a notification LED, set it to output
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LED_OFF);
+    digitalWrite(LED_PIN, LED_ON);
   #endif
 
   // Create camera config structure; and populate with hardware and other defaults 
@@ -291,13 +314,18 @@ void setup() {
   #endif
 
   // camera init
+  sensor_t * s;
   esp_err_t err = esp_camera_init(&config);
-  if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
-    return;
+  if (err == ESP_OK) {
+    Serial.println("Camera init succeeded");
+    s = esp_camera_sensor_get();
+  } else {
+    Serial.printf("\nCamera init failed with error 0x%x\n", err);
+    // Code originally used to essentially halt at this point.
+    // But it is useful to still go on and complete network connecting etc. while debugging.
+    // Camera will give lots of errors on serial and no stream, of course.
   }
-
-  sensor_t * s = esp_camera_sensor_get();
+/*
   // Dump camera module, warn for unsupported modules.
   switch (s->id.PID) {
     case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
@@ -335,11 +363,13 @@ void setup() {
   #else
     s->set_framesize(s, FRAMESIZE_SVGA);
   #endif
-
+*/
   /*
    * Add any other defaults you want to apply at startup here:
    * uncomment the line and set the value as desired (see the comments)
    */
+/*  //s->set_framesize(s, FRAMESIZE_SVGA); // FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]);
+  //s->set_quality(s, val);      // 10 to 63
   //s->set_brightness(s, 0);     // -2 to 2
   //s->set_contrast(s, 0);       // -2 to 2
   //s->set_saturation(s, 0);     // -2 to 2
@@ -365,7 +395,7 @@ void setup() {
 
   // We now have camera with default init
   // check for saved preferences and apply them
-
+*/ 
   if (filesystem) {
     filesystemStart();
     loadPrefs(SPIFFS);
@@ -400,16 +430,8 @@ void setup() {
   // Start the two http handlers for the HTTP UI and Stream.
   startCameraServer(httpPort, streamPort);
 
-  // find our IP address
+  // Construct the app and stream URLs
   char httpURL[64] = {"Unknown"};
-  #if defined(WIFI_AP_ENABLE)
-    ip = WiFi.softAPIP();
-  #else
-    ip = WiFi.localIP();
-  #endif
-  net = WiFi.subnetMask();
-  gw = WiFi.gatewayIP();
-  // Construct the App URL
   if (httpPort != 80) {
     sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
   } else {

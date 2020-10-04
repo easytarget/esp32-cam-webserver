@@ -16,14 +16,17 @@
  * Note the the use of commas as seperators in IP addresses!
  */
 
-// Credentials
+// WiFi Credentials
 const char* ssid = "my-ssid";
 const char* password = "my-password";
 
-
 // AccessPoint; uncomment to enable AP mode, 
-// otherwise we will attempt to connect to an existing network.
+// otherwise we will attempt to connect to an existing network from the list above
 // #define WIFI_AP_ENABLE
+
+// AccessPoint SSID and Password
+// #define AP_SSID = "ESP32-CAM-CONNECT"
+// #define AP_PASS = "InsecurePassword"
 
 // AccessPoint; change the ip address (optional, default = 192.168.4.1)
 // #define AP_ADDRESS 192,168,4,1
@@ -32,11 +35,13 @@ const char* password = "my-password";
 // #define AP_CHAN 1
 
 // Static network settings for use when connected to existing network when DHCP is unavailable/unreliable
-// You must define all three: IP, Gateway and NetMask
+// Note: This applies to all client connections; you cannot set it per-ssid, so it's OK for multiple AP's
+//       in the same network; but otherwise only define one ssid in the list.
+//       You must define all three: IP, Gateway and NetMask
 // #define ST_IP      192,168,0,16
 // #define ST_GATEWAY 192,168,0,2 
 // #define ST_NETMASK 255,255,255,0
-// one or two optional DNS servers can be supplied, but these are not used by current code.
+// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
 // #define ST_DNS1 192,168,0,2
 // #define ST_DNS2 8,8,8,8
 
@@ -44,7 +49,6 @@ const char* password = "my-password";
 // and how often we check to see if we are still connected, milliseconds
 // You may wish to increase this if your WiFi is slow at conencting,
 // #define WIFI_WATCHDOG = 5000
-
 
 /*
  *  Port numbers for WebUI and Stream, defaults to 80 and 81.
