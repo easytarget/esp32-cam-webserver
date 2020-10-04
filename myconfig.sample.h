@@ -17,8 +17,11 @@
  */
 
 // WiFi Credentials
-const char* ssid = "my-ssid";
-const char* password = "my-password";
+struct station
+{
+    const char ssid[64];
+    const char password[64];
+} stationList[] = {{"my_ssid","my_password"}};
 
 // AccessPoint; uncomment to enable AP mode, 
 // otherwise we will attempt to connect to an existing network from the list above

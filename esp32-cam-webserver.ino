@@ -201,7 +201,40 @@ void WifiSetup(){
       Serial.println(passwordAP);
     #endif
   #else
-    Serial.printf("Connecting to Wifi Network: %s ", ssid);
+    int stationCount = sizeof(stationList)/sizeof(stationList[0]);
+    Serial.printf("Scanning local Wifi Stations\n", stationCount);
+    int stationsFound = WiFi.scanNetworks();
+    Serial.println("scan done");
+    if (stationsFound == 0) {
+        Serial.println("no networks found");
+    } else {
+        Serial.print(stationsFound);
+        Serial.println(" networks found");
+        for (int i = 0; i < stationsFound; ++i) {
+            // Print SSID and RSSI for each network found
+            Serial.print(i + 1);
+            Serial.print(": ");
+            Serial.print(WiFi.SSID(i));
+            Serial.print(" (");
+            Serial.print(WiFi.RSSI(i));
+            Serial.print(")");
+            Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
+            delay(10);
+        }
+    }
+    Serial.println("Station scan complete\n");
+    long rssi;
+    for (int sta = 0; sta < stationCount; sta++) {
+        String thisSSID = WiFi.SSID(sta);
+        if (strcmp(stationList[sta].ssid, thisSSID.c_str())) {
+            rssi = WiFi.RSSI(sta);
+        } else {
+            rssi = 0; 
+        }
+        Serial.printf("%i : %s : %i\n", sta, stationList[sta].ssid, rssi);
+    }
+    int bestStation = 1;
+    Serial.printf("Connecting to Wifi Network: %s\n", stationList[bestStation].ssid);
     #if defined(ST_IP)
       #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK) 
         #error "You must supply both Gateway and NetMask when specifying a static IP address"
@@ -223,7 +256,7 @@ void WifiSetup(){
     #endif
 
     // Initiate network connection request
-    WiFi.begin(ssid, password);
+    WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
 
     // Wait to connect, or timeout
     unsigned long start = millis(); 
