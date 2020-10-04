@@ -38,6 +38,11 @@
     #define WIFI_AP_ENABLE
     // Default Board and Camera:
     #define CAMERA_MODEL_AI_THINKER
+    struct station {
+        const char ssid[64];
+        const char password[64];
+        const bool dhcp;
+    } stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", false}};
 #endif
 
 // Pin Mappings
@@ -175,18 +180,18 @@ void WifiSetup() {
             WiFi.softAP(stationList[0].ssid, stationList[0].password, AP_CHAN);
             Serial.println("Setting up Fixed Channel AccessPoint");
             Serial.print("SSID     : ");
-            Serial.println(ssidAP);
+            Serial.println(stationList[0].ssid);
             Serial.print("Password : ");
-            Serial.println(passwordAP);
+            Serial.println(stationList[0].password);
             Serial.print("Channel  : ");    
             Serial.println(AP_CHAN);
         # else
             WiFi.softAP(stationList[0].ssid, stationList[0].password);
             Serial.println("Setting up AccessPoint");
             Serial.print("SSID     : ");
-            Serial.println(ssidAP);
+            Serial.println(stationList[0].ssid);
             Serial.print("Password : ");
-            Serial.println(passwordAP);
+            Serial.println(stationList[0].password);
         #endif
     #else
         int stationCount = sizeof(stationList)/sizeof(stationList[0]);

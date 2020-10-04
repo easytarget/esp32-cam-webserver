@@ -20,8 +20,8 @@
 struct station
 {
     const char ssid[64];      // ssid (max 64 chars)
-    const char password[64];  // ssid (max 64 chars)
-    const bool dhcp;          // Uses DHCP?
+    const char password[64];  // password (max 64 chars)
+    const bool dhcp;          // dhcp
 };
 
 struct station stationList[] = {{"my_ssid","my_password", false}};
