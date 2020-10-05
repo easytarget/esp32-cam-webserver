@@ -1,3 +1,4 @@
+
 #include "esp_camera.h"
 #include <WiFi.h>
 
@@ -51,6 +52,10 @@ int sketchSize;
 int sketchSpace;
 String sketchMD5;
 
+// Start with accesspoint mode disabled, we will enable it later in setup if
+// no known networks are found, and WIFI_AP_ENABLE has been defined
+bool accesspoint = false;
+
 // IP address, Netmask and Gateway, populated when connected
 IPAddress ip;
 IPAddress net;
@@ -81,6 +86,15 @@ extern void startCameraServer(int hPort, int sPort);
 
 #if !defined(WIFI_WATCHDOG)
     #define WIFI_WATCHDOG 5000
+#endif
+
+// Number of stations in stationList[]
+int stationCount = sizeof(stationList)/sizeof(stationList[0]);
+// If we have AP mode enabled, ignore first entry in the stationList[]
+#if defined(WIFI_AP_ENABLE)
+    int firstStation = 1; 
+#else
+    int firstStation = 0;
 #endif
 
 // The stream URL
@@ -135,9 +149,9 @@ const int pwmMax = pow(2,pwmresolution)-1;
 // Notification LED 
 void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
-    digitalWrite(LED_PIN, LED_OFF);  // On at full power.
+    digitalWrite(LED_PIN, LED_ON);  // On at full power.
     delay(flashtime);               // delay
-    digitalWrite(LED_PIN, LED_ON); // turn Off
+    digitalWrite(LED_PIN, LED_OFF); // turn Off
 #else
     return;                         // No notifcation LED, do nothing, no delay
 #endif
@@ -162,14 +176,7 @@ void WifiSetup() {
     delay(100);
     flashLED(300);
 
-    #if defined(WIFI_AP_ENABLE)
-        #if defined(AP_ADDRESS)
-            // User has specified the AP details, pre-configure AP
-            IPAddress local_IP(AP_ADDRESS);
-            IPAddress gateway(AP_ADDRESS);
-            IPAddress subnet(255,255,255,0);
-            WiFi.softAPConfig(local_IP, gateway, subnet);
-        #endif
+    if (accesspoint) {
         #if defined(AP_CHAN)
             WiFi.softAP(stationList[0].ssid, stationList[0].password, AP_CHAN);
             Serial.println("Setting up Fixed Channel AccessPoint");
@@ -187,13 +194,21 @@ void WifiSetup() {
             Serial.print("Password : ");
             Serial.println(stationList[0].password);
         #endif
-        
+        #if defined(AP_ADDRESS)
+            // User has specified the AP details; apply them after a short delay
+            // (https://github.com/espressif/arduino-esp32/issues/985#issuecomment-359157428)
+            delay(100);
+            IPAddress local_IP(AP_ADDRESS);
+            IPAddress gateway(AP_ADDRESS);
+            IPAddress subnet(255,255,255,0);
+            WiFi.softAPConfig(local_IP, gateway, subnet);
+        #endif
+       
         // find our IP details
         ip = WiFi.softAPIP();
-        net = WiFi.subnetMask();
-        gw = WiFi.gatewayIP();
-    #else
-        int stationCount = sizeof(stationList)/sizeof(stationList[0]);
+        net = WiFi.subnetMask(); // ? = 0,0,0,0 in AP mode ?
+        gw = WiFi.gatewayIP();   // ? = 0,0,0,0 in AP mode ?
+    } else {
         int bestStation = -1;
         long bestRSSI = -1024; 
         Serial.printf("Scanning local Wifi Stations\n");
@@ -205,18 +220,19 @@ void WifiSetup() {
                 String thisSSID = WiFi.SSID(i);
                 int thisRSSI = WiFi.RSSI(i);
                 Serial.printf("%3i : %s (%i)", i + 1, thisSSID.c_str(), thisRSSI);
-                // Scan our list of known stations.
-                for (int sta = 0; sta < stationCount; sta++) {
-                    if (strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) {
-                        Serial.print("  -  Known!");
-                        // Chose the strongest RSSI seen
-                        if (thisRSSI > bestRSSI) {
-                            bestStation = sta;
-                            bestRSSI = thisRSSI;
+                // Scan our list of known external stations, if any
+                if (stationCount > firstStation) {
+                    for (int sta = firstStation; sta < stationCount; sta++) {
+                        if (strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) {
+                            Serial.print("  -  Known!");
+                            // Chose the strongest RSSI seen
+                            if (thisRSSI > bestRSSI) {
+                                bestStation = sta;
+                                bestRSSI = thisRSSI;
+                            }
                         }
                     }
                 }
-                Serial.println("");
             }
         }
         if (WiFi.scanComplete() == WIFI_SCAN_FAILED) {
@@ -226,6 +242,10 @@ void WifiSetup() {
 
         if (bestStation == -1) {
             Serial.println("No known networks found.");
+            // Failover to accesspoint mode if no known networks are visible and WIFI_AP_ENABLE is defined
+            #if defined(WIFI_AP_ENABLE)
+                accesspoint = true;
+            #endif
             return;
         }
 
@@ -265,24 +285,28 @@ void WifiSetup() {
             Serial.print('.');
         }
 
-        // If we have connected, show details
+        // We have connected, inform user
         if (WiFi.status() == WL_CONNECTED) {
             Serial.println(" Client connection succeeded");
-
             // find our IP details
             ip = WiFi.localIP();
             net = WiFi.subnetMask();
             gw = WiFi.gatewayIP();
-
         } else {
             Serial.println(" Failed");
             WiFi.disconnect();   // Nothing to disconnect; but resets the WiFi scan etc.
             return;
         }
-    #endif 
+    }
+
     Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
-    Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
-    Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+    if (!accesspoint) {
+        Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
+        Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+    } else {
+        Serial.printf("?? Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
+        Serial.printf("?? Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+    }
 
     // Burst flash the LED to show we are connected
     for (int i = 0; i < 5; i++) {
@@ -301,6 +325,12 @@ void setup() {
     Serial.print("Code Built: ");
     Serial.println(myVer);
 
+    if (stationCount == 0) {
+      Serial.println("\nFatal Error; Halting");
+      Serial.println("No wifi ssid details have been configured; we cannot connect to or start WiFi");
+      while (true) delay(1000);
+    }
+ 
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
         pinMode(LED_PIN, OUTPUT);
         digitalWrite(LED_PIN, LED_ON);
@@ -450,20 +480,26 @@ void setup() {
 
     // We need a working Wifi before we can start the http handlers
     Serial.println("Starting WiFi");
+    Serial.println("Known external SSIDs");
+    if (firstStation < stationCount) {
+        for (int i=firstStation; i < stationCount; i++) Serial.println(stationList[i].ssid);
+    } else {
+        Serial.println("None");
+        #if defined(AP_MODE_ENABLE)
+            accesspoint = true;  // we can safely assume a dedicate accesspoint at this point
+        #endif
+    }
     byte mac[6];
     WiFi.macAddress(mac);
-    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    #if defined(WIFI_AP_ENABLE)
-        WifiSetup();
-    #else
-        while (WiFi.status() != WL_CONNECTED) {
-            // Loop until we connect
-            WifiSetup();
-            delay(1000);
-        }
-    #endif
+    Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    // Start the two http handlers for the HTTP UI and Stream.
+    // Having got this far; start Wifi and loop until we succeed.
+    while (WiFi.status() != WL_CONNECTED) {
+        WifiSetup();
+        delay(WIFI_WATCHDOG);
+    }
+
+    // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
     
     // Construct the app and stream URLs
@@ -479,7 +515,7 @@ void setup() {
     Serial.printf("Stream viewer available at '%sview'\n", streamURL);
     Serial.printf("Raw stream URL is '%s'\n", streamURL);
 
-    // Used when dumpung status; slow functions, so do them here
+    // Used when dumpung status; slow functions, so do them here during startup
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
     sketchMD5 = ESP.getSketchMD5();
@@ -491,27 +527,29 @@ void loop() {
      * The stream and URI handler processes initiated by the startCameraServer() call at the
      * end of setup() will handle the camera and UI processing from now on.
     */
-    #if defined(WIFI_AP_ENABLE)
-      // Accespoint is permanently up, so just loop
-      delay(WIFI_WATCHDOG);
-    #else
-    static bool warned = false;
-    if (WiFi.status() == WL_CONNECTED) {
-        // We are connected, wait a bit and re-check
-        if (warned) {
-            // Tell the user if we have just reconnected 
-            Serial.println("WiFi reconnected");
-            warned = false;
-        }
+    if (accesspoint) {
+        // Accespoint is permanently up, so just loop
         delay(WIFI_WATCHDOG);
     } else {
-        if (!warned) {
-            // Tell the user if we just disconnected
-            WiFi.disconnect();  // ensures disconnect is complete, wifi scan cleared
-            Serial.println("WiFi disconnected, retrying");
-            warned = true;
+        // client mode can fail; so reconnect as appropriate 
+        static bool warned = false;
+        if (WiFi.status() == WL_CONNECTED) {
+            // We are connected, wait a bit and re-check
+            if (warned) {
+                // Tell the user if we have just reconnected 
+                Serial.println("WiFi reconnected");
+                warned = false;
+            }
+            delay(WIFI_WATCHDOG);
+        } else {
+            // disconnected; attempt to reconnect
+            if (!warned) {
+                // Tell the user if we just disconnected
+                WiFi.disconnect();  // ensures disconnect is complete, wifi scan cleared
+                Serial.println("WiFi disconnected, retrying");
+                warned = true;
+            }
+            WifiSetup();
         }
-        WifiSetup();
     }
-    #endif
 }
