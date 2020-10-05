@@ -31,12 +31,9 @@
 #if __has_include("myconfig.h")
     #include "myconfig.h"
 #else
-    #warning "Using Default Settings: Copy myconfig.sample.h to myconfig.h and edit that to set your personal defaults"
-    // These are the defaults.. dont edit these.
-    // copy myconfig.sample.h to myconfig.h and edit that instead
-    //  SSID, Password and Mode
+    #warning "Using Default Settings: "
+    #warning "Copy myconfig.sample.h to myconfig.h and edit that to set your personal defaults"
     #define WIFI_AP_ENABLE
-    // Default Board and Camera:
     #define CAMERA_MODEL_AI_THINKER
     struct station { const char ssid[64]; const char password[64]; const bool dhcp;} 
     stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", false}};
@@ -190,6 +187,11 @@ void WifiSetup() {
             Serial.print("Password : ");
             Serial.println(stationList[0].password);
         #endif
+        
+        // find our IP details
+        ip = WiFi.softAPIP();
+        net = WiFi.subnetMask();
+        gw = WiFi.gatewayIP();
     #else
         int stationCount = sizeof(stationList)/sizeof(stationList[0]);
         int bestStation = -1;
@@ -221,12 +223,12 @@ void WifiSetup() {
             Serial.println("Scan Failed; no networks visible.");
             return;
         }
-    
+
         if (bestStation == -1) {
             Serial.println("No known networks found.");
             return;
         }
-        
+
         Serial.printf("Connecting to Wifi Network: %s\n", stationList[bestStation].ssid);
         if (stationList[bestStation].dhcp == false) {
             #if defined(ST_IP)
@@ -252,44 +254,41 @@ void WifiSetup() {
                 Serial.println("Static IP settings requested but not defined in config, falling back to dhcp");
             #endif
         }
-    
+
         // Initiate network connection request
         WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
-    
+
         // Wait to connect, or timeout
         unsigned long start = millis(); 
         while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
             delay(WIFI_WATCHDOG / 10);
             Serial.print('.');
         }
-    
+
         // If we have connected, show details
         if (WiFi.status() == WL_CONNECTED) {
-            Serial.println(" Succeeded");
-            
+            Serial.println(" Client connection succeeded");
+
             // find our IP details
-            #if defined(WIFI_AP_ENABLE)
-                ip = WiFi.softAPIP();
-            #else
-                ip = WiFi.localIP();
-            #endif
+            ip = WiFi.localIP();
             net = WiFi.subnetMask();
             gw = WiFi.gatewayIP();
-            
-            Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
-            Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
-            Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
-            
-            // Burst flash the LED to show we are connected
-            for (int i = 0; i < 5; i++) {
-                flashLED(80);
-                delay(120);
-            }
+
         } else {
             Serial.println(" Failed");
             WiFi.disconnect();   // Nothing to disconnect; but resets the WiFi scan etc.
+            return;
         }
-    #endif
+    #endif 
+    Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
+    Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
+    Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+
+    // Burst flash the LED to show we are connected
+    for (int i = 0; i < 5; i++) {
+        flashLED(80);
+        delay(120);
+    }
 }
 
 void setup() {
@@ -301,12 +300,12 @@ void setup() {
     Serial.println(myName);
     Serial.print("Code Built: ");
     Serial.println(myVer);
-    
+
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
         pinMode(LED_PIN, OUTPUT);
         digitalWrite(LED_PIN, LED_ON);
     #endif
-    
+
     // Create camera config structure; and populate with hardware and other defaults 
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
@@ -399,7 +398,7 @@ void setup() {
     * Add any other defaults you want to apply at startup here:
     * uncomment the line and set the value as desired (see the comments)
     */
-  
+
     //s->set_framesize(s, FRAMESIZE_SVGA); // FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]);
     //s->set_quality(s, val);      // 10 to 63
     //s->set_brightness(s, 0);     // -2 to 2
@@ -424,10 +423,10 @@ void setup() {
     //s->set_vflip(s, 0);          // 0 = disable , 1 = enable
     //s->set_dcw(s, 1);            // 0 = disable , 1 = enable
     //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
-    
+
     // We now have camera with default init
     // check for saved preferences and apply them
- 
+
     if (filesystem) {
         filesystemStart();
         loadPrefs(SPIFFS);
@@ -479,7 +478,7 @@ void setup() {
     sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
     Serial.printf("Stream viewer available at '%sview'\n", streamURL);
     Serial.printf("Raw stream URL is '%s'\n", streamURL);
-    
+
     // Used when dumpung status; slow functions, so do them here
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
@@ -487,10 +486,13 @@ void setup() {
 }
 
 void loop() {
-    // Just loop forever, reconnecting Wifi As necesscary.
-    // The stream and URI handler processes initiated by the startCameraServer() call at the
-    // end of setup() will handle the camera and UI processing from now on.
+    /* 
+     *  Just loop forever, reconnecting Wifi As necesscary in client mode
+     * The stream and URI handler processes initiated by the startCameraServer() call at the
+     * end of setup() will handle the camera and UI processing from now on.
+    */
     #if defined(WIFI_AP_ENABLE)
+      // Accespoint is permanently up, so just loop
       delay(WIFI_WATCHDOG);
     #else
     static bool warned = false;
