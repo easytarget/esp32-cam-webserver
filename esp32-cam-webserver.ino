@@ -22,7 +22,7 @@
 /* 
  *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' TO 'myconfig.h' AND EDIT THAT.
  *
- * By default this sketch will assume an AI-THINKER ESP-CAM and create 
+ * By default this sketch will assume an AI-THINKER ESP-CAM and create
  * an accesspoint called "ESP32-CAM-CONNECT" (password: "InsecurePassword")
  *
  */
@@ -38,11 +38,8 @@
     #define WIFI_AP_ENABLE
     // Default Board and Camera:
     #define CAMERA_MODEL_AI_THINKER
-    struct station {
-        const char ssid[64];
-        const char password[64];
-        const bool dhcp;
-    } stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", false}};
+    struct station { const char ssid[64]; const char password[64]; const bool dhcp;} 
+    stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", false}};
 #endif
 
 // Pin Mappings
@@ -204,7 +201,7 @@ void WifiSetup() {
             for (int i = 0; i < stationsFound; ++i) {
                 // Print SSID and RSSI for each network found
                 String thisSSID = WiFi.SSID(i);
-                long thisRSSI = WiFi.RSSI(i);
+                int thisRSSI = WiFi.RSSI(i);
                 Serial.printf("%3i : %s (%i)", i + 1, thisSSID.c_str(), thisRSSI);
                 // Scan our list of known stations.
                 for (int sta = 0; sta < stationCount; sta++) {
@@ -349,11 +346,9 @@ void setup() {
     #endif
 
     // camera init
-    sensor_t * s;
     esp_err_t err = esp_camera_init(&config);
     if (err == ESP_OK) {
         Serial.println("Camera init succeeded");
-        s = esp_camera_sensor_get();
     } else {
         delay(100);  // need a delay here or the next serial o/p gets missed
         Serial.println("Halted: Camera sensor failed to initialise");
@@ -361,6 +356,7 @@ void setup() {
         delay(10000);
         ESP.restart();
     }
+    sensor_t * s = esp_camera_sensor_get();
 
     // Dump camera module, warn for unsupported modules.
     switch (s->id.PID) {
@@ -373,9 +369,9 @@ void setup() {
 
     // OV3660 initial sensors are flipped vertically and colors are a bit saturated
     if (s->id.PID == OV3660_PID) {
-        s->set_vflip(s, 1);//flip it back
-        s->set_brightness(s, 1);//up the blightness just a bit
-        s->set_saturation(s, -2);//lower the saturation
+        s->set_vflip(s, 1);  //flip it back
+        s->set_brightness(s, 1);  //up the blightness just a bit
+        s->set_saturation(s, -2);  //lower the saturation
     }
 
     // M5 Stack Wide has special needs
