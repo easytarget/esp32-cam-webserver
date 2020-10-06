@@ -1,9 +1,8 @@
 /*
- * Master CSS file included in the camer_index_* and miniviewer HTML
+ * Master CSS file for the camera pages
  */
 
-const uint8_t style_css[] = R"=====(
-/* 
+const uint8_t style_css[] = R"=====(/* 
  * CSS for the esp32 cam webserver
  */
 
@@ -358,7 +357,6 @@ select {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-)=====";
+})=====";
 
-size_t style_css_len = sizeof(style_css);
+size_t style_css_len = sizeof(style_css)-1;

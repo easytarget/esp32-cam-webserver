@@ -17,26 +17,29 @@
  */
 
 // WiFi Credentials
-// A structure for each WiFi network entry
-struct station
-{
-    const char ssid[64];      // ssid (max 64 chars)
-    const char password[64];  // password (max 64 chars)
-    const bool dhcp;          // dhcp
-};
+
+
 
 /* 
- * Extend the list below with additional SSID+Password pairs like this:
+ * Extend the stationList[] below with additional SSID+Password pairs.
+ *  The first block defines /what/ the structure holds
+ *  The second block is where our list of ssid/passwords live
 
-struct station stationList[] = {{"ssid1", "pass1", true},
-                                {"ssid2", "pass2", true},
-                                {"ssid3", "pass3", false}};
+struct station {
+    const char ssid[64];      // - ssid (max 64 chars)
+    const char password[64];  // - password (max 64 chars)
+    const bool dhcp;          // - dhcp
+} station stationList[] = {{"ssid1", "pass1", true},
+                           {"ssid2", "pass2", true},
+                           {"ssid3", "pass3", false}};
 
- * The first entry will be used for the AccessPoint ssid and password when it is enabled 
+ * The first entry in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented (below) 
+ * it will be used for the AccessPoint ssid and password.
+ * 
  * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
  * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
  */
-struct station stationList[] = {{"my_ssid","my_password", false}};
+struct station stationList[] = {{"my_ssid","my_password", true}};
 
 
 /*
@@ -59,17 +62,17 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
  *  Uncomment to enable AP mode; 
  *  
  */
-#define WIFI_AP_ENABLE
+// #define WIFI_AP_ENABLE
 
 /*  AP Mode Notes:
  *   
- *  When WIFI_AP_ENABLE is set the AccessPoint ssid and password will be taken from the 1st entry in the stationList[] above.
+ *  Once enabled the AP ssid and password will be taken from the 1st entry in the stationList[] above.
  *  
- *  If there are further entries in the list they will still be scanned at startup and connected to if they are found.
- *  The AP then becomes a fallback mode that happens only when there are no 'real' networks available.
+ *  If there are more entries listed they will be scanned at startup in the normal way and connected to 
+ *  if they are found. AP then works as a fallback mode for when there are no 'real' networks available.
  *  
- *  Setting the dhcp field to true for the AP enables a captive portal and attempts to send
- *  all incoming pages to the webcam page, with varying degrees of success depending on the visitors 
+ *  Setting the 'dhcp' field to true for the AP enables a captive portal and attempts to send
+ *  all visitors to the webcam page, with varying degrees of success depending on the visitors 
  *  browser and other settings.
  */
 // Optionally change the AccessPoint ip address (default = 192.168.4.1)
