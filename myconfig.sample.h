@@ -14,13 +14,7 @@
  * WiFi Settings
  *
  * Note the the use of commas as seperators in IP addresses!
- */
 
-// WiFi Credentials
-
-
-
-/* 
  * Extend the stationList[] below with additional SSID+Password pairs.
  *  The first block defines /what/ the structure holds
  *  The second block is where our list of ssid/passwords live
@@ -39,7 +33,11 @@ struct station {
  * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
  * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
  */
-struct station stationList[] = {{"my_ssid","my_password", true}};
+struct station {
+    const char ssid[64];      // ssid (max 64 chars)
+    const char password[64];  // password (max 64 chars)
+    const bool dhcp;          // dhcp
+} stationList[] = {{"my_ssid","my_password", true}};
 
 
 /*
