@@ -17,6 +17,7 @@
  */
 
 // WiFi Credentials
+// A structure for each WiFi network entry
 struct station
 {
     const char ssid[64];      // ssid (max 64 chars)
@@ -24,22 +25,24 @@ struct station
     const bool dhcp;          // dhcp
 };
 
-struct station stationList[] = {{"my_ssid","my_password", false}};
-
 /* 
- * Extend the list above with additional SSID+Password pairs like this:
- * The third (dhcp) column controls whether that station uses dhcp; or the optional static IP settings (below)
- * Note the use of nested braces { and }, to group each entry, and commas to seperate them.
+ * Extend the list below with additional SSID+Password pairs like this:
 
 struct station stationList[] = {{"ssid1", "pass1", true},
                                 {"ssid2", "pass2", true},
                                 {"ssid3", "pass3", false}};
+
+ * The first entry will be used for the AccessPoint ssid and password when it is enabled 
+ * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
+ * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
  */
+struct station stationList[] = {{"my_ssid","my_password", false}};
+
 
 /*
  * Static network settings for client mode
  * 
- * Note: These settings will be applied to all client connections where .staticIP is true
+ * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
  * You must define all three: IP, Gateway and NetMask
  */
 // warning - IP addresses must be seperated with commas (,) and not decimals (.)
@@ -54,18 +57,24 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  *  AccessPoint; 
  *  
  *  Uncomment to enable AP mode; 
- *  The AP ssid and password will be taken from the 1st entry in the stationList[] above.
  *  
- *  This is a 'fallback' mode. The remaining stationList[] is first scanned; if a matching network
- *  is found we will loop attempting to connect to that.
- *  If no matching networks are found during the initial scan the AccessPoint mode will
- *  be permanently enabled and started; no further scan+connection attempts will be made.
- *  If you only list one entry in the stationList[] you will effectively create a dedicated
- *  AccessPoint setup.
- *  
- *  ENHANCEMENT: use dhcp field to create a mdns captive portal? currently it is unused.
  */
-// #define WIFI_AP_ENABLE
+#define WIFI_AP_ENABLE
+
+/*  AP Mode Notes:
+ *   
+ *  Once enabled the AP ssid and password will be taken from the 1st entry in the stationList[] above.
+ *  
+ *  If there are further entries listed they will be scanned at startup and connected to if they are found. 
+ *  Making the AP a fallback mode that happens only when there are no 'real' networks available
+ *  
+ *  Setting the dhcp field to true for the AP enables a captive portal and attempts to send
+ *  all incoming pages to the webcam page, with varying degrees of success depending on the visitors 
+ *  browser and other settings.
+ *  - The Captive Portal really needs a seperate landing page instead of using the 'main' page. 
+ *  Browsers and OS's restrict landing page functions, since they have been abused by marketing types 
+ *  and other low quality people. Video/Audio playback and Javascript are commonly disabled as a result.
+ */
 
 // AccessPoint; optionally change the ip address (default = 192.168.4.1)
 // warning - IP addresses must be seperated with commas (,) and not decimals (.)

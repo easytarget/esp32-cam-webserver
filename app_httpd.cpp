@@ -608,7 +608,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
           delay(150);
           Serial.print('.');
         }
-        Serial.printf("\n..Thats all folks!\n\n");
+        Serial.printf(" Thats all folks!\n\n");
         ESP.restart();
     }
     else {
@@ -746,10 +746,10 @@ static esp_err_t dump_handler(httpd_req_t *req){
         Serial.printf("Ssid: %s\n", ssidName.c_str());
         d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
         Serial.printf("Rssi: %i\n", WiFi.RSSI());
+        String bssid = WiFi.BSSIDstr();
+        d+= sprintf(d,"BSSID: %s<br>\n", bssid.c_str());
+        Serial.printf("BSSID: %s\n", bssid.c_str());
     }
-    String bssid = WiFi.BSSIDstr();
-    d+= sprintf(d,"BSSID: %s<br>\n", bssid.c_str());
-    Serial.printf("BSSID: %s\n", bssid.c_str());
     d+= sprintf(d,"IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
     Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
     if (!accesspoint) {

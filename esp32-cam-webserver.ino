@@ -241,7 +241,6 @@ void WifiSetup() {
                 Serial.println("Static IP settings requested but not defined in config, falling back to dhcp");
             #endif
         }
-    
         // Initiate network connection request
         WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
     
@@ -251,12 +250,30 @@ void WifiSetup() {
             delay(500);
             Serial.print('.');
         }
+        // If we have connected, inform user
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("Client connection succeeded");
+            accesspoint = false;
+            // Note IP details
+            ip = WiFi.localIP();
+            net = WiFi.subnetMask();
+            gw = WiFi.gatewayIP();
+            Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
+            Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
+            Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+            // Flash the LED to show we are connected
+            for (int i = 0; i < 5; i++) {
+                flashLED(50);
+                delay(150);
+            }
+        } else {
+            Serial.println("Client connection Failed");
+            WiFi.disconnect();   // (resets the WiFi scan)
+        }
     }
-
-    if (accesspoint) {
+    if (accesspoint && (WiFi.status() != WL_CONNECTED)) {
         // The accesspoint has been enabled
         #if defined(AP_CHAN)
-            WiFi.softAP(stationList[0].ssid, stationList[0].password, AP_CHAN);
             Serial.println("Setting up Fixed Channel AccessPoint");
             Serial.print("  SSID     : ");
             Serial.println(stationList[0].ssid);
@@ -264,13 +281,14 @@ void WifiSetup() {
             Serial.println(stationList[0].password);
             Serial.print("  Channel  : ");
             Serial.println(AP_CHAN);
+            WiFi.softAP(stationList[0].ssid, stationList[0].password, AP_CHAN);
         # else
-            WiFi.softAP(stationList[0].ssid, stationList[0].password);
             Serial.println("Setting up AccessPoint");
             Serial.print("  SSID     : ");
             Serial.println(stationList[0].ssid);
             Serial.print("  Password : ");
             Serial.println(stationList[0].password);
+            WiFi.softAP(stationList[0].ssid, stationList[0].password);
         #endif
         #if defined(AP_ADDRESS)
             // User has specified the AP details; apply them after a short delay
@@ -281,44 +299,24 @@ void WifiSetup() {
             IPAddress subnet(255,255,255,0);
             WiFi.softAPConfig(local_IP, gateway, subnet);
         #endif
-
         // Note AP details
         ip = WiFi.softAPIP();
         net = WiFi.subnetMask();
         gw = WiFi.gatewayIP();
         strcpy(apName, stationList[0].ssid);
-
+        Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
+        // Flash the LED to show we are connected
+        for (int i = 0; i < 5; i++) {
+            flashLED(150);
+            delay(50);
+        }
         // Start the DNS captive portal if requested
         if (stationList[0].dhcp == true) {
             Serial.println("Starting Captive Portal");
             dnsServer.start(DNS_PORT, "*", ip);
             captivePortal = true;
         }
-    } else {
-        // If we have connected, inform user
-        if (WiFi.status() == WL_CONNECTED) {
-            Serial.println(" Client connection succeeded");
-            // Note IP details
-            ip = WiFi.localIP();
-            net = WiFi.subnetMask();
-            gw = WiFi.gatewayIP();
-        } else {
-            Serial.println(" Failed");
-            WiFi.disconnect();   // (resets the WiFi scan)
-            return;
-        }
-    }
-
-    Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
-    if (!accesspoint) {
-        Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
-        Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
-    }
-    // Burst flash the LED to show we are connected
-    for (int i = 0; i < 5; i++) {
-        flashLED(80);
-        delay(120);
-    }
+    } 
 }
 
 void setup() {
@@ -497,10 +495,10 @@ void setup() {
     WiFi.macAddress(mac);
     Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    // Having got this far; start Wifi and loop until we succeed.
+    // Having got this far; start Wifi and loop until we are connected or have started an AccessPoint
     while ((WiFi.status() != WL_CONNECTED) && !accesspoint)  {
         WifiSetup();
-        delay(WIFI_WATCHDOG);
+        delay(1000);
     } 
 
     // Now we have a network we can start the two http handlers for the UI and Stream.
