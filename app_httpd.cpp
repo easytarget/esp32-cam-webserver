@@ -20,7 +20,7 @@
 
 #include "index_ov2640.h"
 #include "index_ov3660.h"
-#include "viewers.h"
+#include "index_other.h"
 #include "css.h"
 #include "src/favicons.h"
 #include "storage.h"
@@ -821,15 +821,73 @@ static esp_err_t streamviewer_handler(httpd_req_t *req){
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
+    char*  buf;
+    size_t buf_len;
+    char view[32] = {0,};
+
     flashLED(75);
-    Serial.println("Index page requested");
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    sensor_t * s = esp_camera_sensor_get();
-    if (s->id.PID == OV3660_PID) {
-        return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
+    // See if we have a specific target (full/simple/?portal) and serve as appropriate
+    buf_len = httpd_req_get_url_query_len(req) + 1;
+    if (buf_len > 1) {
+        buf = (char*)malloc(buf_len);
+        if(!buf){
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
+            if (httpd_query_key_value(buf, "view", view, sizeof(view)) == ESP_OK) {
+            } else {
+                free(buf);
+                httpd_resp_send_404(req);
+                return ESP_FAIL;
+            }
+        } else {
+            free(buf);
+            httpd_resp_send_404(req);
+            return ESP_FAIL;
+        }
+        free(buf);
+    } else {
+        if (captivePortal) {
+            strcpy(view,"simple");
+        }
+        // no target specified; default.
+        #if defined(DEFAULT_INDEX_FULL)
+            strcpy(view,"full");
+        #else
+            strcpy(view,"simple");
+        #endif
+        // If a captive portal page is created, we can use it here
+        //if (captivePortal) {
+        //    strcpy(view,"portal");
+        //}
     }
-    return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
+
+    if  (strncmp(view,"simple", sizeof(view)) == 0) {
+        Serial.println("Simple index page requested");
+        httpd_resp_set_type(req, "text/html");
+        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+        return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
+    } else if(strncmp(view,"full", sizeof(view)) == 0) {
+        Serial.println("Full index page requested");
+        httpd_resp_set_type(req, "text/html");
+        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+        sensor_t * s = esp_camera_sensor_get();
+        if (s->id.PID == OV3660_PID) {
+            return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
+        }
+        return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
+    //} else if(strncmp(view,"portal", sizeof(view)) == 0) {
+    //    // Do a captive portal landing page here.
+    //    Serial.println("Portal page requested");
+    //    httpd_resp_send_404(req);
+    //    return ESP_FAIL;
+    } else  {
+        Serial.print("Unknown page requested: ");
+        Serial.println(view);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+    }
 }
 
 void startCameraServer(int hPort, int sPort){
