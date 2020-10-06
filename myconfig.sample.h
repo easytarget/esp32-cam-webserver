@@ -16,43 +16,86 @@
  * Note the the use of commas as seperators in IP addresses!
  */
 
-// Credentials
-const char* ssid = "my-ssid";
-const char* password = "my-password";
+// WiFi Credentials
+// A structure for each WiFi network entry
+struct station
+{
+    const char ssid[64];      // ssid (max 64 chars)
+    const char password[64];  // password (max 64 chars)
+    const bool dhcp;          // dhcp
+};
+
+/* 
+ * Extend the list below with additional SSID+Password pairs like this:
+
+struct station stationList[] = {{"ssid1", "pass1", true},
+                                {"ssid2", "pass2", true},
+                                {"ssid3", "pass3", false}};
+
+ * The first entry will be used for the AccessPoint ssid and password when it is enabled 
+ * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
+ * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
+ */
+struct station stationList[] = {{"my_ssid","my_password", false}};
 
 
-// AccessPoint; uncomment to enable AP mode, 
-// otherwise we will attempt to connect to an existing network.
-// #define WIFI_AP_ENABLE
+/*
+ * Static network settings for client mode
+ * 
+ * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
+ * You must define all three: IP, Gateway and NetMask
+ */
+// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// #define ST_IP      192,168,0,16
+// #define ST_GATEWAY 192,168,0,2 
+// #define ST_NETMASK 255,255,255,0
+// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
+// #define ST_DNS1 192,168,0,2
+// #define ST_DNS2 8,8,8,8
 
-// AccessPoint; change the ip address (optional, default = 192.168.4.1)
+/* 
+ *  AccessPoint; 
+ *  
+ *  Uncomment to enable AP mode; 
+ *  
+ */
+#define WIFI_AP_ENABLE
+
+/*  AP Mode Notes:
+ *   
+ *  Once enabled the AP ssid and password will be taken from the 1st entry in the stationList[] above.
+ *  
+ *  If there are further entries listed they will be scanned at startup and connected to if they are found. 
+ *  Making the AP a fallback mode that happens only when there are no 'real' networks available
+ *  
+ *  Setting the dhcp field to true for the AP enables a captive portal and attempts to send
+ *  all incoming pages to the webcam page, with varying degrees of success depending on the visitors 
+ *  browser and other settings.
+ *  - The Captive Portal really needs a seperate landing page instead of using the 'main' page. 
+ *  Browsers and OS's restrict landing page functions, since they have been abused by marketing types 
+ *  and other low quality people. Video/Audio playback and Javascript are commonly disabled as a result.
+ */
+
+// AccessPoint; optionally change the ip address (default = 192.168.4.1)
+// warning - IP addresses must be seperated with commas (,) and not decimals (.)
 // #define AP_ADDRESS 192,168,4,1
 
 // AccessPoint; Uncomment this to force the channel number, default = 1
 // #define AP_CHAN 1
 
-// Static network settings for use when connected to existing network when DHCP is unavailable/unreliable
-// You must define all three: IP, Gateway and NetMask
-// #define ST_IP      192,168,0,16
-// #define ST_GATEWAY 192,168,0,2 
-// #define ST_NETMASK 255,255,255,0
-// one or two optional DNS servers can be supplied, but these are not used by current code.
-// #define ST_DNS1 192,168,0,2
-// #define ST_DNS2 8,8,8,8
-
-// Wifi Watchdog defines how long we spend waiting for a connection before retrying,
-// and how often we check to see if we are still connected, milliseconds
-// You may wish to increase this if your WiFi is slow at conencting,
-// #define WIFI_WATCHDOG = 5000
-
-
 /*
  *  Port numbers for WebUI and Stream, defaults to 80 and 81.
  *  Uncomment and edit as appropriate
  */
-
 // #define HTTP_PORT 80
 // #define STREAM_PORT 81
+
+/* 
+ * Wifi Watchdog defines how long we spend waiting for a connection before retrying,
+ * and how often we check to see if we are still connected, milliseconds
+ * You may wish to increase this if your WiFi is slow at conencting,
+ */
+//#define WIFI_WATCHDOG 5000
 
 /*
  * Camera Hardware Settings
@@ -61,7 +104,6 @@ const char* password = "my-password";
  * Remember to also select the board in the Boards Manager
  * This is not optional
  */
-
 #define CAMERA_MODEL_AI_THINKER       // default
 // #define CAMERA_MODEL_WROVER_KIT
 // #define CAMERA_MODEL_ESP_EYE
@@ -94,6 +136,9 @@ const char* password = "my-password";
 
 // Define a initial lamp setting as a percentage, defaults to 0%
 // #define LAMP_DEFAULT 0
+
+// Assume we have SPIFFS/LittleFS partition, uncomment if not
+// #define NO_FS
 
 // Uncomment to enable Face Detection (+ Recognition if desired) by default 
 //  Notes: You must set DEFAULT_RESOLUTION, above, to FRAMESIZE_CIF or lower

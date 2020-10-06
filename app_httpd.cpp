@@ -40,6 +40,9 @@ extern char streamURL[];
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 extern bool filesystem;
+extern bool accesspoint;
+extern bool captivePortal;
+extern char apName[];
 extern int httpPort;
 extern int streamPort;
 extern IPAddress ip;
@@ -180,7 +183,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
         fb_gfx_drawFastHLine(&fb, x, y+h-1, w, color);
         fb_gfx_drawFastVLine(&fb, x, y, h, color);
         fb_gfx_drawFastVLine(&fb, x+w-1, y, h, color);
-#if 0
+        #if 0
         // landmark
         int x0, y0, j;
         for (j = 0; j < 10; j+=2) {
@@ -188,7 +191,7 @@ static void draw_face_boxes(dl_matrix3du_t *image_matrix, box_array_t *boxes, in
             y0 = (int)boxes->landmark[i].landmark_p[j+1];
             fb_gfx_fillRect(&fb, x0, y0, 3, 3, color);
         }
-#endif
+        #endif
     }
 }
 
@@ -602,10 +605,10 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         Serial.print("REBOOT requested");
         for (int i=0; i<20; i++) {
           flashLED(50);
-          delay(50);
+          delay(150);
           Serial.print('.');
         }
-        Serial.printf("\nThats all folks...\n\n");
+        Serial.printf(" Thats all folks!\n\n");
         ESP.restart();
     }
     else {
@@ -725,19 +728,43 @@ static esp_err_t dump_handler(httpd_req_t *req){
     Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
     // Network
     d+= sprintf(d,"<h2>WiFi</h2>\n");
-    String ssidName = WiFi.SSID();
-    d+= sprintf(d,"SSID: %s<br>\n", ssidName.c_str());
-    Serial.printf("Ssid: %s\n", ssidName.c_str());
-    d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
-    Serial.printf("Rssi: %i\n", WiFi.RSSI());
-    d+= sprintf(d,"Http port: %i, Stream port: %i<br>\n", httpPort, streamPort);
-    Serial.printf("Http port: %i, Stream port: %i\n", httpPort, streamPort);
+    if (accesspoint) {
+        if (captivePortal) {
+            d+= sprintf(d,"Mode: AccessPoint with captive portal<br>\n");
+            Serial.printf("Mode: AccessPoint with captive portal\n");
+        } else {
+            d+= sprintf(d,"Mode: AccessPoint<br>\n");
+            Serial.printf("Mode: AccessPoint\n");
+        }
+        d+= sprintf(d,"SSID: %s<br>\n", apName);
+        Serial.printf("SSID: %s\n", apName);
+    } else {
+        d+= sprintf(d,"Mode: Client<br>\n");
+        Serial.printf("Mode: Client\n");
+        String ssidName = WiFi.SSID();
+        d+= sprintf(d,"SSID: %s<br>\n", ssidName.c_str());
+        Serial.printf("Ssid: %s\n", ssidName.c_str());
+        d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
+        Serial.printf("Rssi: %i\n", WiFi.RSSI());
+        String bssid = WiFi.BSSIDstr();
+        d+= sprintf(d,"BSSID: %s<br>\n", bssid.c_str());
+        Serial.printf("BSSID: %s\n", bssid.c_str());
+    }
     d+= sprintf(d,"IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
     Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
-    d+= sprintf(d,"Netmask: %d.%d.%d.%d<br>\n", net[0], net[1], net[2], net[3]);
-    Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
-    d+= sprintf(d,"Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
-    Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    if (!accesspoint) {
+        d+= sprintf(d,"Netmask: %d.%d.%d.%d<br>\n", net[0], net[1], net[2], net[3]);
+        Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
+        d+= sprintf(d,"Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
+        Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    }
+    d+= sprintf(d,"Http port: %i, Stream port: %i<br>\n", httpPort, streamPort);
+    Serial.printf("Http port: %i, Stream port: %i\n", httpPort, streamPort);
+    byte mac[6];
+    WiFi.macAddress(mac);
+    d+= sprintf(d,"MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
     int64_t sec = esp_timer_get_time() / 1000000;
