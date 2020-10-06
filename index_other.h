@@ -279,7 +279,7 @@
   </script>
 </html>)=====";
 
-size_t index_simple_html_len = sizeof(index_simple_html-1);
+size_t index_simple_html_len = sizeof(index_simple_html)-1;
 
 /* Stream Viewer */
 

@@ -865,13 +865,11 @@ static esp_err_t index_handler(httpd_req_t *req){
 
     if  (strncmp(view,"simple", sizeof(view)) == 0) {
         Serial.println("Simple index page requested");
-        Serial.println(index_simple_html_len);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         return httpd_resp_send(req, (const char *)index_simple_html, index_simple_html_len);
     } else if(strncmp(view,"full", sizeof(view)) == 0) {
         Serial.println("Full index page requested");
-        Serial.println(index_ov2640_html_len);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         sensor_t * s = esp_camera_sensor_get();
@@ -882,7 +880,6 @@ static esp_err_t index_handler(httpd_req_t *req){
     } else if(strncmp(view,"portal", sizeof(view)) == 0) {
         //Prototype captive portal landing page.
         Serial.println("Portal page requested");
-        Serial.println(portal_html_len);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         return httpd_resp_send(req, (const char *)portal_html, portal_html_len);
