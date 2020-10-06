@@ -636,4 +636,4 @@ const uint8_t index_ov3660_html[] = R"=====(
 </html>
 )=====";
 
-size_t index_ov3660_html_len = sizeof(index_ov3660_html);
+size_t index_ov3660_html_len = sizeof(index_ov3660_html)-1;

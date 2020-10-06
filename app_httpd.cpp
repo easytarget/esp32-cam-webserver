@@ -23,6 +23,7 @@
 #include "index_other.h"
 #include "css.h"
 #include "src/favicons.h"
+#include "src/logo.h"
 #include "storage.h"
 
 //#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
@@ -67,6 +68,13 @@ extern String sketchMD5;
 #define FACE_COLOR_YELLOW (FACE_COLOR_RED | FACE_COLOR_GREEN)
 #define FACE_COLOR_CYAN   (FACE_COLOR_BLUE | FACE_COLOR_GREEN)
 #define FACE_COLOR_PURPLE (FACE_COLOR_BLUE | FACE_COLOR_RED)
+
+struct station
+{
+    const char ssid[64];      // ssid (max 64 chars)
+    const char password[64];  // password (max 64 chars)
+    const bool dhcp;          // dhcp
+};
 
 typedef struct {
         size_t size; //number of values used for filtering
@@ -698,12 +706,18 @@ static esp_err_t favicon_ico_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
 }
 
+static esp_err_t logo_svg_handler(httpd_req_t *req){
+    httpd_resp_set_type(req, "image/svg+xml");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)logo_svg, logo_svg_len);
+}
+
 static esp_err_t dump_handler(httpd_req_t *req){
     flashLED(75);
     Serial.println("\nDump Requested");
     Serial.print("Preferences file: ");
     dumpPrefs(SPIFFS);
-    static char dumpOut[1200] = "n";
+    static char dumpOut[1200] = "";
     char * d = dumpOut;
     // Header
     d+= sprintf(d,"<html><head><meta charset=\"utf-8\">\n");
@@ -713,6 +727,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n");
     d+= sprintf(d,"<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
     d+= sprintf(d,"</head>\n<body>\n");
+    d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n"); 
     // Module
     d+= sprintf(d,"Name: %s<br>\n", myName);
@@ -804,14 +819,6 @@ static esp_err_t style_handler(httpd_req_t *req){
     return httpd_resp_send(req, (const char *)style_css, style_css_len);
 }
 
-static esp_err_t miniviewer_handler(httpd_req_t *req){
-    flashLED(75);
-    Serial.println("Simple viewer requested");
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
-}
-
 static esp_err_t streamviewer_handler(httpd_req_t *req){
     flashLED(75);
     Serial.println("Stream Viewer requested");
@@ -858,18 +865,20 @@ static esp_err_t index_handler(httpd_req_t *req){
             strcpy(view,"simple");
         #endif
         // If a captive portal page is created, we can use it here
-        //if (captivePortal) {
-        //    strcpy(view,"portal");
-        //}
+        if (captivePortal) {
+            strcpy(view,"portal");
+        }
     }
 
     if  (strncmp(view,"simple", sizeof(view)) == 0) {
         Serial.println("Simple index page requested");
+        Serial.println(index_simple_html_len);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)miniviewer_html, miniviewer_html_len);
+        return httpd_resp_send(req, (const char *)index_simple_html, index_simple_html_len);
     } else if(strncmp(view,"full", sizeof(view)) == 0) {
         Serial.println("Full index page requested");
+        Serial.println(index_ov2640_html_len);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         sensor_t * s = esp_camera_sensor_get();
@@ -877,11 +886,13 @@ static esp_err_t index_handler(httpd_req_t *req){
             return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
         }
         return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
-    //} else if(strncmp(view,"portal", sizeof(view)) == 0) {
-    //    // Do a captive portal landing page here.
-    //    Serial.println("Portal page requested");
-    //    httpd_resp_send_404(req);
-    //    return ESP_FAIL;
+    } else if(strncmp(view,"portal", sizeof(view)) == 0) {
+        //Prototype captive portal landing page.
+        Serial.println("Portal page requested");
+        Serial.println(portal_html_len);
+        httpd_resp_set_type(req, "text/html");
+        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+        return httpd_resp_send(req, (const char *)portal_html, portal_html_len);
     } else  {
         Serial.print("Unknown page requested: ");
         Serial.println(view);
@@ -918,12 +929,6 @@ void startCameraServer(int hPort, int sPort){
         .handler   = capture_handler,
         .user_ctx  = NULL
     };
-    httpd_uri_t miniviewer_uri = {
-        .uri       = "/view",
-        .method    = HTTP_GET,
-        .handler   = miniviewer_handler,
-        .user_ctx  = NULL
-    };
     httpd_uri_t style_uri = {
         .uri       = "/style.css",
         .method    = HTTP_GET,
@@ -948,14 +953,18 @@ void startCameraServer(int hPort, int sPort){
         .handler   = favicon_ico_handler,
         .user_ctx  = NULL
     };
-    //  DEBUG
+    httpd_uri_t logo_svg_uri = {
+        .uri       = "/logo.svg",
+        .method    = HTTP_GET,
+        .handler   = logo_svg_handler,
+        .user_ctx  = NULL
+    };
     httpd_uri_t dump_uri = {
         .uri       = "/dump",
         .method    = HTTP_GET,
         .handler   = dump_handler,
         .user_ctx  = NULL
     };
-    //  DEBUG
     httpd_uri_t stream_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
@@ -1000,11 +1009,11 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &cmd_uri);
         httpd_register_uri_handler(camera_httpd, &status_uri);
         httpd_register_uri_handler(camera_httpd, &capture_uri);
-        httpd_register_uri_handler(camera_httpd, &miniviewer_uri);
         httpd_register_uri_handler(camera_httpd, &style_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
+        httpd_register_uri_handler(camera_httpd, &logo_svg_uri);
         httpd_register_uri_handler(camera_httpd, &dump_uri);
     }
 
