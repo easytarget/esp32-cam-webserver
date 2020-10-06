@@ -45,7 +45,7 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
  * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
  * You must define all three: IP, Gateway and NetMask
  */
-// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
 // #define ST_IP      192,168,0,16
 // #define ST_GATEWAY 192,168,0,2 
 // #define ST_NETMASK 255,255,255,0
@@ -63,24 +63,20 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
 
 /*  AP Mode Notes:
  *   
- *  Once enabled the AP ssid and password will be taken from the 1st entry in the stationList[] above.
+ *  When WIFI_AP_ENABLE is set the AccessPoint ssid and password will be taken from the 1st entry in the stationList[] above.
  *  
- *  If there are further entries listed they will be scanned at startup and connected to if they are found. 
- *  Making the AP a fallback mode that happens only when there are no 'real' networks available
+ *  If there are further entries in the list they will still be scanned at startup and connected to if they are found.
+ *  The AP then becomes a fallback mode that happens only when there are no 'real' networks available.
  *  
  *  Setting the dhcp field to true for the AP enables a captive portal and attempts to send
  *  all incoming pages to the webcam page, with varying degrees of success depending on the visitors 
  *  browser and other settings.
- *  - The Captive Portal really needs a seperate landing page instead of using the 'main' page. 
- *  Browsers and OS's restrict landing page functions, since they have been abused by marketing types 
- *  and other low quality people. Video/Audio playback and Javascript are commonly disabled as a result.
  */
-
-// AccessPoint; optionally change the ip address (default = 192.168.4.1)
-// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// Optionally change the AccessPoint ip address (default = 192.168.4.1)
+// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
 // #define AP_ADDRESS 192,168,4,1
 
-// AccessPoint; Uncomment this to force the channel number, default = 1
+// Uncomment this to force the AccessPoint channel number, default = 1
 // #define AP_CHAN 1
 
 /*
@@ -98,21 +94,9 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
 //#define WIFI_WATCHDOG 5000
 
 /*
- * Camera Hardware Settings
+ * Camera Defaults
  *
- * You must uncomment one, and only one, of the lines below to select your board model.
- * Remember to also select the board in the Boards Manager
- * This is not optional
  */
-#define CAMERA_MODEL_AI_THINKER       // default
-// #define CAMERA_MODEL_WROVER_KIT
-// #define CAMERA_MODEL_ESP_EYE
-// #define CAMERA_MODEL_M5STACK_PSRAM
-// #define CAMERA_MODEL_M5STACK_V2_PSRAM
-// #define CAMERA_MODEL_M5STACK_WIDE
-// #define CAMERA_MODEL_M5STACK_ESP32CAM   // Originally: CAMERA_MODEL_M5STACK_NO_PSRAM
-// #define CAMERA_MODEL_TTGO_T_JOURNAL
-
 // Initial Reslolution, default SVGA
 // available values are: FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]
 // #define DEFAULT_RESOLUTION FRAMESIZE_SVGA
@@ -129,7 +113,10 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
 
 /*
  * Additional Features
+ * 
  */
+// Default Page: uncomment to make the full control page the default, otherwise show simple viewer
+// #define DEFAULT_INDEX_FULL
 
 // Uncomment to disable the illumination lamp features
 // #define LAMP_DISABLE
@@ -137,11 +124,29 @@ struct station stationList[] = {{"my_ssid","my_password", false}};
 // Define a initial lamp setting as a percentage, defaults to 0%
 // #define LAMP_DEFAULT 0
 
-// Assume we have SPIFFS/LittleFS partition, uncomment if not
+// Assume we have SPIFFS/LittleFS partition, uncomment to disable this. 
+// Controls will still be shown in the UI but are inoperative.
 // #define NO_FS
 
 // Uncomment to enable Face Detection (+ Recognition if desired) by default 
-//  Notes: You must set DEFAULT_RESOLUTION, above, to FRAMESIZE_CIF or lower
-//         Face recognition enrolements will be lost between reboots.
+//  Notes: You must set DEFAULT_RESOLUTION (above) to FRAMESIZE_CIF or lower before enabling this
+//         Face recognition enrolements are currently lost between reboots.
 // #define FACE_DETECTION
 // #define FACE_RECOGNITION
+
+
+/*
+ * Camera Hardware Selectiom
+ *
+ * You must uncomment one, and only one, of the lines below to select your board model.
+ * Remember to also select the board in the Boards Manager
+ * This is not optional
+ */
+#define CAMERA_MODEL_AI_THINKER       // default
+// #define CAMERA_MODEL_WROVER_KIT
+// #define CAMERA_MODEL_ESP_EYE
+// #define CAMERA_MODEL_M5STACK_PSRAM
+// #define CAMERA_MODEL_M5STACK_V2_PSRAM
+// #define CAMERA_MODEL_M5STACK_WIDE
+// #define CAMERA_MODEL_M5STACK_ESP32CAM   // Originally: CAMERA_MODEL_M5STACK_NO_PSRAM
+// #define CAMERA_MODEL_TTGO_T_JOURNAL
