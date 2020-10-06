@@ -69,13 +69,6 @@ extern String sketchMD5;
 #define FACE_COLOR_CYAN   (FACE_COLOR_BLUE | FACE_COLOR_GREEN)
 #define FACE_COLOR_PURPLE (FACE_COLOR_BLUE | FACE_COLOR_RED)
 
-struct station
-{
-    const char ssid[64];      // ssid (max 64 chars)
-    const char password[64];  // password (max 64 chars)
-    const bool dhcp;          // dhcp
-};
-
 typedef struct {
         size_t size; //number of values used for filtering
         size_t index; //current value index
