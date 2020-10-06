@@ -88,18 +88,6 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  */
 //#define WIFI_WATCHDOG 5000
 
-/* 
- *  Http and Stream prefix; useful for embedding and casual snooping
- *  Prefix will be added to the beginning of the UIR path;  
- *  eg http:/192.168.1.4/  becomes http:/192.168.1.4/<HTTP_PREFIX>/ etc.
- *  You must prefix it with '/'.
- *  
- *  Handy against casual 'evesdropping', but (important!) this is
- *  not an effective privacy measure until HTTPS is salso supported!
- */
-#define HTTP_PREFIX "/the/http/interface"
-#define STREAM_PREFIX "/the-stream-itself"
-
 /*
  * Camera Hardware Settings
  *

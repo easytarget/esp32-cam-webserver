@@ -417,7 +417,7 @@ void setup() {
 
     // Config can override mirror and flip
     #if defined(H_MIRROR)
-        s->seror(s, H_MIRROR);
+        s->set_hmirror(s, H_MIRROR);
     #endif
     #if defined(V_FLIP)
         s->set_vflip(s, V_FLIP);
