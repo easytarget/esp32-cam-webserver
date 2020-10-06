@@ -1,4 +1,3 @@
-
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <DNSServer.h>
@@ -30,7 +29,7 @@
  */
 
 // Primary config, or defaults.
-#if __has_include("mydconfig.h")
+#if __has_include("myconfig.h")
     #include "myconfig.h"
 #else
     #warning "Using Defaults: Copy myconfig.sample.h to myconfig.h and edit that to use your own settings"
@@ -259,18 +258,18 @@ void WifiSetup() {
         #if defined(AP_CHAN)
             WiFi.softAP(stationList[0].ssid, stationList[0].password, AP_CHAN);
             Serial.println("Setting up Fixed Channel AccessPoint");
-            Serial.print("SSID     : ");
+            Serial.print("  SSID     : ");
             Serial.println(stationList[0].ssid);
-            Serial.print("Password : ");
+            Serial.print("  Password : ");
             Serial.println(stationList[0].password);
-            Serial.print("Channel  : ");    
+            Serial.print("  Channel  : ");
             Serial.println(AP_CHAN);
         # else
             WiFi.softAP(stationList[0].ssid, stationList[0].password);
             Serial.println("Setting up AccessPoint");
-            Serial.print("SSID     : ");
+            Serial.print("  SSID     : ");
             Serial.println(stationList[0].ssid);
-            Serial.print("Password : ");
+            Serial.print("  Password : ");
             Serial.println(stationList[0].password);
         #endif
         #if defined(AP_ADDRESS)
@@ -334,7 +333,7 @@ void setup() {
 
     if (stationCount == 0) {
       Serial.println("\nFatal Error; Halting");
-      Serial.println("No wifi ssid details have been configured; we cannot connect to or start WiFi");
+      Serial.println("No wifi ssid details have been configured; we cannot connect to WiFi or start our own AccessPoint");
       while (true) delay(1000);
     }
  
@@ -489,7 +488,7 @@ void setup() {
     Serial.println("Starting WiFi");
     Serial.print("Known external SSIDs: ");
     if (firstStation < stationCount) {
-        for (int i=firstStation; i < stationCount; i++) Serial.printf(" %s", stationList[i].ssid);
+        for (int i=firstStation; i < stationCount; i++) Serial.printf(" '%s'", stationList[i].ssid);
     } else {
         Serial.print("None");
     }

@@ -747,10 +747,9 @@ static esp_err_t dump_handler(httpd_req_t *req){
         d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
         Serial.printf("Rssi: %i\n", WiFi.RSSI());
     }
-    byte bs[6];
-    WiFi.macAddress(bs);
-    d+= sprintf(d,"BSSID: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", bs[0], bs[1], bs[2], bs[3], bs[4], bs[5]);
-    Serial.printf("BSSID: %02X:%02X:%02X:%02X:%02X:%02X\n", bs[0], bs[1], bs[2], bs[3], bs[4], bs[5]);
+    String bssid = WiFi.BSSIDstr();
+    d+= sprintf(d,"BSSID: %s<br>\n", bssid.c_str());
+    Serial.printf("BSSID: %s\n", bssid.c_str());
     d+= sprintf(d,"IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
     Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
     if (!accesspoint) {
