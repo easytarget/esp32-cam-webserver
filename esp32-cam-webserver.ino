@@ -103,8 +103,9 @@ DNSServer dnsServer;
 bool captivePortal = false;
 char apName[64] = "Undefined";
 
-// The stream URL
-char streamURL[64] = {"Undefined"};  // Stream URL to pass to the app.
+// The app and stream URLs
+char httpURL[64] = {"Undefined"};
+char streamURL[64] = {"Undefined"};
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
@@ -505,7 +506,6 @@ void setup() {
     startCameraServer(httpPort, streamPort);
     
     // Construct the app and stream URLs
-    char httpURL[64] = {"Unknown"};
     if (httpPort != 80) {
         sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
     } else {

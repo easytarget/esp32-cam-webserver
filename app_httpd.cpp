@@ -35,20 +35,21 @@ extern void setLamp(int newVal);
 // External variables declared in main .ino
 extern char myName[];
 extern char myVer[];
-extern int myRotation;
-extern int lampVal;
-extern char streamURL[];
-extern int8_t detection_enabled;
-extern int8_t recognition_enabled;
-extern bool filesystem;
-extern bool accesspoint;
-extern bool captivePortal;
-extern char apName[];
-extern int httpPort;
-extern int streamPort;
 extern IPAddress ip;
 extern IPAddress net;
 extern IPAddress gw;
+extern bool accesspoint;
+extern char apName[];
+extern bool captivePortal;
+extern int httpPort;
+extern int streamPort;
+extern char httpURL[];
+extern char streamURL[];
+extern int myRotation;
+extern int lampVal;
+extern int8_t detection_enabled;
+extern int8_t recognition_enabled;
+extern bool filesystem;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
@@ -826,7 +827,7 @@ static esp_err_t index_handler(httpd_req_t *req){
     char view[32] = {0,};
 
     flashLED(75);
-    // See if we have a specific target (full/simple/?portal) and serve as appropriate
+    // See if we have a specific target (full/simple/portal) and serve as appropriate
     buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len > 1) {
         buf = (char*)malloc(buf_len);
@@ -848,9 +849,6 @@ static esp_err_t index_handler(httpd_req_t *req){
         }
         free(buf);
     } else {
-        if (captivePortal) {
-            strcpy(view,"simple");
-        }
         // no target specified; default.
         #if defined(DEFAULT_INDEX_FULL)
             strcpy(view,"full");
@@ -880,9 +878,17 @@ static esp_err_t index_handler(httpd_req_t *req){
     } else if(strncmp(view,"portal", sizeof(view)) == 0) {
         //Prototype captive portal landing page.
         Serial.println("Portal page requested");
+        std::string s(portal_html);
+        size_t index;
+        while ((index = s.find("<APPURL>")) != std::string::npos)
+            s.replace(index, strlen("<APPURL>"), httpURL);
+        while ((index = s.find("<STREAMURL>")) != std::string::npos)
+            s.replace(index, strlen("<STREAMURL>"), streamURL);
+        while ((index = s.find("<CAMNAME>")) != std::string::npos)
+            s.replace(index, strlen("<CAMNAME>"), myName);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)portal_html, portal_html_len);
+        return httpd_resp_send(req, (const char *)s.c_str(), s.length());
     } else  {
         Serial.print("Unknown page requested: ");
         Serial.println(view);
