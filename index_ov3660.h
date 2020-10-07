@@ -2,8 +2,7 @@
  * primary HTML for the OV3660 camera module
  */
 
-const uint8_t index_ov3660_html[] = R"=====(
-<!doctype html>
+const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -232,7 +231,7 @@ const uint8_t index_ov3660_html[] = R"=====(
                 </div>
               </div>
               <div class="input-group" id="colorbar-group">
-                <label for="colorbar">Color Bar</label>
+                <label for="colorbar">Test Pattern</label>
                 <div class="switch">
                   <input id="colorbar" type="checkbox" class="default-action">
                   <label class="slider" for="colorbar"></label>
@@ -267,7 +266,8 @@ const uint8_t index_ov3660_html[] = R"=====(
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
               </div>
               <div class="input-group" id="cam_name-group">
-                <label for="cam_name">Name:</label>
+                <label for="cam_name">
+                <a href="/dump" title="System Info" target="_blank">Name</a></label>
                 <div id="cam_name" class="default-action"></div>
               </div>
               <div class="input-group" id="code_ver-group">
@@ -277,7 +277,7 @@ const uint8_t index_ov3660_html[] = R"=====(
                 <div id="code_ver" class="default-action"></div>
               </div>
               <div class="input-group hidden" id="stream-group">
-                <label for="stream_url" id="stream_link">Stream URL</label>
+                <label for="stream_url" id="stream_link">Stream</label>
                 <div id="stream_url" class="default-action">Unknown</div>
               </div>
             </nav>
@@ -389,7 +389,7 @@ const uint8_t index_ov3660_html[] = R"=====(
           stream_link.setAttribute("title", "Open stream viewer (" + viewerURL + ")");
           stream_link.style.textDecoration = "underline";
           stream_link.style.cursor = "pointer";
-          streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
+          streamButton.setAttribute("title", `Start the stream (${streamURL})`);
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
@@ -449,11 +449,12 @@ const uint8_t index_ov3660_html[] = R"=====(
       })
 
     // Put some helpful text on the 'Still' button
-    stillButton.setAttribute("title", `You can also browse to '${baseHost}/capture' for standalone images`);
+    stillButton.setAttribute("title", `Capture a still image (${baseHost}/capture)`);
 
     const stopStream = () => {
       window.stop();
       streamButton.innerHTML = 'Start Stream';
+      streamButton.setAttribute("title", `Start the stream (${streamURL})`);
       hide(viewContainer);
     }
 
@@ -461,6 +462,7 @@ const uint8_t index_ov3660_html[] = R"=====(
       view.src = streamURL;
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
+      streamButton.setAttribute("title", `Stop the stream (${streamURL})`);
       show(viewContainer);
     }
 
@@ -596,7 +598,7 @@ const uint8_t index_ov3660_html[] = R"=====(
     }
 
     swapButton.onclick = () => {
-      window.open('/view','_self');
+      window.open('/?view=simple','_self');
     }
  
 //    saveFaceButton.onclick = () => {
@@ -633,7 +635,6 @@ const uint8_t index_ov3660_html[] = R"=====(
 
   })
   </script>
-</html>
-)=====";
+</html>)=====";
 
 size_t index_ov3660_html_len = sizeof(index_ov3660_html)-1;

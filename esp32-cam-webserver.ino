@@ -97,6 +97,14 @@ int stationCount = sizeof(stationList)/sizeof(stationList[0]);
     int firstStation = 0;
 #endif
 
+// Select bvetween full and simple index as the default.
+#if defined(DEFAULT_INDEX_FULL)
+    char default_index[] = "full";
+#else
+    char default_index[] = "simple";
+#endif
+  
+
 // DNS server
 const byte DNS_PORT = 53;
 DNSServer dnsServer;
@@ -182,20 +190,32 @@ void WifiSetup() {
     flashLED(300);
     delay(100);
     flashLED(300);
-
+    Serial.println("Starting WiFi");
+    Serial.print("Known external SSIDs: ");
+    if (stationCount > firstStation) {
+        for (int i=firstStation; i < stationCount; i++) Serial.printf(" '%s'", stationList[i].ssid);
+    } else {
+        Serial.print("None");
+    }
+    Serial.println();
+    byte mac[6];
+    WiFi.macAddress(mac);
+    Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    
     int bestStation = -1;
-    long bestRSSI = -1024; 
-    Serial.printf("Scanning local Wifi Networks\n");
-    int stationsFound = WiFi.scanNetworks();
-    Serial.printf("%i networks found\n", stationsFound);
-    if (stationsFound > 0) {
-        for (int i = 0; i < stationsFound; ++i) {
-            // Print SSID and RSSI for each network found
-            String thisSSID = WiFi.SSID(i);
-            int thisRSSI = WiFi.RSSI(i);
-            Serial.printf("%3i : %s (%i)", i + 1, thisSSID.c_str(), thisRSSI);
-            // Scan our list of known external stations, if any
-            if (stationCount > firstStation) {
+    long bestRSSI = -1024;
+    if (stationCount > firstStation) {
+        // We have a list to scan 
+        Serial.printf("Scanning local Wifi Networks\n");
+        int stationsFound = WiFi.scanNetworks();
+        Serial.printf("%i networks found\n", stationsFound);
+        if (stationsFound > 0) {
+            for (int i = 0; i < stationsFound; ++i) {
+                // Print SSID and RSSI for each network found
+                String thisSSID = WiFi.SSID(i);
+                int thisRSSI = WiFi.RSSI(i);
+                Serial.printf("%3i : %s (%i)", i + 1, thisSSID.c_str(), thisRSSI);
+                // Scan our list of known external stations
                 for (int sta = firstStation; sta < stationCount; sta++) {
                     if (strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) {
                         Serial.print("  -  Known!");
@@ -206,16 +226,25 @@ void WifiSetup() {
                         }
                     }
                 }
+                Serial.println();
             }
-            Serial.println();
         }
+    } else {
+        // No list to scan, therefore we are an accesspoint
+        accesspoint = true; 
     }
+
     if (bestStation == -1) {
-        Serial.println("\nNo known networks found");
-        #if defined(WIFI_AP_ENABLE)
-            // Failover to accesspoint mode if no known networks are visible
-            accesspoint = true;
-        #endif
+        if (!accesspoint) { 
+            #if defined(WIFI_AP_ENABLE)
+                Serial.println("No known networks found, entering AccessPoint fallback mode");
+                accesspoint = true;
+            #else
+                Serial.println("No known networks found");
+            #endif
+        } else {
+            Serial.println("AccessPoint mode selected in config");
+        }
     } else {
         Serial.printf("Connecting to Wifi Network: %s\n", stationList[bestStation].ssid);
         if (stationList[bestStation].dhcp == false) {
@@ -272,8 +301,9 @@ void WifiSetup() {
             WiFi.disconnect();   // (resets the WiFi scan)
         }
     }
+
     if (accesspoint && (WiFi.status() != WL_CONNECTED)) {
-        // The accesspoint has been enabled
+        // The accesspoint has been enabled, and we have not connected to any existing networks
         #if defined(AP_CHAN)
             Serial.println("Setting up Fixed Channel AccessPoint");
             Serial.print("  SSID     : ");
@@ -432,32 +462,35 @@ void setup() {
     /*
     * Add any other defaults you want to apply at startup here:
     * uncomment the line and set the value as desired (see the comments)
+    * 
+    * these are defined in the esp headers here:
+    * https://github.com/espressif/esp32-camera/blob/master/driver/include/sensor.h#L149
     */
 
     //s->set_framesize(s, FRAMESIZE_SVGA); // FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]);
-    //s->set_quality(s, val);      // 10 to 63
-    //s->set_brightness(s, 0);     // -2 to 2
-    //s->set_contrast(s, 0);       // -2 to 2
-    //s->set_saturation(s, 0);     // -2 to 2
-    //s->set_special_effect(s, 0); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
-    //s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
-    //s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
-    //s->set_wb_mode(s, 0);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
-    //s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
-    //s->set_aec2(s, 0);           // 0 = disable , 1 = enable
-    //s->set_ae_level(s, 0);       // -2 to 2
-    //s->set_aec_value(s, 300);    // 0 to 1200
-    //s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
-    //s->set_agc_gain(s, 0);       // 0 to 30
+    //s->set_quality(s, val);       // 10 to 63
+    //s->set_brightness(s, 0);      // -2 to 2
+    //s->set_contrast(s, 0);        // -2 to 2
+    //s->set_saturation(s, 0);      // -2 to 2
+    //s->set_special_effect(s, 0);  // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+    //s->set_whitebal(s, 1);        // aka 'awb' in the UI; 0 = disable , 1 = enable
+    //s->set_awb_gain(s, 1);        // 0 = disable , 1 = enable
+    //s->set_wb_mode(s, 0);         // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+    //s->set_exposure_ctrl(s, 1);   // 0 = disable , 1 = enable
+    //s->set_aec2(s, 0);            // 0 = disable , 1 = enable
+    //s->set_ae_level(s, 0);        // -2 to 2
+    //s->set_aec_value(s, 300);     // 0 to 1200
+    //s->set_gain_ctrl(s, 1);       // 0 = disable , 1 = enable
+    //s->set_agc_gain(s, 0);        // 0 to 30
     //s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6
-    //s->set_bpc(s, 0);            // 0 = disable , 1 = enable
-    //s->set_wpc(s, 1);            // 0 = disable , 1 = enable
-    //s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
-    //s->set_lenc(s, 1);           // 0 = disable , 1 = enable
-    //s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
-    //s->set_vflip(s, 0);          // 0 = disable , 1 = enable
-    //s->set_dcw(s, 1);            // 0 = disable , 1 = enable
-    //s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
+    //s->set_bpc(s, 0);             // 0 = disable , 1 = enable
+    //s->set_wpc(s, 1);             // 0 = disable , 1 = enable
+    //s->set_raw_gma(s, 1);         // 0 = disable , 1 = enable
+    //s->set_lenc(s, 1);            // 0 = disable , 1 = enable
+    //s->set_hmirror(s, 0);         // 0 = disable , 1 = enable
+    //s->set_vflip(s, 0);           // 0 = disable , 1 = enable
+    //s->set_dcw(s, 1);             // 0 = disable , 1 = enable
+    //s->set_colorbar(s, 0);        // 0 = disable , 1 = enable
 
     // We now have camera with default init
     // check for saved preferences and apply them
@@ -483,19 +516,6 @@ void setup() {
         Serial.println("No lamp, or lamp disabled in config");
     }
 
-    // We need a working Wifi before we can start the http handlers
-    Serial.println("Starting WiFi");
-    Serial.print("Known external SSIDs: ");
-    if (firstStation < stationCount) {
-        for (int i=firstStation; i < stationCount; i++) Serial.printf(" '%s'", stationList[i].ssid);
-    } else {
-        Serial.print("None");
-    }
-    Serial.println();
-    byte mac[6];
-    WiFi.macAddress(mac);
-    Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
     // Having got this far; start Wifi and loop until we are connected or have started an AccessPoint
     while ((WiFi.status() != WL_CONNECTED) && !accesspoint)  {
         WifiSetup();
@@ -517,7 +537,7 @@ void setup() {
     Serial.printf("Stream viewer available at '%sview'\n", streamURL);
     Serial.printf("Raw stream URL is '%s'\n", streamURL);
 
-    // Used when dumpung status; slow functions, so do them here during startup
+    // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
     sketchMD5 = ESP.getSketchMD5();

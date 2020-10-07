@@ -45,6 +45,7 @@ extern int httpPort;
 extern int streamPort;
 extern char httpURL[];
 extern char streamURL[];
+extern char default_index[];
 extern int myRotation;
 extern int lampVal;
 extern int8_t detection_enabled;
@@ -850,12 +851,8 @@ static esp_err_t index_handler(httpd_req_t *req){
         free(buf);
     } else {
         // no target specified; default.
-        #if defined(DEFAULT_INDEX_FULL)
-            strcpy(view,"full");
-        #else
-            strcpy(view,"simple");
-        #endif
-        // If a captive portal page is created, we can use it here
+        strcpy(view,default_index);
+        // If captive portal is active send that instead
         if (captivePortal) {
             strcpy(view,"portal");
         }

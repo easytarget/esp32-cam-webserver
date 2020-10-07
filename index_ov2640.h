@@ -378,7 +378,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           stream_link.setAttribute("title", "Open stream viewer (" + viewerURL + ")");
           stream_link.style.textDecoration = "underline";
           stream_link.style.cursor = "pointer";
-          streamButton.setAttribute("title", `You can also browse to '${streamURL}' for a raw stream`);
+          streamButton.setAttribute("title", `Start the stream (${streamURL})`);
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
@@ -438,11 +438,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       })
 
     // Put some helpful text on the 'Still' button
-    stillButton.setAttribute("title", `You can also browse to '${baseHost}/capture' for standalone images`);
+    stillButton.setAttribute("title", `Capture a still image (${baseHost}/capture)`);
 
     const stopStream = () => {
       window.stop();
       streamButton.innerHTML = 'Start Stream';
+      streamButton.setAttribute("title", `Start the stream (${streamURL})`);
       hide(viewContainer);
     }
 
@@ -450,6 +451,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       view.src = streamURL;
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
+      streamButton.setAttribute("title", `Stop the stream (${streamURL})`);
       show(viewContainer);
     }
 

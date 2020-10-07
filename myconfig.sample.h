@@ -27,7 +27,7 @@ struct station {
                            {"ssid2", "pass2", true},
                            {"ssid3", "pass3", false}};
 
- * The first entry in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented (below) 
+ * The first entry (ssid1, above) in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented
  * it will be used for the AccessPoint ssid and password.
  * 
  * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
@@ -36,7 +36,7 @@ struct station {
 struct station {
     const char ssid[64];      // ssid (max 64 chars)
     const char password[64];  // password (max 64 chars)
-    const bool dhcp;          // dhcp
+    const bool dhcp;          // use dhcp?
 } stationList[] = {{"my_ssid","my_password", true}};
 
 
