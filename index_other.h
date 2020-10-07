@@ -1,14 +1,13 @@
 /*
- * Miniviewer and streamviewer
+ * simpleviewer and streamviewer
  */
 
- const uint8_t miniviewer_html[] = R"=====(
-<!doctype html>
+ const uint8_t index_simple_html[] = R"=====(<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title id="title">ESP32-CAM MiniViewer</title>
+    <title id="title">ESP32-CAM Simplified View</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/style.css">
@@ -273,20 +272,18 @@
     }
 
     swapButton.onclick = () => {
-      window.open('/','_self');
+      window.open('/?view=full','_self');
     }
 
   })
   </script>
-</html>
-)=====";
+</html>)=====";
 
-size_t miniviewer_html_len = sizeof(miniviewer_html);
+size_t index_simple_html_len = sizeof(index_simple_html)-1;
 
 /* Stream Viewer */
 
- const uint8_t streamviewer_html[] = R"=====(
-<!doctype html>
+ const uint8_t streamviewer_html[] = R"=====(<!doctype html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -432,7 +429,32 @@ size_t miniviewer_html_len = sizeof(miniviewer_html);
     }
   })
   </script>
-</html>
-)=====";
+</html>)=====";
 
-size_t streamviewer_html_len = sizeof(streamviewer_html);
+size_t streamviewer_html_len = sizeof(streamviewer_html)-1;
+
+/* Prototype Captive Portal page */
+
+ const uint8_t portal_html[] = R"=====(<!doctype html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title id="title">ESP32-CAM portal</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+ </head>
+  <body>
+    <img src="/logo.svg" style="position: relative; float: right;">
+    <h1>ESP32 cam access portal</h1>
+    <div class="input-group">
+    <a href="/?view=simple" title="Click here for a simple view with minimum control" style="text-decoration: none;"><button>Simple Viewer</button></a>
+    <a href="/?view=full" title="Click here for the main camera page with full controls" style="text-decoration: none;"><button>Full Viewer</button></a>
+    </div>
+    <hr>
+    <a href="/dump" title="Information dump page" target="_blank">Camera Details</a><br>
+    <a href="https://github.com/easytarget/esp32-cam-webserver" title="Code homepage on GitHub">ESP32 cam webserver on GitHub</a>
+</body></html>)=====";
+
+size_t portal_html_len = sizeof(portal_html)-1;

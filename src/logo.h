@@ -1,4 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+/*
+ * Logo (svg format)
+ */
+
+const uint8_t logo_svg[] = R"=====(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -128,4 +132,6 @@
   <g
      id="g910"
      transform="matrix(0.12588375,0.10705772,-0.10705772,0.12588375,-60.946234,-13.859791)" />
-</svg>
+</svg>)=====";
+
+size_t logo_svg_len = sizeof(logo_svg)-1;
