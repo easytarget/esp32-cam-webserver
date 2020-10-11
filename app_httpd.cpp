@@ -782,27 +782,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
         Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
-
-    d+= sprintf(d,"<h2>Face DataBase</h2>\n");
-    d+= sprintf(d,"Enrolled Faces: %i (max %i)<br>\n", id_list.count, id_list.size);
-    Serial.printf("Enrolled Faces: %i (max %i)\n", id_list.count, id_list.size);
-     
-    // Following is debug while implementing FaceDB dump
-    Serial.println("=======================================================");
-    Serial.printf("mtmn_config size: %u\nra_filter size: %u\nid_list size%u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
-    Serial.printf("id_list.head:          %u\n", id_list.head);
-    Serial.printf("id_list.tail:          %u\n", id_list.tail);
-    Serial.printf("id_list.count:         %u\n", id_list.count);
-    Serial.printf("id_list.size:          %u\n", id_list.size);
-    Serial.printf("id_list.confirm_times: %u\n", id_list.confirm_times);
-    Serial.printf("id_list.id_list:       %p\n", id_list.id_list);
-    Serial.printf("id_list_alloc:         %u\n", id_list_alloc);
-    if (id_list.count > 0) {
-        for (int i = id_list.head; i < id_list.tail; i++) {
-            Serial.printf("Face %i\n", i);
-            Serial.printf("Ptr %p\n", id_list.id_list[i]->item);
-        }
-    }
+    d+= sprintf(d,"Enrolled faces: %i (max %i)<br>\n", id_list.count, id_list.size);
+    Serial.printf("Enrolled faces: %i (max %i)\n", id_list.count, id_list.size);
 
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");

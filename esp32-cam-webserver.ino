@@ -162,7 +162,11 @@ const int pwmMax = pow(2,pwmresolution)-1;
 #endif
 
 // Debug Data for stream and capture
-bool debugData = true;
+#if defined(DEBUG_DEFAULT_ON)
+    bool debugData = true;
+#else
+    bool debugData = false;
+#endif
 
 // Notification LED 
 void flashLED(int flashtime) {
@@ -540,6 +544,9 @@ void setup() {
     Serial.printf("Stream viewer available at '%sview'\n", streamURL);
     Serial.printf("Raw stream URL is '%s'\n", streamURL);
 
+    if (debugData) Serial.println("Camera debug data is enabled (send any char to disable)");
+    else Serial.println("Camera debug data is disabled (send any char to enable)");
+
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
@@ -569,8 +576,22 @@ void loop() {
                 Serial.println("WiFi reconnected");
                 warned = false;
             }
-            // loop here turning debugData true/false depending on serial input..
-            delay(WIFI_WATCHDOG);
+            // loop here for WIFI_WATCHDOG, turning debugData true/false depending on serial input..
+            unsigned long start = millis();
+            while (millis() - start < WIFI_WATCHDOG ) {
+                delay(100);
+                if (Serial.available()) {
+                    // Toggle debug output on serial input
+                    if (debugData) {
+                        debugData = false;
+                        Serial.println("Camera debug data is disabled (send any char to enable)");
+                    } else {
+                        debugData = true;
+                        Serial.println("Camera debug data is enabled (send any char to disable)");
+                    }
+                }
+                while (Serial.available()) Serial.read();  // chomp the buffer
+            }
         } else {
             // disconnected; attempt to reconnect
             if (!warned) {
