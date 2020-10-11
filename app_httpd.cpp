@@ -26,13 +26,11 @@
 #include "src/logo.h"
 #include "storage.h"
 
-//#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
-
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
 
-// External variables declared in main .ino
+// External variables declared in the main .ino
 extern char myName[];
 extern char myVer[];
 extern IPAddress ip;
@@ -51,6 +49,7 @@ extern int lampVal;
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 extern bool filesystem;
+extern bool debugData;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
@@ -96,6 +95,7 @@ httpd_handle_t camera_httpd = NULL;
 static mtmn_config_t mtmn_config = {0};
 static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
+int id_list_alloc = 0;
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -110,22 +110,20 @@ static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     return filter;
 }
 
-#if defined(DEBUG_STREAM_DATA)
-  static int ra_filter_run(ra_filter_t * filter, int value) {
-      if(!filter->values){
-          return value;
-      }
-      filter->sum -= filter->values[filter->index];
-      filter->values[filter->index] = value;
-      filter->sum += filter->values[filter->index];
-      filter->index++;
-      filter->index = filter->index % filter->size;
-      if (filter->count < filter->size) {
-          filter->count++;
-      }
-      return filter->sum / filter->count;
-  }
-#endif
+static int ra_filter_run(ra_filter_t * filter, int value) {
+    if(!filter->values){
+      return value;
+    }
+    filter->sum -= filter->values[filter->index];
+    filter->values[filter->index] = value;
+    filter->sum += filter->values[filter->index];
+    filter->index++;
+    filter->index = filter->index % filter->size;
+    if (filter->count < filter->size) {
+      filter->count++;
+    }
+    return filter->sum / filter->count;
+}
 
 static void rgb_print(dl_matrix3du_t *image_matrix, uint32_t color, const char * str){
     fb_data_t fb;
@@ -209,16 +207,17 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
     }
     if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
         if (is_enrolling == 1){
+            int8_t this_face = id_list.tail;
             int8_t left_sample_face = enroll_face(&id_list, aligned_face);
 
             if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
-                Serial.printf("Enrolling Face ID: %d\n", id_list.tail);
+                Serial.printf("Enrolling Face ID: %d\n", this_face);
             }
-            Serial.printf("Enrolling Face ID: %d sample %d\n", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
-            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
+            Serial.printf("Enrolling Face ID: %d sample %d\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
+            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
             if (left_sample_face == 0){
                 is_enrolling = 0;
-                Serial.printf("Enrolled Face ID: %d\n", id_list.tail);
+                Serial.printf("Enrolled Face ID: %d\n", this_face);
             }
         } else {
             matched_id = recognize_face(&id_list, aligned_face);
@@ -255,7 +254,9 @@ static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size
 static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t * fb = NULL;
     esp_err_t res = ESP_OK;
-    
+
+    Serial.println("Capture Requested");
+
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -338,7 +339,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     }
 
     int64_t fr_end = esp_timer_get_time();
-    Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+    if (debugData) {
+        Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+    }
     return res;
 }
 
@@ -350,16 +353,15 @@ static esp_err_t stream_handler(httpd_req_t *req){
     char * part_buf[64];
     dl_matrix3du_t *image_matrix = NULL;
     int face_id = 0;
-    #if defined(DEBUG_STREAM_DATA)
-      bool detected = false;
-      int64_t fr_start = 0;
-      int64_t fr_face = 0;
-      int64_t fr_recognize = 0;
-      int64_t fr_encode = 0;
-      int64_t fr_ready = 0;
-    #endif
+    bool detected = false;
+    int64_t fr_start = 0;
+    int64_t fr_face = 0;
+    int64_t fr_recognize = 0;
+    int64_t fr_encode = 0;
+    int64_t fr_ready = 0;
 
-    Serial.println("Stream started");
+
+    Serial.println("Stream requested");
 
     flashLED(75); // double flash of status LED
     delay(75);
@@ -378,22 +380,18 @@ static esp_err_t stream_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     while(true){
-        #if defined (DEBUG_STREAM_DATA)
-          detected = false;
-        #endif
+        detected = false;
         face_id = 0;
         fb = esp_camera_fb_get();
         if (!fb) {
             Serial.println("Camera capture failed");
             res = ESP_FAIL;
         } else {
-            #if defined(DEBUG_STREAM_DATA)
-              fr_start = esp_timer_get_time();
-              fr_ready = fr_start;
-              fr_face = fr_start; 
-              fr_encode = fr_start;
-              fr_recognize = fr_start;
-            #endif
+            fr_start = esp_timer_get_time();
+            fr_ready = fr_start;
+            fr_face = fr_start; 
+            fr_encode = fr_start;
+            fr_recognize = fr_start;
             if(!detection_enabled || fb->width > 400){
                 if(fb->format != PIXFORMAT_JPEG){
                     bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
@@ -419,28 +417,20 @@ static esp_err_t stream_handler(httpd_req_t *req){
                         Serial.println("fmt2rgb888 failed");
                         res = ESP_FAIL;
                     } else {
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_ready = esp_timer_get_time();
-                        #endif
+                        fr_ready = esp_timer_get_time();
                         box_array_t *net_boxes = NULL;
                         if(detection_enabled){
                             net_boxes = face_detect(image_matrix, &mtmn_config);
                         }
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_face = esp_timer_get_time();
-                          fr_recognize = fr_face;
-                        #endif
+                        fr_face = esp_timer_get_time();
+                        fr_recognize = fr_face;
                         if (net_boxes || fb->format != PIXFORMAT_JPEG){
                             if(net_boxes){
-                                #if defined(DEBUG_STREAM_DATA)
-                                  detected = true;
-                                #endif
+                                detected = true;
                                 if(recognition_enabled){
                                     face_id = run_face_recognition(image_matrix, net_boxes);
                                 }
-                                #if defined(DEBUG_STREAM_DATA)
-                                  fr_recognize = esp_timer_get_time();
-                                #endif
+                                fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
                                 free(net_boxes->score);
                                 free(net_boxes->box);
@@ -457,9 +447,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                             _jpg_buf = fb->buf;
                             _jpg_buf_len = fb->len;
                         }
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_encode = esp_timer_get_time();
-                        #endif
+                        fr_encode = esp_timer_get_time();
                     }
                     dl_matrix3du_free(image_matrix);
                 }
@@ -487,25 +475,25 @@ static esp_err_t stream_handler(httpd_req_t *req){
             break;
         }
 
-        #ifdef DEBUG_STREAM_DATA
-          int64_t fr_end = esp_timer_get_time();
-          int64_t ready_time = (fr_ready - fr_start)/1000;
-          int64_t face_time = (fr_face - fr_ready)/1000;
-          int64_t recognize_time = (fr_recognize - fr_face)/1000;
-          int64_t encode_time = (fr_encode - fr_recognize)/1000;
-          int64_t process_time = (fr_encode - fr_start)/1000;
-          int64_t frame_time = fr_end - last_frame;
-          last_frame = fr_end;
-          frame_time /= 1000;
-          uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
-          Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
-              (uint32_t)(_jpg_buf_len),
-              (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
-              avg_frame_time, 1000.0 / avg_frame_time,
-              (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
-              (detected)?"DETECTED ":"", face_id
-          );
-        #endif
+        int64_t fr_end = esp_timer_get_time();
+        int64_t ready_time = (fr_ready - fr_start)/1000;
+        int64_t face_time = (fr_face - fr_ready)/1000;
+        int64_t recognize_time = (fr_recognize - fr_face)/1000;
+        int64_t encode_time = (fr_encode - fr_recognize)/1000;
+        int64_t process_time = (fr_encode - fr_start)/1000;
+        int64_t frame_time = fr_end - last_frame;
+        last_frame = fr_end;
+        frame_time /= 1000;
+        uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
+        if (debugData) {
+            Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
+                (uint32_t)(_jpg_buf_len),
+                (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
+                avg_frame_time, 1000.0 / avg_frame_time,
+                (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
+                (detected)?"DETECTED ":"", face_id
+                 );
+        }
     }
 
     last_frame = 0;
@@ -794,9 +782,9 @@ static esp_err_t dump_handler(httpd_req_t *req){
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
         Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
-    // Following is debug while implementing FaceDB dump
-    // d+= sprintf(d,"mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u<br>\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
-    // Serial.printf("mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    d+= sprintf(d,"Enrolled faces: %i (max %i)<br>\n", id_list.count, id_list.size);
+    Serial.printf("Enrolled faces: %i (max %i)\n", id_list.count, id_list.size);
+
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
     d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
@@ -977,7 +965,10 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
+    // Filter list; used during face detection
     ra_filter_init(&ra_filter, 20);
+
+    // Mtmn config values (face detection and recognition parameters)
     mtmn_config.type = FAST;
     mtmn_config.min_face = 80;
     mtmn_config.pyramid = 0.707;
@@ -991,7 +982,14 @@ void startCameraServer(int hPort, int sPort){
     mtmn_config.o_threshold.score = 0.7;
     mtmn_config.o_threshold.nms = 0.7;
     mtmn_config.o_threshold.candidate_number = 1;
+
+    // Face ID list (settings + pointer to the data allocation)
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
+    // The size of the allocated data block; calculated in dl_lib_calloc()
+    id_list_alloc = FACE_ID_SAVE_NUMBER * sizeof(dl_matrix3d_t *) + sizeof(void *);
+    Serial.print("FACE DB SIZE: ");
+    Serial.println(id_list_alloc);
+    Serial.printf("FACE DB POINTER: %p\n", id_list.id_list);
 
     config.server_port = hPort;
     config.ctrl_port = hPort;

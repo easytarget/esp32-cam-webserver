@@ -135,6 +135,8 @@ struct station {
 // #define FACE_DETECTION
 // #define FACE_RECOGNITION
 
+// Uncomment to enable camera debug info on serial by default
+// DEBUG_DEFAULT_ON
 
 /*
  * Camera Hardware Selectiom
