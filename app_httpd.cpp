@@ -32,7 +32,7 @@
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
 
-// External variables declared in main .ino
+// External variables declared in the main .ino
 extern char myName[];
 extern char myVer[];
 extern IPAddress ip;
@@ -96,6 +96,7 @@ httpd_handle_t camera_httpd = NULL;
 static mtmn_config_t mtmn_config = {0};
 static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
+int id_list_alloc = 0;
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -209,16 +210,17 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
     }
     if (align_face(net_boxes, image_matrix, aligned_face) == ESP_OK){
         if (is_enrolling == 1){
+            int8_t this_face = id_list.tail;
             int8_t left_sample_face = enroll_face(&id_list, aligned_face);
 
             if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
-                Serial.printf("Enrolling Face ID: %d\n", id_list.tail);
+                Serial.printf("Enrolling Face ID: %d\n", this_face);
             }
-            Serial.printf("Enrolling Face ID: %d sample %d\n", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
-            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", id_list.tail, ENROLL_CONFIRM_TIMES - left_sample_face);
+            Serial.printf("Enrolling Face ID: %d sample %d\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
+            rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
             if (left_sample_face == 0){
                 is_enrolling = 0;
-                Serial.printf("Enrolled Face ID: %d\n", id_list.tail);
+                Serial.printf("Enrolled Face ID: %d\n", this_face);
             }
         } else {
             matched_id = recognize_face(&id_list, aligned_face);
@@ -795,8 +797,15 @@ static esp_err_t dump_handler(httpd_req_t *req){
         Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
     // Following is debug while implementing FaceDB dump
-    // d+= sprintf(d,"mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u<br>\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
-    // Serial.printf("mtmn_config size: %u<br>ra_filter size: %u<br>id_list %u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    Serial.printf("mtmn_config size: %u\nra_filter size: %u\nid_list size%u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
+    Serial.printf("id_list.head:          %u\n", id_list.head);
+    Serial.printf("id_list.tail:          %u\n", id_list.tail);
+    Serial.printf("id_list.count:         %u\n", id_list.count);
+    Serial.printf("id_list.size:          %u\n", id_list.size);
+    Serial.printf("id_list.confirm_times: %u\n", id_list.confirm_times);
+    Serial.printf("id_list.id_list:       %p\n", id_list.id_list);
+    Serial.printf("id_list_alloc:         %u\n", id_list_alloc);
+    
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
     d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
@@ -977,7 +986,10 @@ void startCameraServer(int hPort, int sPort){
         .user_ctx  = NULL
     };
 
+    // Filter list; used during face detection
     ra_filter_init(&ra_filter, 20);
+
+    // Mtmn config values (face detection and recognition parameters)
     mtmn_config.type = FAST;
     mtmn_config.min_face = 80;
     mtmn_config.pyramid = 0.707;
@@ -991,7 +1003,14 @@ void startCameraServer(int hPort, int sPort){
     mtmn_config.o_threshold.score = 0.7;
     mtmn_config.o_threshold.nms = 0.7;
     mtmn_config.o_threshold.candidate_number = 1;
+
+    // Face ID list (settings + pointer to the data allocation)
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
+    // The size of the allocated data block; calculated in dl_lib_calloc()
+    id_list_alloc = FACE_ID_SAVE_NUMBER * sizeof(dl_matrix3d_t *) + sizeof(void *);
+    Serial.print("FACE DB SIZE: ");
+    Serial.println(id_list_alloc);
+    Serial.printf("FACE DB POINTER: %p\n", id_list.id_list);
 
     config.server_port = hPort;
     config.ctrl_port = hPort;
