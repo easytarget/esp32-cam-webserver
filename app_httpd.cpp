@@ -26,8 +26,6 @@
 #include "src/logo.h"
 #include "storage.h"
 
-//#define DEBUG_STREAM_DATA  // Debug: dump info for each stream frame on serial port
-
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
@@ -51,6 +49,7 @@ extern int lampVal;
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 extern bool filesystem;
+extern bool debugData;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
@@ -111,22 +110,20 @@ static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     return filter;
 }
 
-#if defined(DEBUG_STREAM_DATA)
-  static int ra_filter_run(ra_filter_t * filter, int value) {
-      if(!filter->values){
-          return value;
-      }
-      filter->sum -= filter->values[filter->index];
-      filter->values[filter->index] = value;
-      filter->sum += filter->values[filter->index];
-      filter->index++;
-      filter->index = filter->index % filter->size;
-      if (filter->count < filter->size) {
-          filter->count++;
-      }
-      return filter->sum / filter->count;
-  }
-#endif
+static int ra_filter_run(ra_filter_t * filter, int value) {
+    if(!filter->values){
+      return value;
+    }
+    filter->sum -= filter->values[filter->index];
+    filter->values[filter->index] = value;
+    filter->sum += filter->values[filter->index];
+    filter->index++;
+    filter->index = filter->index % filter->size;
+    if (filter->count < filter->size) {
+      filter->count++;
+    }
+    return filter->sum / filter->count;
+}
 
 static void rgb_print(dl_matrix3du_t *image_matrix, uint32_t color, const char * str){
     fb_data_t fb;
@@ -257,7 +254,9 @@ static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size
 static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t * fb = NULL;
     esp_err_t res = ESP_OK;
-    
+
+    Serial.println("Capture Requested");
+
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -340,7 +339,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     }
 
     int64_t fr_end = esp_timer_get_time();
-    Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+    if (debugData) {
+        Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+    }
     return res;
 }
 
@@ -352,16 +353,15 @@ static esp_err_t stream_handler(httpd_req_t *req){
     char * part_buf[64];
     dl_matrix3du_t *image_matrix = NULL;
     int face_id = 0;
-    #if defined(DEBUG_STREAM_DATA)
-      bool detected = false;
-      int64_t fr_start = 0;
-      int64_t fr_face = 0;
-      int64_t fr_recognize = 0;
-      int64_t fr_encode = 0;
-      int64_t fr_ready = 0;
-    #endif
+    bool detected = false;
+    int64_t fr_start = 0;
+    int64_t fr_face = 0;
+    int64_t fr_recognize = 0;
+    int64_t fr_encode = 0;
+    int64_t fr_ready = 0;
 
-    Serial.println("Stream started");
+
+    Serial.println("Stream requested");
 
     flashLED(75); // double flash of status LED
     delay(75);
@@ -380,22 +380,18 @@ static esp_err_t stream_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     while(true){
-        #if defined (DEBUG_STREAM_DATA)
-          detected = false;
-        #endif
+        detected = false;
         face_id = 0;
         fb = esp_camera_fb_get();
         if (!fb) {
             Serial.println("Camera capture failed");
             res = ESP_FAIL;
         } else {
-            #if defined(DEBUG_STREAM_DATA)
-              fr_start = esp_timer_get_time();
-              fr_ready = fr_start;
-              fr_face = fr_start; 
-              fr_encode = fr_start;
-              fr_recognize = fr_start;
-            #endif
+            fr_start = esp_timer_get_time();
+            fr_ready = fr_start;
+            fr_face = fr_start; 
+            fr_encode = fr_start;
+            fr_recognize = fr_start;
             if(!detection_enabled || fb->width > 400){
                 if(fb->format != PIXFORMAT_JPEG){
                     bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
@@ -421,28 +417,20 @@ static esp_err_t stream_handler(httpd_req_t *req){
                         Serial.println("fmt2rgb888 failed");
                         res = ESP_FAIL;
                     } else {
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_ready = esp_timer_get_time();
-                        #endif
+                        fr_ready = esp_timer_get_time();
                         box_array_t *net_boxes = NULL;
                         if(detection_enabled){
                             net_boxes = face_detect(image_matrix, &mtmn_config);
                         }
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_face = esp_timer_get_time();
-                          fr_recognize = fr_face;
-                        #endif
+                        fr_face = esp_timer_get_time();
+                        fr_recognize = fr_face;
                         if (net_boxes || fb->format != PIXFORMAT_JPEG){
                             if(net_boxes){
-                                #if defined(DEBUG_STREAM_DATA)
-                                  detected = true;
-                                #endif
+                                detected = true;
                                 if(recognition_enabled){
                                     face_id = run_face_recognition(image_matrix, net_boxes);
                                 }
-                                #if defined(DEBUG_STREAM_DATA)
-                                  fr_recognize = esp_timer_get_time();
-                                #endif
+                                fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
                                 free(net_boxes->score);
                                 free(net_boxes->box);
@@ -459,9 +447,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                             _jpg_buf = fb->buf;
                             _jpg_buf_len = fb->len;
                         }
-                        #if defined(DEBUG_STREAM_DATA)
-                          fr_encode = esp_timer_get_time();
-                        #endif
+                        fr_encode = esp_timer_get_time();
                     }
                     dl_matrix3du_free(image_matrix);
                 }
@@ -489,25 +475,25 @@ static esp_err_t stream_handler(httpd_req_t *req){
             break;
         }
 
-        #ifdef DEBUG_STREAM_DATA
-          int64_t fr_end = esp_timer_get_time();
-          int64_t ready_time = (fr_ready - fr_start)/1000;
-          int64_t face_time = (fr_face - fr_ready)/1000;
-          int64_t recognize_time = (fr_recognize - fr_face)/1000;
-          int64_t encode_time = (fr_encode - fr_recognize)/1000;
-          int64_t process_time = (fr_encode - fr_start)/1000;
-          int64_t frame_time = fr_end - last_frame;
-          last_frame = fr_end;
-          frame_time /= 1000;
-          uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
-          Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
-              (uint32_t)(_jpg_buf_len),
-              (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
-              avg_frame_time, 1000.0 / avg_frame_time,
-              (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
-              (detected)?"DETECTED ":"", face_id
-          );
-        #endif
+        int64_t fr_end = esp_timer_get_time();
+        int64_t ready_time = (fr_ready - fr_start)/1000;
+        int64_t face_time = (fr_face - fr_ready)/1000;
+        int64_t recognize_time = (fr_recognize - fr_face)/1000;
+        int64_t encode_time = (fr_encode - fr_recognize)/1000;
+        int64_t process_time = (fr_encode - fr_start)/1000;
+        int64_t frame_time = fr_end - last_frame;
+        last_frame = fr_end;
+        frame_time /= 1000;
+        uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
+        if (debugData) {
+            Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
+                (uint32_t)(_jpg_buf_len),
+                (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
+                avg_frame_time, 1000.0 / avg_frame_time,
+                (uint32_t)ready_time, (uint32_t)face_time, (uint32_t)recognize_time, (uint32_t)encode_time, (uint32_t)process_time,
+                (detected)?"DETECTED ":"", face_id
+                 );
+        }
     }
 
     last_frame = 0;
@@ -796,7 +782,13 @@ static esp_err_t dump_handler(httpd_req_t *req){
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
         Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
+
+    d+= sprintf(d,"<h2>Face DataBase</h2>\n");
+    d+= sprintf(d,"Enrolled Faces: %i (max %i)<br>\n", id_list.count, id_list.size);
+    Serial.printf("Enrolled Faces: %i (max %i)\n", id_list.count, id_list.size);
+     
     // Following is debug while implementing FaceDB dump
+    Serial.println("=======================================================");
     Serial.printf("mtmn_config size: %u\nra_filter size: %u\nid_list size%u\n", sizeof(mtmn_config), sizeof(ra_filter), sizeof(id_list));
     Serial.printf("id_list.head:          %u\n", id_list.head);
     Serial.printf("id_list.tail:          %u\n", id_list.tail);
@@ -805,7 +797,13 @@ static esp_err_t dump_handler(httpd_req_t *req){
     Serial.printf("id_list.confirm_times: %u\n", id_list.confirm_times);
     Serial.printf("id_list.id_list:       %p\n", id_list.id_list);
     Serial.printf("id_list_alloc:         %u\n", id_list_alloc);
-    
+    if (id_list.count > 0) {
+        for (int i = id_list.head; i < id_list.tail; i++) {
+            Serial.printf("Face %i\n", i);
+            Serial.printf("Ptr %p\n", id_list.id_list[i]->item);
+        }
+    }
+
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
     d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");

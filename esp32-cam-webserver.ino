@@ -161,6 +161,9 @@ const int pwmMax = pow(2,pwmresolution)-1;
     int8_t recognition_enabled = 0;
 #endif
 
+// Debug Data for stream and capture
+bool debugData = true;
+
 // Notification LED 
 void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
@@ -566,6 +569,7 @@ void loop() {
                 Serial.println("WiFi reconnected");
                 warned = false;
             }
+            // loop here turning debugData true/false depending on serial input..
             delay(WIFI_WATCHDOG);
         } else {
             // disconnected; attempt to reconnect
