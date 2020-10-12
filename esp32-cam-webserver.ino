@@ -39,6 +39,9 @@
     stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", true}};
 #endif
 
+// Version string
+#include "src/version.h"
+
 // Pin Mappings
 #include "camera_pins.h"
 
@@ -366,6 +369,8 @@ void setup() {
     Serial.println(myName);
     Serial.print("Code Built: ");
     Serial.println(myVer);
+    Serial.print("Base Release: ");
+    Serial.println(baseVersion);
 
     if (stationCount == 0) {
       Serial.println("\nFatal Error; Halting");

@@ -33,6 +33,7 @@ extern void setLamp(int newVal);
 // External variables declared in the main .ino
 extern char myName[];
 extern char myVer[];
+extern char baseVersion[];
 extern IPAddress ip;
 extern IPAddress net;
 extern IPAddress gw;
@@ -715,8 +716,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     // Module
     d+= sprintf(d,"Name: %s<br>\n", myName);
     Serial.printf("Name: %s\n", myName);
-    d+= sprintf(d,"Firmware: %s<br>\n", myVer);
-    Serial.printf("Firmware: %s\n", myVer);
+    d+= sprintf(d,"Firmware: %s (base: %s)<br>\n", myVer, baseVersion);
+    Serial.printf("Firmware: %s (base: %s)\n", myVer, baseVersion);
     float sketchPct = 100 * sketchSize / sketchSpace;
     d+= sprintf(d,"Sketch Size: %i (total: %i, %.1f%% used)<br>\n", sketchSize, sketchSpace, sketchPct);
     Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
