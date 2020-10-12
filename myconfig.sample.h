@@ -1,12 +1,12 @@
-/* 
+/*
  *  Rename this example to 'myconfig.h' and fill in your details.
- * 
+ *
  *  The local config is in the '.gitignore' file, which helps to keep details secret.
  */
 
 
-// Give the camera a name for the web interface 
-// note: this is not the network hostname
+/* Give the camera a name for the web interface
+ * note: this is not the network hostname */
 #define CAM_NAME "ESP32 camera server"
 
 
@@ -29,46 +29,32 @@ struct station {
 
  * The first entry (ssid1, above) in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented
  * it will be used for the AccessPoint ssid and password.
- * 
- * The 'dhcp' setting controls wether the station uses static IP settings (if in doubt leave 'true')
+ *
+ * The 'dhcp' setting controls whether the station uses DHCP or static IP settings (if in doubt leave 'true')
  * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
  */
 struct station {
-    const char ssid[64];      // ssid (max 64 chars)
-    const char password[64];  // password (max 64 chars)
-    const bool dhcp;          // use dhcp?
+    const char ssid[64];      // Do not edit these
+    const char password[64];  // three lines..
+    const bool dhcp;          //
 } stationList[] = {{"my_ssid","my_password", true}};
 
 
 /*
- * Static network settings for client mode
- * 
- * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
- * You must define all three: IP, Gateway and NetMask
- */
-// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
-// #define ST_IP      192,168,0,16
-// #define ST_GATEWAY 192,168,0,2 
-// #define ST_NETMASK 255,255,255,0
-// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
-// #define ST_DNS1 192,168,0,2
-// #define ST_DNS2 8,8,8,8
-
-/* 
  *  AccessPoint; 
- *  
+ *
  *  Uncomment to enable AP mode; 
- *  
+ *
  */
 // #define WIFI_AP_ENABLE
 
 /*  AP Mode Notes:
- *   
+ *
  *  Once enabled the AP ssid and password will be taken from the 1st entry in the stationList[] above.
- *  
- *  If there are more entries listed they will be scanned at startup in the normal way and connected to 
+ *
+ *  If there are further entries listed they will be scanned at startup in the normal way and connected to
  *  if they are found. AP then works as a fallback mode for when there are no 'real' networks available.
- *  
+ *
  *  Setting the 'dhcp' field to true for the AP enables a captive portal and attempts to send
  *  all visitors to the webcam page, with varying degrees of success depending on the visitors 
  *  browser and other settings.
@@ -80,6 +66,22 @@ struct station {
 // Uncomment this to force the AccessPoint channel number, default = 1
 // #define AP_CHAN 1
 
+
+/*
+ * Static network settings for client mode
+ *
+ * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
+ * You must define all three: IP, Gateway and NetMask
+ */
+// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
+// #define ST_IP      192,168,0,16
+// #define ST_GATEWAY 192,168,0,2
+// #define ST_NETMASK 255,255,255,0
+// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
+// #define ST_DNS1 192,168,0,2
+// #define ST_DNS2 8,8,8,8
+
+
 /*
  *  Port numbers for WebUI and Stream, defaults to 80 and 81.
  *  Uncomment and edit as appropriate
@@ -87,7 +89,7 @@ struct station {
 // #define HTTP_PORT 80
 // #define STREAM_PORT 81
 
-/* 
+/*
  * Wifi Watchdog defines how long we spend waiting for a connection before retrying,
  * and how often we check to see if we are still connected, milliseconds
  * You may wish to increase this if your WiFi is slow at conencting,
@@ -114,7 +116,7 @@ struct station {
 
 /*
  * Additional Features
- * 
+ *
  */
 // Default Page: uncomment to make the full control page the default, otherwise show simple viewer
 // #define DEFAULT_INDEX_FULL
