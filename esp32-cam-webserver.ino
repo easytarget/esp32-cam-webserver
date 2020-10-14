@@ -39,7 +39,7 @@
     stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", true}};
 #endif
 
-// Version string
+// Upstream version string
 #include "src/version.h"
 
 // Pin Mappings
