@@ -14,9 +14,10 @@ I use github to host code, to track issues and feature requests, as well as acce
 Pull requests are the best way to propose changes to the codebase (I use [Github Flow](https://guides.github.com/introduction/flow/index.html)). I actively welcome your pull requests:
 
 1. Fork the repo and create your branch from `master`.
-2. If you've changed the HTTP APIs, update the documentation.
-3. Ensure the test suite passes.
-4. Issue that pull request!
+2. Give your branch a clear descriptive name and do your changes there.
+3. If you've changed the HTTP APIs, update the documentation.
+4. Issue a pull request against a branch *of the same name* in the main repo.
+5. Clearly describe your changes and the reason for them in the pull request.
 
 ## Any contributions you make will be under the GNU Lesser General Public License v2.1
 In short, when you submit code changes, your submissions are understood to be under the same [License](./LICENSE) that covers the project.
@@ -38,7 +39,7 @@ We use GitHub issues to track public bugs. Report a bug by opening a new issue; 
 People *love* thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
-* 4 spaces for indentation rather than tabs
+* 4 spaces for indentation rather than tabs in the main code
 
 ## License
 By contributing, you agree that your contributions will be licensed under its GNU Lesser General Public License v2.1

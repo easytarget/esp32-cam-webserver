@@ -57,14 +57,11 @@ By default the sketch assumes you have an AI-THINKER board, it creates an Access
 
 To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h`
 
-Additional boot-time changes to other camera properties can be made in the main sketch file; see the comments [around line 253](https://github.com/easytarget/esp32-cam-webserver/blob/doc-options/esp32-cam-webserver.ino#L253).
-
 You can now set a camera name, board model, wifi settings and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
 Assuming you are using the latest Espressif Arduino core the AI-THINKER board (or whatever you use) will appear in the ESP32 Arduino section of the boards list. 
-
 ![IDE board config](Docs/board-selection-small.png)
 
 Compile and upload the code from the IDE, when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
@@ -76,8 +73,6 @@ If you have a status LED configured it will give a double flash when it begins a
 Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
 
 ## My Modifications:
-
-The basic example is extended to allow control of a high power LED FlashLamps, which are present on my modules. It can also blink a status LED to show when it connects to WiFi.
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
@@ -101,11 +96,7 @@ I would also like to shoutout to @jmfloyd; who suggested rotating the image in t
 
 ## Contributing
 
-Contributions are welcome!
-
-To make a PR please first fork the repo in github, and make a branch in that fork with a sensible name. Apply your changes to that branch (and test if you can), commit and then create a PR to merge to a branch of the same name in my repo.
-
-Please do not submit PR's onto the master branch of my repo unless they are very trivial (spellings etc). Make sure your changes are consistent with the style and purpose of the existing code; and provide a coherent explanation of what/why in the PR. 
+Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING.md).
 
 ## Plans
 
@@ -117,19 +108,12 @@ V3 Options, UI and server enhancements;
 * UI now shows stream links and build info
 * Nearly Complete
 
-V4 Preferences; 
-* Cam module preferences and face recognition Db saved between sessions in LittleFS (formerly SPIFS).
-* Upload/Download FaceDB as Json document in browser
+V4 Remove face recognition entirely;
+* Dont try to make it optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
 * Investigate using SD card to capture images
-* Not started; will have to wait until I have time.
-
-V5 Remove face recognition entirely;
-* Dont try to make it optional, this is a code and maintenance nightmare. V4 can be maintained on a branch for those who need it.
 * implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
 * UI Skinning/Theming
 
 You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
-* Improve Wifi, add a captive portal for setup and fallback, better disconnect/reconnect behaviour.
 * The module has a SD/TF card slot; this is currently unused, but I would like to add the ability to store snapshots; recording Video at low resolution may be possible, but the card interface is too slow for HD video as far as I know.
 * Remove face rcognition to save a Mb+ of code space and then implement over the air updates.
-* Combine current split html pages (one per camera type) into one which adapts as needed.

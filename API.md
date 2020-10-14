@@ -11,52 +11,55 @@ The WebUI and camera server communicate entirely via HTTP requests and responses
 ## URI's
 ### Http Port
 * `/` - Default index
-* `/?target=full|simple|portal - Go direct to specific index
+* `/?target=full|simple|portal` - Go direct to specific index
 * `/capture` - Return a Jpeg snapshot image
-* `/status` Returns a JSON string with all camera status <key>/<value> pairs listed
-* `/control?var=<key>&val=<val>` Set <key> to <val>
-* `/dump` Status page
+* `/status` - Returns a JSON string with all camera status <key>/<value> pairs listed
+* `/control?var=<key>&val=<val>` - Set <key> to <val>
+* `/dump` - Status page
 
 ### Stream Port
-* `/` Raw stream
-* `/view` Stream viewer
+* `/` - Raw stream
+* `/view` - Stream viewer
 
 ## *key / val* settings and commands
-### Use
-Call the `/status` URI to recieve a JSON response containing all the available settings and responses.
+
+Call the `/status` URI to recieve a JSON response containing all the available settings and current value.
 
 Call `/control?var=<key>&val=<val>` with a settings key and value to set camera properties or trigger actions.
 
 #### Settings
 ```
-framesize       - QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)
-quality         - 10 ro 63
-contrast        - -2 to 2
-brightness      - -2 to 2
-saturation      - -2 to 2
-gainceiling     - 0 to 6
-colorbar        - Overlays a color test pattern on the stream; integer, 1 = enabled
-awb             - 0 = disable , 1 = enable
-agc             - 0 = disable , 1 = enable
-aec             - 0 = disable , 1 = enable
-hmirror         - 0 = disable , 1 = enable
-vflip           - 0 = disable , 1 = enable
-awb_gain        - 
-agc_gain        - 0 to 30
-aec_value       - 0 to 1200
-aec2            - 0 = disable , 1 = enable
-dcw             - 0 = disable , 1 = enable
-bpc             - 0 = disable , 1 = enable
-wpc             - 0 = disable , 1 = enable
-raw_gma         - 0 = disable , 1 = enable
-lenc            - 0 = disable , 1 = enable
-special_effect  - 0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia
-wb_mode         - if awb enabled: 0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home
-ae_level        - -2 to 2
+lamp            - Lamp value in percent; integer, 0 - 100 (-1 = disabled)
+framesize       - 0=QQVGA, 3=HQVGA, QVGA=4, CIF=5, VGA=6, SVGA=7, XGA=8, SXGA=9, UXGA=10, QXGA(ov3660)=11
+quality         - 10 to 63 (ov3660: 4 to 10)
+contrast        - -2 to 2 (ov3660: -3 to 3)
+brightness      - -2 to 2 (ov3660: -3 to 3)
+saturation      - -2 to 2 (ov3660: -4 to 4)
+sharpness       - (ov3660: -3 to 3)
+denoise         - (ov3660: 0 to 8)
+ae_level        - (ov3660: -5 to 5)
+special_effect  - 0=No Effect, 1=Negative, 2=Grayscale, 3=Red Tint, 4=Green Tint, 5=Blue Tint, 6=Sepia
+awb             - 0 = disable, 1 = enable
+awb_gain        - 0 = disable, 1 = enable
+wb_mode         - if awb enabled: 0=Auto, 1=Sunny, 2=Cloudy, 3=Office, 4=Home
+aec             - 0 = disable, 1 = enable
+aec_value       - 0 to 1200 (ov3660: 0 to 1536)
+aec2            - 0 = disable, 1 = enable
+ae_level        - -2 to 2 (not ov3660)
+agc             - 0 = disable, 1 = enable
+agc_gain        - 0 to 30 (ov3660: 0 to 64)
+gainceiling     - 0 to 6 (ov3660: 0 to 511)
+bpc             - 0 = disable, 1 = enable
+wpc             - 0 = disable, 1 = enable
+raw_gma         - 0 = disable, 1 = enable
+lenc            - 0 = disable, 1 = enable
+hmirror         - 0 = disable, 1 = enable
+vflip           - 0 = disable, 1 = enable
 rotate          - Rotation Angle; integer, only -90, 0, 90 values are recognised
+dcw             - 0 = disable, 1 = enable
+colorbar        - Overlays a color test pattern on the stream; integer, 1 = enabled
 face_detect     - Face Detection; 1 = enabled, Only settable if framesize <= 4 (CIF)
 face_recognize  - Face recognition; 1 = enabled, only settable if Face detection is already enabled
-lamp            - Lamp value in percent; integer, 0 - 100 (-1 = disabled)
 ```
 #### Read Only
 These values are returned in the `/status` JSON response, but cannot be set via the `/control` URI.
@@ -78,7 +81,3 @@ reboot          - Reboots the camera
   * `http://<IP-ADDRESS>/control?var=lamp&val=100` On
   * `http://<IP-ADDRESS>/control?var=lamp&val=50` 50%
   * `http://<IP-ADDRESS>/control?var=lamp&val=0` Off
-
-## Timelapse Example (for Linux Users)
-* Install ffmpeg
-* `Work this out... I've got an example somewhere`
