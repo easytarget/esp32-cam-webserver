@@ -23,9 +23,9 @@ struct station {
     const char ssid[64];      // - ssid (max 64 chars)
     const char password[64];  // - password (max 64 chars)
     const bool dhcp;          // - dhcp
-} station stationList[] = {{"ssid1", "pass1", true},
-                           {"ssid2", "pass2", true},
-                           {"ssid3", "pass3", false}};
+} stationList[] = {{"ssid1", "pass1", true},
+                   {"ssid2", "pass2", true},
+                   {"ssid3", "pass3", false}};
 
  * The first entry (ssid1, above) in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented
  * it will be used for the AccessPoint ssid and password.
@@ -136,7 +136,7 @@ struct station {
 // #define FACE_RECOGNITION
 
 // Uncomment to enable camera debug info on serial by default
-// DEBUG_DEFAULT_ON
+// #define DEBUG_DEFAULT_ON
 
 /*
  * Camera Hardware Selectiom
