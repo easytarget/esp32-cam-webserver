@@ -19,7 +19,7 @@ Pull requests are the best way to propose changes to the codebase (I use [Github
 4. Issue that pull request!
 
 ## Any contributions you make will be under the GNU Lesser General Public License v2.1
-In short, when you submit code changes, your submissions are understood to be under the same [License](./LICENSE.md) that covers the project.
+In short, when you submit code changes, your submissions are understood to be under the same [License](./LICENSE) that covers the project.
 
 ## Report bugs using Github's [issues](https://github.com/easytarget/esp32-cam-webserver/issues)
 We use GitHub issues to track public bugs. Report a bug by opening a new issue; it's that easy!
