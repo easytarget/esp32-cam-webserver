@@ -1,8 +1,3 @@
-TODO: 
-* Order the same as in the UI for most settings
-* Brief Descriptions (ESP documentation?)
-* ov2640 vs 3660 specifics (note them)
-
 # Basic HTTP Commands; 
 It's an API Jim, but not as we know it
 
@@ -79,5 +74,6 @@ reboot          - Reboots the camera
 ## Examples
 * Flash light: on/off
   * `http://<IP-ADDRESS>/control?var=lamp&val=100` On
-  * `http://<IP-ADDRESS>/control?var=lamp&val=50` 50%
+  * `http://<IP-ADDRESS>/control?var=lamp&val=50` 50%
   * `http://<IP-ADDRESS>/control?var=lamp&val=0` Off
+
