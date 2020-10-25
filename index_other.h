@@ -132,7 +132,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
           applyRotation();
         } else if(el.id === "stream_url"){
           streamURL = value;
-          streamButton.setAttribute("title", `Start the stream (${streamURL})`);
+          streamButton.setAttribute("title", `Start the stream :: {streamURL}`);
           console.log('Stream URL set to:' + value);
         } 
       }
@@ -190,12 +190,12 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
       })
 
     // Put some helpful text on the 'Still' button
-    stillButton.setAttribute("title", `Capture a still image (${baseHost}/capture)`);
+    stillButton.setAttribute("title", `Capture a still image :: ${baseHost}/capture`);
 
     const stopStream = () => {
       window.stop();
       streamButton.innerHTML = 'Start Stream';
-          streamButton.setAttribute("title", `Start the stream (${streamURL})`);
+          streamButton.setAttribute("title", `Start the stream :: ${streamURL}`);
       hide(viewContainer);
     }
 
@@ -203,7 +203,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
       view.src = streamURL;
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
-      streamButton.setAttribute("title", `Stop the stream (${streamURL})`);
+      streamButton.setAttribute("title", `Stop the stream`);
       show(viewContainer);
     }
 

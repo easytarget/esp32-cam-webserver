@@ -41,6 +41,14 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
                 <div class="range-max">Full</div>
               </div>
+              <div class="input-group hidden" id="autolamp-group">
+                <label for="autolamp">Auto Lamp</label>
+                <div class="switch">
+                  <input id="autolamp" type="checkbox" class="default-action" title="Lamp only on when camera active">
+                  <label class="slider" for="autolamp"></label>
+                </div>
+              </div>
+
               <div class="input-group" id="framesize-group">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
@@ -288,6 +296,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const settings = document.getElementById('sidebar')
     const waitSettings = document.getElementById('wait-settings')
     const lampGroup = document.getElementById('lamp-group')
+    const autolampGroup = document.getElementById('autolamp-group')
     const streamGroup = document.getElementById('stream-group')
     const camName = document.getElementById('cam_name')
     const codeVer = document.getElementById('code_ver')
@@ -358,8 +367,10 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "lamp"){
           if (value == -1) { 
             hide(lampGroup)
+            hide(autolampGroup)
           } else {
             show(lampGroup)
+            show(autolampGroup)
           }
         } else if(el.id === "cam_name"){
           camName.innerHTML = value;
@@ -375,10 +386,10 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           streamURL = value;
           viewerURL = value + 'view';
           stream_url.innerHTML = value;
-          stream_link.setAttribute("title", "Open stream viewer (" + viewerURL + ")");
+          stream_link.setAttribute("title", `Open the standalone stream viewer :: ${viewerURL}`);
           stream_link.style.textDecoration = "underline";
           stream_link.style.cursor = "pointer";
-          streamButton.setAttribute("title", `Start the stream (${streamURL})`);
+          streamButton.setAttribute("title", `Start the stream :: ${streamURL}`);
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
@@ -438,12 +449,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       })
 
     // Put some helpful text on the 'Still' button
-    stillButton.setAttribute("title", `Capture a still image (${baseHost}/capture)`);
+    stillButton.setAttribute("title", `Capture a still image :: ${baseHost}/capture`);
 
     const stopStream = () => {
       window.stop();
       streamButton.innerHTML = 'Start Stream';
-      streamButton.setAttribute("title", `Start the stream (${streamURL})`);
+      streamButton.setAttribute("title", `Start the stream :: ${streamURL}`);
       hide(viewContainer);
     }
 
@@ -451,7 +462,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       view.src = streamURL;
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
-      streamButton.setAttribute("title", `Stop the stream (${streamURL})`);
+      streamButton.setAttribute("title", `Stop the stream`);
       show(viewContainer);
     }
 
