@@ -1,6 +1,6 @@
-/*
+/* 
  *  Rename this example to 'myconfig.h' and fill in your details.
- *
+ * 
  *  The local config is in the '.gitignore' file, which helps to keep details secret.
  */
 
@@ -20,12 +20,12 @@
  *  The second block is where our list of ssid/passwords live
 
 struct station {
-    const char ssid[64];      // - ssid (max 64 chars)
-    const char password[64];  // - password (max 64 chars)
-    const bool dhcp;          // - dhcp
-} stationList[] = {{"ssid1", "pass1", true},
-                   {"ssid2", "pass2", true},
-                   {"ssid3", "pass3", false}};
+    const char ssid[64];      // - Do Not
+    const char password[64];  // - Edit
+    const bool dhcp;          // - This
+} station stationList[] = {{"ssid1", "pass1", true},
+                           {"ssid2", "pass2", true},
+                           {"ssid3", "pass3", false}};
 
  * The first entry (ssid1, above) in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented
  * it will be used for the AccessPoint ssid and password.
@@ -34,13 +34,37 @@ struct station {
  * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
  */
 struct station {
-    const char ssid[64];      // Do not edit these
-    const char password[64];  // three lines..
-    const bool dhcp;          //
+    const char ssid[64];      // Do Not
+    const char password[64];  // Edit These
+    const bool dhcp;          // Lines..
 } stationList[] = {{"my_ssid","my_password", true}};
 
+/* 
+ * Hostname. Optional, uncomment and set if desired
+ * - used in DHCP request when connecting to networks, not used in AP mode
+ * - Most useful when used with a static netwrk config, not all routers respect this setting
+ * 
+ * The URL_HOSTNAME will be used in place of the IP address in internal URL's
+ */
+
+// #define HOSTNAME "esp-cam"
+// #define URL_HOSTNAME "esp-cam"
 
 /*
+ * Static network settings for client mode
+ * 
+ * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
+ * You must define all three: IP, Gateway and NetMask
+ */
+// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// #define ST_IP      192,168,0,123
+// #define ST_GATEWAY 192,168,0,2 
+// #define ST_NETMASK 255,255,255,0
+// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
+// #define ST_DNS1 192,168,0,2
+// #define ST_DNS2 8,8,8,8
+
+/* 
  *  AccessPoint; 
  *
  *  Uncomment to enable AP mode; 
@@ -60,27 +84,11 @@ struct station {
  *  browser and other settings.
  */
 // Optionally change the AccessPoint ip address (default = 192.168.4.1)
-// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
+// warning - IP addresses must be seperated with commas (,) and not decimals (.)
 // #define AP_ADDRESS 192,168,4,1
 
 // Uncomment this to force the AccessPoint channel number, default = 1
 // #define AP_CHAN 1
-
-
-/*
- * Static network settings for client mode
- *
- * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
- * You must define all three: IP, Gateway and NetMask
- */
-// warning - IP addresses must be seperated with commas (,) and not decimals (.) here
-// #define ST_IP      192,168,0,16
-// #define ST_GATEWAY 192,168,0,2
-// #define ST_NETMASK 255,255,255,0
-// One or two optional DNS servers can be supplied, but the current firmware never uses them ;-)
-// #define ST_DNS1 192,168,0,2
-// #define ST_DNS2 8,8,8,8
-
 
 /*
  *  Port numbers for WebUI and Stream, defaults to 80 and 81.
@@ -94,7 +102,7 @@ struct station {
  * and how often we check to see if we are still connected, milliseconds
  * You may wish to increase this if your WiFi is slow at conencting,
  */
-//#define WIFI_WATCHDOG 5000
+// #define WIFI_WATCHDOG 5000
 
 /*
  * Camera Defaults
