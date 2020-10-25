@@ -6,6 +6,7 @@
 extern void flashLED(int flashtime);
 extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
+extern int autoLamp;                // Automatic lamp mode
 extern int8_t detection_enabled;    // Face detection enable
 extern int8_t recognition_enabled;  // Face recognition enable
 
@@ -76,6 +77,7 @@ void loadPrefs(fs::FS &fs){
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
+    autoLamp = jsonExtract(prefs, "autolamp").toInt();
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
@@ -123,6 +125,7 @@ void savePrefs(fs::FS &fs){
   char * p = json_response;
   *p++ = '{';
   p+=sprintf(p, "\"lamp\":%i,", lampVal);
+  p+=sprintf(p, "\"autolamp\":%u,", autoLamp);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);

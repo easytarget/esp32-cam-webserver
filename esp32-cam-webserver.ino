@@ -106,7 +106,6 @@ int stationCount = sizeof(stationList)/sizeof(stationList[0]);
 #else
     char default_index[] = "simple";
 #endif
-  
 
 // DNS server
 const byte DNS_PORT = 53;
@@ -117,6 +116,9 @@ char apName[64] = "Undefined";
 // The app and stream URLs
 char httpURL[64] = {"Undefined"};
 char streamURL[64] = {"Undefined"};
+
+// Count number of active streams
+int8_t streamCount = 0;
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
@@ -140,6 +142,7 @@ int myRotation = CAM_ROTATION;
 #else 
     int lampVal = -1; // no lamp pin assigned
 #endif
+bool autoLamp = false;         // Automatic lamp (auto on while camera running)
 
 int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
@@ -281,9 +284,14 @@ void WifiSetup() {
                 Serial.println("Static IP settings requested but not defined in config, falling back to dhcp");
             #endif
         }
+
+        #if defined(HOSTNAME)
+            WiFi.setHostname(HOSTNAME);
+        #endif
+
         // Initiate network connection request
         WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
-    
+
         // Wait to connect, or timeout
         unsigned long start = millis(); 
         while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
@@ -377,7 +385,7 @@ void setup() {
       Serial.println("No wifi ssid details have been configured; we cannot connect to WiFi or start our own AccessPoint");
       while (true) delay(1000);
     }
- 
+
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
         pinMode(LED_PIN, OUTPUT);
         digitalWrite(LED_PIN, LED_ON);
@@ -515,14 +523,15 @@ void setup() {
         Serial.println("No Internal Filesystem, cannot save preferences or face DB");
     }
 
-    /* 
+    /*
     * Camera setup complete; initialise the rest of the hardware.
     */
 
     // Initialise and set the lamp
     if (lampVal != -1) {
         ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-        setLamp(lampVal);                                // set default value
+        if (autoLamp) setLamp(0);                        // set default value
+        else setLamp(lampVal);
         ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
     } else {
         Serial.println("No lamp, or lamp disabled in config");
@@ -536,16 +545,23 @@ void setup() {
 
     // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
-    
-    // Construct the app and stream URLs
-    if (httpPort != 80) {
-        sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
-    } else {
-        sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
-    }
+
+    #if defined(URL_HOSTNAME)
+        if (httpPort != 80) {
+            sprintf(httpURL, "http://%s:%d/", URL_HOSTNAME, httpPort);
+        } else {
+            sprintf(httpURL, "http://%s/", URL_HOSTNAME);
+        }
+        sprintf(streamURL, "http://%s:%d/", URL_HOSTNAME, streamPort);
+    #else
+         if (httpPort != 80) {
+            sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+        } else {
+            sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+        }
+        sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
+    #endif
     Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
-    // Construct the Stream URL
-    sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
     Serial.printf("Stream viewer available at '%sview'\n", streamURL);
     Serial.printf("Raw stream URL is '%s'\n", streamURL);
 

@@ -45,8 +45,10 @@ extern int streamPort;
 extern char httpURL[];
 extern char streamURL[];
 extern char default_index[];
+extern int8_t streamCount;
 extern int myRotation;
 extern int lampVal;
+extern bool autoLamp;
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 extern bool filesystem;
@@ -257,7 +259,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_err_t res = ESP_OK;
 
     Serial.println("Capture Requested");
-
+    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -266,6 +268,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     if (!fb) {
         Serial.println("Camera capture failed");
         httpd_resp_send_500(req);
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
 
@@ -291,7 +294,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
         }
         esp_camera_fb_return(fb);
         int64_t fr_end = esp_timer_get_time();
-        Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+        if (debugData) {
+            Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+        }
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return res;
     }
 
@@ -300,6 +306,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         esp_camera_fb_return(fb);
         Serial.println("dl_matrix3du_alloc failed");
         httpd_resp_send_500(req);
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
 
@@ -314,6 +321,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         dl_matrix3du_free(image_matrix);
         Serial.println("to rgb888 failed");
         httpd_resp_send_500(req);
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
 
@@ -336,6 +344,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     dl_matrix3du_free(image_matrix);
     if(!s){
         Serial.println("JPEG compression failed");
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
 
@@ -343,6 +352,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     if (debugData) {
         Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
     }
+    if (autoLamp && (lampVal != -1)) setLamp(0);
     return res;
 }
 
@@ -361,10 +371,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
     int64_t fr_encode = 0;
     int64_t fr_ready = 0;
 
-
     Serial.println("Stream requested");
-
-    flashLED(75); // double flash of status LED
+    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
+    streamCount = 1;  // at present we only have one stream handler..
+    flashLED(75);     // double flash of status LED
     delay(75);
     flashLED(75);
 
@@ -375,6 +385,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if(res != ESP_OK){
+        if (autoLamp && (lampVal != -1)) setLamp(0);
         return res;
     }
 
@@ -497,6 +508,9 @@ static esp_err_t stream_handler(httpd_req_t *req){
         }
     }
 
+    if (autoLamp && (lampVal != -1)) setLamp(0);
+    streamCount = 0;  // at present we only have one stream handler..
+    Serial.println("Stream ended");
     last_frame = 0;
     return res;
 }
@@ -577,9 +591,23 @@ static esp_err_t cmd_handler(httpd_req_t *req){
             detection_enabled = val;
         }
     }
+    else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
+        autoLamp = val;
+        if (autoLamp) {
+           if (streamCount > 0) setLamp(lampVal);
+           else setLamp(0);
+        } else {
+            setLamp(lampVal);
+        }
+    }
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
         lampVal = constrain(val,0,100);
-        setLamp(lampVal);
+        if (autoLamp) {
+           if (streamCount > 0) setLamp(lampVal);
+           else setLamp(0);
+        } else {
+            setLamp(lampVal);
+        }
     }
     else if(!strcmp(variable, "save_face")) {
         if (filesystem) saveFaceDB(SPIFFS);
@@ -619,6 +647,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     char * p = json_response;
     *p++ = '{';
     p+=sprintf(p, "\"lamp\":%d,", lampVal);
+    p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
@@ -987,10 +1016,6 @@ void startCameraServer(int hPort, int sPort){
     // Face ID list (settings + pointer to the data allocation)
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
     // The size of the allocated data block; calculated in dl_lib_calloc()
-    id_list_alloc = FACE_ID_SAVE_NUMBER * sizeof(dl_matrix3d_t *) + sizeof(void *);
-    Serial.print("FACE DB SIZE: ");
-    Serial.println(id_list_alloc);
-    Serial.printf("FACE DB POINTER: %p\n", id_list.id_list);
 
     config.server_port = hPort;
     config.ctrl_port = hPort;
