@@ -5,30 +5,6 @@
 
 #define APP_CPU 1
 #define PRO_CPU 0
-/* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
- *  sketch from Expressif:
- *  https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
- *
- *  It is modified to allow control of Illumination LED Lamps's (present on some modules),
- *  greater feedback via a status LED, and the HTML contents are present in plain text
- *  for easy modification.
- *
- *  A camera name can now be configured, and wifi details can be stored in an optional 
- *  header file to allow easier updated of the repo.
- *
- *  The web UI has had changes to add the lamp control, rotation, a standalone viewer,
- *  more feeedback, new controls and other tweaks and changes,
- * note: Make sure that you have either selected ESP32 AI Thinker,
- *       or another board which has PSRAM enabled to use high resolution camera modes
- */
-
-/* 
- *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' TO 'myconfig.h' AND EDIT THAT.
- *
- * By default this sketch will assume an AI-THINKER ESP-CAM and create
- * an accesspoint called "ESP32-CAM-CONNECT" (password: "InsecurePassword")
- *
- */
 
 // Primary config, or defaults.
 #if __has_include("myconfig.h")
@@ -73,6 +49,8 @@ IPAddress gw;
 extern void startCameraServer();
 // Declare external function from esp32-streamserver.cpp
 extern void startStreamServer();
+// Declare external function from esp32-streamserver.cpp
+void startMQTTClient(const char *, int, const char *, const char *, const void *);
 
 // A Name for the Camera. (set in myconfig.h)
 #if defined(CAM_NAME)
@@ -471,10 +449,10 @@ void setup()
         delay(10000);
         ESP.restart();
     }
-    sensor_t *s = esp_camera_sensor_get();
+    sensor_t *espCamSensor = esp_camera_sensor_get();
 
     // Dump camera module, warn for unsupported modules.
-    switch (s->id.PID)
+    switch (espCamSensor->id.PID)
     {
     case OV9650_PID:
         Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation");
@@ -493,11 +471,11 @@ void setup()
     }
 
     // OV3660 initial sensors are flipped vertically and colors are a bit saturated
-    if (s->id.PID == OV3660_PID)
+    if (espCamSensor->id.PID == OV3660_PID)
     {
-        s->set_vflip(s, 1);       //flip it back
-        s->set_brightness(s, 1);  //up the blightness just a bit
-        s->set_saturation(s, -2); //lower the saturation
+        espCamSensor->set_vflip(espCamSensor, 1);       //flip it back
+        espCamSensor->set_brightness(espCamSensor, 1);  //up the blightness just a bit
+        espCamSensor->set_saturation(espCamSensor, -2); //lower the saturation
     }
 
 // M5 Stack Wide has special needs
@@ -516,7 +494,7 @@ void setup()
 
 // set initial frame rate
 #if defined(DEFAULT_RESOLUTION)
-    s->set_framesize(s, DEFAULT_RESOLUTION);
+    espCamSensor->set_framesize(espCamSensor, DEFAULT_RESOLUTION);
 #else
     s->set_framesize(s, FRAMESIZE_SVGA);
 #endif
@@ -596,7 +574,7 @@ void setup()
     startStreamServer();
 
     // Construct the app and stream URLs
-    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], HTTP_PORT);    
+    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], HTTP_PORT);
 
     Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
 
@@ -604,6 +582,14 @@ void setup()
         Serial.println("Camera debug data is enabled (send any char to disable)");
     else
         Serial.println("Camera debug data is disabled (send any char to enable)");
+
+        /*
+        * Main camera streams running, now enable MQTT
+        * */
+
+#if defined(MQTT_HOST)
+    startMQTTClient(MQTT_HOST, MQTT_PORT, MQTT_TOPIC, myName, MQTT_CERT);
+#endif
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();

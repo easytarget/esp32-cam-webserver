@@ -1,25 +1,3 @@
-/*
-
-  This is a simple MJPEG streaming webserver implemented for AI-Thinker ESP32-CAM
-  and ESP-EYE modules.
-  This is tested to work with VLC and Blynk video widget and can support up to 10
-  simultaneously connected streaming clients.
-  Simultaneous streaming is implemented with FreeRTOS tasks.
-
-  Inspired by and based on this Instructable: $9 RTSP Video Streamer Using the ESP32-CAM Board
-  (https://www.instructables.com/id/9-RTSP-Video-Streamer-Using-the-ESP32-CAM-Board/)
-
-  Board: AI-Thinker ESP32-CAM or ESP-EYE
-  Compile as:
-   ESP32 Dev Module
-   CPU Freq: 240
-   Flash Freq: 80
-   Flash mode: QIO
-   Flash Size: 4Mb
-   Patrition: Minimal SPIFFS
-   PSRAM: Enabled
-*/
-
 // ESP32 has two cores: APPlication core and PROcess core (the one that runs ESP32 SDK stack)
 #define APP_CPU 1
 #define PRO_CPU 0
@@ -29,7 +7,6 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <WiFiClient.h>
-
 #include <esp_bt.h>
 #include <esp_wifi.h>
 #include <esp_sleep.h>
@@ -74,6 +51,7 @@ SemaphoreHandle_t frameSync = NULL;
 
 // Queue stores currently connected clients to whom we are streaming
 QueueHandle_t streamingClients;
+UBaseType_t activeClients;
 
 // We will try to achieve 25 FPS frame rate
 const int FPS = 14;
@@ -90,6 +68,7 @@ void streamCB(void *pvParameters);
 void handleJPG(void);
 void handleNotFound();
 void startStreamServer(int sPort);
+
 
 // ==== Memory allocator that takes advantage of PSRAM if present =======================
 char *allocateMemory(char *aPtr, size_t aSize)
@@ -142,6 +121,7 @@ void mjpegCB(void *pvParameters)
 
     // Creating a queue to track all connected clients
     streamingClients = xQueueCreate(10, sizeof(WiFiClient *));
+    activeClients = 0;
 
     //=== setup section  ==================
 
@@ -358,14 +338,12 @@ void streamCB(void *pvParameters)
         xFrequency = pdMS_TO_TICKS(1000 / FPS);
 
         //  Only bother to send anything if there is someone watching
-        UBaseType_t activeClients = uxQueueMessagesWaiting(streamingClients);
+        activeClients = uxQueueMessagesWaiting(streamingClients);
 
         if (activeClients)
         {
             // Adjust the period to the number of connected clients
             xFrequency /= activeClients;
-
-            Serial.printf("ActiveClients %d\n", activeClients);
 
             //  Since we are sending the same frame to everyone,
             //  pop a client from the the front of the queue
