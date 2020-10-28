@@ -217,7 +217,7 @@ void WifiSetup() {
     
     int bestStation = -1;
     long bestRSSI = -1024;
-    String bestBSSID = "00:00:00:00:00:00";
+    char bestBSSID[] = "00:00:00:00:00:00";
     if (stationCount > firstStation) {
         // We have a list to scan 
         Serial.printf("Scanning local Wifi Networks\n");
@@ -237,7 +237,7 @@ void WifiSetup() {
                         // Chose the strongest RSSI seen
                         if (thisRSSI > bestRSSI) {
                             bestStation = sta;
-                            bestBSSID = thisBSSID;
+                            strncpy(bestBSSID,thisBSSID.c_str(),17);
                             bestRSSI = thisRSSI;
                         }
                     }
@@ -262,7 +262,7 @@ void WifiSetup() {
             Serial.println("AccessPoint mode selected in config");
         }
     } else {
-        Serial.printf("Connecting to Wifi Network: %s [%s]\n", stationList[bestStation].ssid, bestBSSID.c_str());
+        Serial.printf("Connecting to Wifi Network %d: [%s] %s \n", bestStation, bestBSSID, stationList[bestStation].ssid);
         if (stationList[bestStation].dhcp == false) {
             #if defined(ST_IP)
                 Serial.println("Applying static IP settings");
@@ -294,7 +294,6 @@ void WifiSetup() {
 
         // Initiate network connection request
         WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
-        //WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
 
         // Wait to connect, or timeout
         unsigned long start = millis(); 
@@ -369,7 +368,7 @@ void WifiSetup() {
             dnsServer.start(DNS_PORT, "*", ip);
             captivePortal = true;
         }
-    } 
+    }
 }
 
 void setup() {
