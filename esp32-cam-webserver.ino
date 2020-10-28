@@ -217,6 +217,7 @@ void WifiSetup() {
     
     int bestStation = -1;
     long bestRSSI = -1024;
+    String bestBSSID = "00:00:00:00:00:00";
     if (stationCount > firstStation) {
         // We have a list to scan 
         Serial.printf("Scanning local Wifi Networks\n");
@@ -227,7 +228,8 @@ void WifiSetup() {
                 // Print SSID and RSSI for each network found
                 String thisSSID = WiFi.SSID(i);
                 int thisRSSI = WiFi.RSSI(i);
-                Serial.printf("%3i : %s (%i)", i + 1, thisSSID.c_str(), thisRSSI);
+                String thisBSSID = WiFi.BSSIDstr(i);
+                Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
                 // Scan our list of known external stations
                 for (int sta = firstStation; sta < stationCount; sta++) {
                     if (strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) {
@@ -235,6 +237,7 @@ void WifiSetup() {
                         // Chose the strongest RSSI seen
                         if (thisRSSI > bestRSSI) {
                             bestStation = sta;
+                            bestBSSID = thisBSSID;
                             bestRSSI = thisRSSI;
                         }
                     }
@@ -259,7 +262,7 @@ void WifiSetup() {
             Serial.println("AccessPoint mode selected in config");
         }
     } else {
-        Serial.printf("Connecting to Wifi Network: %s\n", stationList[bestStation].ssid);
+        Serial.printf("Connecting to Wifi Network: %s [%s]\n", stationList[bestStation].ssid, bestBSSID.c_str());
         if (stationList[bestStation].dhcp == false) {
             #if defined(ST_IP)
                 Serial.println("Applying static IP settings");
@@ -291,6 +294,7 @@ void WifiSetup() {
 
         // Initiate network connection request
         WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
+        //WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
 
         // Wait to connect, or timeout
         unsigned long start = millis(); 
