@@ -1,6 +1,7 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <DNSServer.h>
+#include "src/parsebytes.h"
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
@@ -30,12 +31,13 @@
 
 // Primary config, or defaults.
 #if __has_include("myconfig.h")
+    struct station { const char ssid[65]; const char password[65]; const bool dhcp;};  // do no edit
     #include "myconfig.h"
 #else
     #warning "Using Defaults: Copy myconfig.sample.h to myconfig.h and edit that to use your own settings"
     #define WIFI_AP_ENABLE
     #define CAMERA_MODEL_AI_THINKER
-    struct station { const char ssid[64]; const char password[64]; const bool dhcp;} 
+    struct station { const char ssid[65]; const char password[65]; const bool dhcp;} 
     stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", true}};
 #endif
 
@@ -211,13 +213,14 @@ void WifiSetup() {
         Serial.print("None");
     }
     Serial.println();
-    byte mac[6];
+    byte mac[6] = {0,0,0,0,0,0};
     WiFi.macAddress(mac);
     Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     
     int bestStation = -1;
     long bestRSSI = -1024;
-    char bestBSSID[] = "00:00:00:00:00:00";
+    char bestSSID[65] = "";
+    uint8_t bestBSSID[6];
     if (stationCount > firstStation) {
         // We have a list to scan 
         Serial.printf("Scanning local Wifi Networks\n");
@@ -232,12 +235,15 @@ void WifiSetup() {
                 Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
                 // Scan our list of known external stations
                 for (int sta = firstStation; sta < stationCount; sta++) {
-                    if (strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) {
+                    if ((strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) || 
+                    (strcmp(stationList[sta].ssid, thisBSSID.c_str()) == 0)) {
                         Serial.print("  -  Known!");
                         // Chose the strongest RSSI seen
                         if (thisRSSI > bestRSSI) {
                             bestStation = sta;
-                            strncpy(bestBSSID,thisBSSID.c_str(),17);
+                            strncpy(bestSSID, thisSSID.c_str(), 64);
+                            // Convert char bssid[] to a byte array
+                            parseBytes(thisBSSID.c_str(), ':', bestBSSID, 6, 16);        
                             bestRSSI = thisRSSI;
                         }
                     }
@@ -262,7 +268,10 @@ void WifiSetup() {
             Serial.println("AccessPoint mode selected in config");
         }
     } else {
-        Serial.printf("Connecting to Wifi Network %d: [%s] %s \n", bestStation, bestBSSID, stationList[bestStation].ssid);
+        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \n", 
+                       bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3], 
+                       bestBSSID[4], bestBSSID[5], bestSSID);
+        // Apply static settings if necesscary
         if (stationList[bestStation].dhcp == false) {
             #if defined(ST_IP)
                 Serial.println("Applying static IP settings");
@@ -292,8 +301,8 @@ void WifiSetup() {
             WiFi.setHostname(HOSTNAME);
         #endif
 
-        // Initiate network connection request
-        WiFi.begin(stationList[bestStation].ssid, stationList[bestStation].password);
+        // Initiate network connection request (3rd argument, channel = 0 is 'auto')
+        WiFi.begin(bestSSID, stationList[bestStation].password, 0, bestBSSID);
 
         // Wait to connect, or timeout
         unsigned long start = millis(); 
