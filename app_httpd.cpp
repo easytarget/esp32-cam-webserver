@@ -623,9 +623,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     }
     else if(!strcmp(variable, "reboot")) {
         Serial.print("REBOOT requested");
-        for (int i=0; i<20; i++) {
+        for (int i=0; i<16; i++) {
           flashLED(50);
-          delay(150);
+          delay(120);
           Serial.print('.');
         }
         Serial.printf(" Thats all folks!\n\n");
@@ -730,7 +730,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     Serial.println("\nDump Requested");
     Serial.print("Preferences file: ");
     dumpPrefs(SPIFFS);
-    static char dumpOut[1200] = "";
+    static char dumpOut[1500] = "";
     char * d = dumpOut;
     // Header
     d+= sprintf(d,"<html><head><meta charset=\"utf-8\">\n");
@@ -817,9 +817,12 @@ static esp_err_t dump_handler(httpd_req_t *req){
 
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
-    d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
+    d+= sprintf(d,"<button title=\"Instant Refresh; the page reloads every minute anyway\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
     d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
-    d+= sprintf(d,"</div>\n</body>\n</html>\n");
+    d+= sprintf(d,"</div>\n</body>\n");
+    // A javascript timer to refresh the page every minute.
+    d+= sprintf(d,"<script>\nsetTimeout(function(){\nlocation.replace(document.URL);\n}, 60000);\n");
+    d+= sprintf(d,"</script>\n</html>\n");
     *d++ = 0;
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
