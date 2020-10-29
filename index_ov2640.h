@@ -634,10 +634,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         updateConfig(rebootButton);
         // Some sort of countdown here?
         hide(settings);
-        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 20 seconds.';
+        hide(viewContainer);
+        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
         setTimeout(function() {
           location.replace(document.URL);
-        }, 20000);
+        }, 30000);
       }
     }
 
