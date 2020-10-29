@@ -5,39 +5,38 @@
  */
 
 
-/* Give the camera a name for the web interface
- * note: this is not the network hostname */
+/* Give the camera a name for the web interface */
 #define CAM_NAME "ESP32 camera server"
 
 
 /*
- * WiFi Settings
- *
- * Note the the use of commas as seperators in IP addresses!
-
- * Extend the stationList[] below with additional SSID+Password pairs.
- *  The first block defines /what/ the structure holds
- *  The second block is where our list of ssid/passwords live
-
-struct station {
-    const char ssid[64];      // - Do Not
-    const char password[64];  // - Edit
-    const bool dhcp;          // - This
-} station stationList[] = {{"ssid1", "pass1", true},
-                           {"ssid2", "pass2", true},
-                           {"ssid3", "pass3", false}};
-
- * The first entry (ssid1, above) in the stationList[] is special, if WIFI_AP_ENABLE has been uncommented
- * it will be used for the AccessPoint ssid and password.
- *
- * The 'dhcp' setting controls whether the station uses DHCP or static IP settings (if in doubt leave 'true')
- * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
+ *    WiFi Settings
+ *    
+ *    For the simplest connection to an existing network
+ *    just replace your ssid and password in the line below.
  */
-struct station {
-    const char ssid[64];      // Do Not
-    const char password[64];  // Edit These
-    const bool dhcp;          // Lines..
-} stationList[] = {{"my_ssid","my_password", true}};
+
+struct station stationList[] = {{"my_ssid","my_password", true}};
+
+/*
+ * You can extend the stationList[] above with additional SSID+Password pairs
+
+struct station stationList[] = {{"ssid1", "pass1", true},
+                                {"ssid2", "pass2", true},
+                                {"ssid3", "pass3", false}};
+
+ * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
+ *
+ * The first entry (ssid1, above) in the stationList is special, if WIFI_AP_ENABLE has been uncommented (below)
+ * it will be used for the AccessPoint ssid and password. See the comments there for more.
+ *
+ * The 'dhcp' setting controls whether the station uses DHCP or static IP settings; if in doubt leave 'true'
+  * 
+ * You can also use a BSSID (eg: "2F:67:94:F5:BB:6A", a colon seperated mac address string) in place of
+ * the ssid to force connections to specific networks even when the ssid's collide,
+ */
+
+/* Extended WiFi Settings */
 
 /* 
  * Hostname. Optional, uncomment and set if desired
