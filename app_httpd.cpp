@@ -29,6 +29,7 @@
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
+extern void hard_restart();
 
 // External variables declared in the main .ino
 extern char myName[];
@@ -629,7 +630,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
           Serial.print('.');
         }
         Serial.printf(" Thats all folks!\n\n");
-        ESP.restart();
+        hard_restart();
     }
     else {
         res = -1;

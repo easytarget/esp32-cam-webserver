@@ -1,4 +1,6 @@
 #include "esp_camera.h"
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
 #include <WiFi.h>
 #include <DNSServer.h>
 #include "src/parsebytes.h"
@@ -185,7 +187,16 @@ void flashLED(int flashtime) {
 #else
     return;                         // No notifcation LED, do nothing, no delay
 #endif
-} 
+}
+
+// ESP.restart() is very 'soft', it can leave the camera hardware 
+// improperly initialised; resulting in boot loops.
+// This replacement uses a watchdog to force a hard restart after 1 second.
+void hard_restart() {
+  esp_task_wdt_init(1,true);
+  esp_task_wdt_add(NULL);
+  while(true);
+}
 
 // Lamp Control
 void setLamp(int newVal) {
@@ -448,9 +459,9 @@ void setup() {
     } else {
         delay(100);  // need a delay here or the next serial o/p gets missed
         Serial.println("Halted: Camera sensor failed to initialise");
-        Serial.println("Will reboot to try again in 10s\n");
-        delay(10000);
-        ESP.restart();
+        Serial.println("Will reboot to try again in 5s\n");
+        delay(4000);
+        hard_restart();
     }
     sensor_t * s = esp_camera_sensor_get();
 
