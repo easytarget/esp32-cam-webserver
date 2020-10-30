@@ -601,7 +601,7 @@ void setup() {
         if (debugData) Serial.println("Camera debug data is enabled (send any char to disable)");
         else Serial.println("Camera debug data is disabled (send any char to enable)");
     } else {
-        Serial.printf("\nCamera unavailable due to initialisation errors.\n\n", httpURL);
+        Serial.printf("\nCamera unavailable due to initialisation errors.\n\n");
     }
 
     // Used when dumping status; these are slow functions, so just do them once during startup
