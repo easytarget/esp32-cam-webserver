@@ -1,45 +1,41 @@
-#include "esp_http_server.h"
-#include "esp_timer.h"
-#include "esp_camera.h"
-#include "img_converters.h"
-#include "Arduino.h"
 #include <WiFi.h>
+#include <WiFiClient.h>
+#include <esp_bt.h>
+#include <esp_wifi.h>
+#include <esp_sleep.h>
+#include <driver/rtc_io.h>
+#include "myconfig.h"
+#include "esp_camera.h"
+#include "camera_pins.h"
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <Update.h>
 
-#include "index_ov2640.h"
-#include "index_ov3660.h"
-#include "index_other.h"
-#include "css.h"
+#include "src/html/firmware.h"
+#include "src/html/index_ov2640.h"
+#include "src/html/index_ov3660.h"
+#include "src/html/index_simple.h"
+#include "src/html/css.h"
 #include "src/favicons.h"
 #include "src/logo.h"
 #include "storage.h"
 
-#if !defined(HTTP_PORT)
-    #define HTTP_PORT 80
-#endif
-int httpPort = HTTP_PORT;
-
-
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
+extern void resetWiFiConfig();
 
 // External variables declared in the main .ino
-extern char myName[];
+extern char camera_name[];
 extern char myVer[];
 extern char baseVersion[];
-extern IPAddress ip;
-extern IPAddress net;
-extern IPAddress gw;
-extern bool accesspoint;
-extern char apName[];
-extern bool captivePortal;
-extern char httpURL[];
+extern IPAddress espIP;
+extern IPAddress espSubnet;
+extern IPAddress espGateway;
 extern char streamURL[];
 extern char default_index[];
 extern int myRotation;
 extern int lampVal;
-extern int8_t detection_enabled;
-extern int8_t recognition_enabled;
 extern bool filesystem;
 extern bool debugData;
 extern int sketchSize;
@@ -50,35 +46,37 @@ extern String sketchMD5;
 #include "fd_forward.h"
 #include "fr_forward.h"
 
-#define ENROLL_CONFIRM_TIMES 5
-typedef struct
-{
-    httpd_req_t *req;
-    size_t len;
-} jpg_chunking_t;
+#if !defined(HTTP_PORT)
+#define HTTP_PORT 80
+#endif
+int httpPort = HTTP_PORT;
+char httpURL[64] = {"Undefined"};
+
+AsyncWebServer appServer(httpPort);
+
+bool updating;
+
+void appServerCB(void *pvParameters);
+size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_t len);
+void capture_handler(AsyncWebServerRequest *request);
+void cmd_handler(AsyncWebServerRequest *request);
+void status_handler(AsyncWebServerRequest *request);
+void favicon_16x16_handler(AsyncWebServerRequest *request);
+void favicon_32x32_handler(AsyncWebServerRequest *request);
+void favicon_ico_handler(AsyncWebServerRequest *request);
+void logo_svg_handler(AsyncWebServerRequest *request);
+void dump_handler(AsyncWebServerRequest *request);
+void style_handler(AsyncWebServerRequest *request);
+void handleIndex(AsyncWebServerRequest *request);
+void handleFirmware(AsyncWebServerRequest *request);
+void handleCameraClient();
+void startCameraServer();
 
 #define PART_BOUNDARY "123456789000000000000987654321";
-httpd_handle_t camera_httpd = NULL;
 
-static size_t jpg_encode_stream(void *arg, size_t index, const void *data, size_t len)
-{
-    jpg_chunking_t *j = (jpg_chunking_t *)arg;
-    if (!index)
-    {
-        j->len = 0;
-    }
-    if (httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK)
-    {
-        return 0;
-    }
-    j->len += len;
-    return len;
-}
-
-static esp_err_t capture_handler(httpd_req_t *req)
+void capture_handler(AsyncWebServerRequest *request)
 {
     camera_fb_t *fb = NULL;
-    esp_err_t res = ESP_OK;
 
     Serial.println("Capture Requested");
 
@@ -90,208 +88,118 @@ static esp_err_t capture_handler(httpd_req_t *req)
     if (!fb)
     {
         Serial.println("Camera capture failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
+        request->send(500, "text/plain", "Camera Capture Failed");
+        return;
     }
 
-    httpd_resp_set_type(req, "image/jpeg");
-    httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-
-    size_t out_len, out_width, out_height;
-    uint8_t *out_buf;
-    bool s;
-    if (!detection_enabled || fb->width > 400)
+    size_t fb_len = 0;
+    if (fb->format == PIXFORMAT_JPEG)
     {
-        size_t fb_len = 0;
-        if (fb->format == PIXFORMAT_JPEG)
-        {
-            fb_len = fb->len;
-            res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
-        }
-        else
-        {
-            jpg_chunking_t jchunk = {req, 0};
-            res = frame2jpg_cb(fb, 80, jpg_encode_stream, &jchunk) ? ESP_OK : ESP_FAIL;
-            httpd_resp_send_chunk(req, NULL, 0);
-            fb_len = jchunk.len;
-        }
-        esp_camera_fb_return(fb);
-        int64_t fr_end = esp_timer_get_time();
-        Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start) / 1000));
-        return res;
-    }
-
-    dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
-    if (!image_matrix)
-    {
-        esp_camera_fb_return(fb);
-        Serial.println("dl_matrix3du_alloc failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    out_buf = image_matrix->item;
-    out_len = fb->width * fb->height * 3;
-    out_width = fb->width;
-    out_height = fb->height;
-
-    s = fmt2rgb888(fb->buf, fb->len, fb->format, out_buf);
-    esp_camera_fb_return(fb);
-    if (!s)
-    {
-        dl_matrix3du_free(image_matrix);
-        Serial.println("to rgb888 failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    jpg_chunking_t jchunk = {req, 0};
-    s = fmt2jpg_cb(out_buf, out_len, out_width, out_height, PIXFORMAT_RGB888, 90, jpg_encode_stream, &jchunk);
-    dl_matrix3du_free(image_matrix);
-    if (!s)
-    {
-        Serial.println("JPEG compression failed");
-        return ESP_FAIL;
-    }
-
-    int64_t fr_end = esp_timer_get_time();
-    if (debugData)
-    {
-        Serial.printf("FACE: %uB %ums\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start) / 1000));
-    }
-    return res;
-}
-
-static esp_err_t cmd_handler(httpd_req_t *req)
-{
-    char *buf;
-    size_t buf_len;
-    char variable[32] = {
-        0,
-    };
-    char value[32] = {
-        0,
-    };
-    flashLED(75);
-
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len > 1)
-    {
-        buf = (char *)malloc(buf_len);
-        if (!buf)
-        {
-            httpd_resp_send_500(req);
-            return ESP_FAIL;
-        }
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
-        {
-            if (httpd_query_key_value(buf, "var", variable, sizeof(variable)) == ESP_OK &&
-                httpd_query_key_value(buf, "val", value, sizeof(value)) == ESP_OK)
-            {
-            }
-            else
-            {
-                free(buf);
-                httpd_resp_send_404(req);
-                return ESP_FAIL;
-            }
-        }
-        else
-        {
-            free(buf);
-            httpd_resp_send_404(req);
-            return ESP_FAIL;
-        }
-        free(buf);
+        fb_len = fb->len;
+        request->send(200, "image/jpeg", (const char *)fb->buf);
     }
     else
     {
-        httpd_resp_send_404(req);
-        return ESP_FAIL;
+        request->send(500, "text/plain", "Camera Capture Failed");
+    }
+    esp_camera_fb_return(fb);
+    int64_t fr_end = esp_timer_get_time();
+    Serial.printf("JPG: %uB %ums\r\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start) / 1000));
+}
+
+void cmd_handler(AsyncWebServerRequest *request)
+{
+    Serial.println("Command received!");
+    flashLED(75);
+
+    if (!request->hasArg("var") || !request->hasArg("val"))
+    {
+        Serial.println("No var or val");
+        request->send(404, "text/plain", "Invalid parameters");
+        return;
     }
 
-    int val = atoi(value);
+    String variable = request->arg("var").c_str();
+    String value = request->arg("val").c_str();
+
+    Serial.print("Var ");
+    Serial.println(variable);
+
+    int val = atoi(value.c_str());
     sensor_t *s = esp_camera_sensor_get();
     int res = 0;
-    if (!strcmp(variable, "framesize"))
+    if (variable.compareTo("framesize") == 0)
     {
         if (s->pixformat == PIXFORMAT_JPEG)
             res = s->set_framesize(s, (framesize_t)val);
     }
-    else if (!strcmp(variable, "quality"))
+    else if (variable.compareTo("quality") == 0)
         res = s->set_quality(s, val);
-    else if (!strcmp(variable, "contrast"))
+    else if (variable.compareTo("contrast") == 0)
         res = s->set_contrast(s, val);
-    else if (!strcmp(variable, "brightness"))
+    else if (variable.compareTo("brightness") == 0)
         res = s->set_brightness(s, val);
-    else if (!strcmp(variable, "saturation"))
+    else if (variable.compareTo("saturation") == 0)
         res = s->set_saturation(s, val);
-    else if (!strcmp(variable, "gainceiling"))
+    else if (variable.compareTo("gainceiling") == 0)
         res = s->set_gainceiling(s, (gainceiling_t)val);
-    else if (!strcmp(variable, "colorbar"))
+    else if (variable.compareTo("colorbar") == 0)
         res = s->set_colorbar(s, val);
-    else if (!strcmp(variable, "awb"))
+    else if (variable.compareTo("awb") == 0)
         res = s->set_whitebal(s, val);
-    else if (!strcmp(variable, "agc"))
+    else if (variable.compareTo("agc") == 0)
         res = s->set_gain_ctrl(s, val);
-    else if (!strcmp(variable, "aec"))
+    else if (variable.compareTo("aec") == 0)
         res = s->set_exposure_ctrl(s, val);
-    else if (!strcmp(variable, "hmirror"))
+    else if (variable.compareTo("hmirror") == 0)
         res = s->set_hmirror(s, val);
-    else if (!strcmp(variable, "vflip"))
+    else if (variable.compareTo("vFlip") == 0)
         res = s->set_vflip(s, val);
-    else if (!strcmp(variable, "awb_gain"))
+    else if (variable.compareTo("awb_gain") == 0)
         res = s->set_awb_gain(s, val);
-    else if (!strcmp(variable, "agc_gain"))
+    else if (variable.compareTo("agc_gain") == 0)
         res = s->set_agc_gain(s, val);
-    else if (!strcmp(variable, "aec_value"))
+    else if (variable.compareTo("aec_value") == 0)
         res = s->set_aec_value(s, val);
-    else if (!strcmp(variable, "aec2"))
+    else if (variable.compareTo("aec2") == 0)
         res = s->set_aec2(s, val);
-    else if (!strcmp(variable, "dcw"))
+    else if (variable.compareTo("dcw") == 0)
         res = s->set_dcw(s, val);
-    else if (!strcmp(variable, "bpc"))
+    else if (variable.compareTo("bpc") == 0)
         res = s->set_bpc(s, val);
-    else if (!strcmp(variable, "wpc"))
+    else if (variable.compareTo("wpc") == 0)
         res = s->set_wpc(s, val);
-    else if (!strcmp(variable, "raw_gma"))
+    else if (variable.compareTo("raw_gma") == 0)
         res = s->set_raw_gma(s, val);
-    else if (!strcmp(variable, "lenc"))
+    else if (variable.compareTo("lenc") == 0)
         res = s->set_lenc(s, val);
-    else if (!strcmp(variable, "special_effect"))
+    else if (variable.compareTo("special_effect") == 0)
         res = s->set_special_effect(s, val);
-    else if (!strcmp(variable, "wb_mode"))
+    else if (variable.compareTo("wb_mode") == 0)
         res = s->set_wb_mode(s, val);
-    else if (!strcmp(variable, "ae_level"))
+    else if (variable.compareTo("ae_level") == 0)
         res = s->set_ae_level(s, val);
-    else if (!strcmp(variable, "rotate"))
+    else if (variable.compareTo("rotate") == 0)
         myRotation = val;
-    else if (!strcmp(variable, "face_detect"))
-    {
-        detection_enabled = val;
-        if (!detection_enabled)
-        {
-            recognition_enabled = 0;
-        }
-    }
-    else if (!strcmp(variable, "lamp") && (lampVal != -1))
+    else if (variable.compareTo("lamp") == 0)
     {
         lampVal = constrain(val, 0, 100);
         setLamp(lampVal);
     }
-    else if (!strcmp(variable, "save_prefs"))
+    else if (variable.compareTo("save_prefs") == 0)
     {
         if (filesystem)
             savePrefs(SPIFFS);
     }
-    else if (!strcmp(variable, "clear_prefs"))
+    else if (variable.compareTo("clear_prefs") == 0)
     {
         if (filesystem)
             removePrefs(SPIFFS);
     }
-    else if (!strcmp(variable, "reboot"))
+    else if (variable.compareTo("reboot") == 0)
+
     {
+        request->send(200, "text/plain", "Rebooting...");
         Serial.print("REBOOT requested");
         for (int i = 0; i < 20; i++)
         {
@@ -299,8 +207,14 @@ static esp_err_t cmd_handler(httpd_req_t *req)
             delay(150);
             Serial.print('.');
         }
-        Serial.printf(" Thats all folks!\n\n");
+        Serial.printf(" Thats all folks!\r\n\r\n");
         ESP.restart();
+    }
+    else if (variable.compareTo("clear_wifi") == 0)
+    {
+        request->send(200, "text/plain", "Reseting WiFi...");
+        Serial.println("Wifi reset requested");
+        resetWiFiConfig();
     }
     else
     {
@@ -308,15 +222,19 @@ static esp_err_t cmd_handler(httpd_req_t *req)
     }
     if (res)
     {
-        return httpd_resp_send_500(req);
+        Serial.print("Unable to determine command: ");
+        Serial.println(variable);
+
+        request->send(404, "text/plain", "Invalid parameters");
+        return;
     }
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    return httpd_resp_send(req, NULL, 0);
+    request->send(200);
+    return;
 }
 
-static esp_err_t status_handler(httpd_req_t *req)
+void status_handler(AsyncWebServerRequest *request)
 {
-    static char json_response[1024];
+    char json_response[1024];
     sensor_t *s = esp_camera_sensor_get();
     char *p = json_response;
     *p++ = '{';
@@ -346,325 +264,275 @@ static esp_err_t status_handler(httpd_req_t *req)
     p += sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
     p += sprintf(p, "\"dcw\":%u,", s->status.dcw);
     p += sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
-    p += sprintf(p, "\"cam_name\":\"%s\",", myName);
+    p += sprintf(p, "\"cam_name\":\"%s\",", camera_name);
     p += sprintf(p, "\"code_ver\":\"%s\",", myVer);
     p += sprintf(p, "\"rotate\":\"%d\",", myRotation);
     p += sprintf(p, "\"stream_url\":\"%s\"", streamURL);
     *p++ = '}';
     *p++ = 0;
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    return httpd_resp_send(req, json_response, strlen(json_response));
+
+    request->send(200, "application/json", json_response);
 }
 
-static esp_err_t favicon_16x16_handler(httpd_req_t *req)
+void favicon_16x16_handler(AsyncWebServerRequest *request)
 {
-    httpd_resp_set_type(req, "image/png");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)favicon_16x16_png, favicon_16x16_png_len);
+    request->send(200, "image/png", (const char *)favicon_16x16_png);
 }
 
-static esp_err_t favicon_32x32_handler(httpd_req_t *req)
+void favicon_32x32_handler(AsyncWebServerRequest *request)
 {
-    httpd_resp_set_type(req, "image/png");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)favicon_32x32_png, favicon_32x32_png_len);
+    request->send(200, "image/png", (const char *)favicon_32x32_png);
 }
 
-static esp_err_t favicon_ico_handler(httpd_req_t *req)
+void favicon_ico_handler(AsyncWebServerRequest *request)
 {
-    httpd_resp_set_type(req, "image/x-icon");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)favicon_ico, favicon_ico_len);
+    request->send(200, "image/png", (const char *)favicon_ico);
 }
 
-static esp_err_t logo_svg_handler(httpd_req_t *req)
+void logo_svg_handler(AsyncWebServerRequest *request)
 {
-    httpd_resp_set_type(req, "image/svg+xml");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)logo_svg, logo_svg_len);
+    request->send(200, "image/svg+xml", (const char *)logo_svg);
 }
 
-static esp_err_t dump_handler(httpd_req_t *req)
+void dump_handler(AsyncWebServerRequest *request)
 {
     flashLED(75);
-    Serial.println("\nDump Requested");
+    Serial.println("\r\nDump Requested");
     Serial.print("Preferences file: ");
     dumpPrefs(SPIFFS);
-    static char dumpOut[1200] = "";
+    char dumpOut[1200] = "";
     char *d = dumpOut;
     // Header
-    d += sprintf(d, "<html><head><meta charset=\"utf-8\">\n");
-    d += sprintf(d, "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n");
-    d += sprintf(d, "<title>%s - Status</title>\n", myName);
-    d += sprintf(d, "<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n");
-    d += sprintf(d, "<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n");
-    d += sprintf(d, "<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
-    d += sprintf(d, "</head>\n<body>\n");
-    d += sprintf(d, "<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n");
-    d += sprintf(d, "<h1>ESP32 Cam Webserver</h1>\n");
+    d += sprintf(d, "<html><head><meta charset=\"utf-8\">\r\n");
+    d += sprintf(d, "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\r\n");
+    d += sprintf(d, "<title>%s - Status</title>\r\n", camera_name);
+    d += sprintf(d, "<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\r\n");
+    d += sprintf(d, "<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\r\n");
+    d += sprintf(d, "<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\r\n");
+    d += sprintf(d, "</head>\r\n<body>\r\n");
+    d += sprintf(d, "<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\r\n");
+    d += sprintf(d, "<h1>ESP32 Cam Webserver</h1>\r\n");
     // Module
-    d += sprintf(d, "Name: %s<br>\n", myName);
-    Serial.printf("Name: %s\n", myName);
-    d += sprintf(d, "Firmware: %s (base: %s)<br>\n", myVer, baseVersion);
-    Serial.printf("Firmware: %s (base: %s)\n", myVer, baseVersion);
+    d += sprintf(d, "Name: %s<br>\r\n", camera_name);
+    Serial.printf("Name: %s\r\n", camera_name);
+    d += sprintf(d, "Firmware: %s (base: %s)<br>\r\n", myVer, baseVersion);
+    Serial.printf("Firmware: %s (base: %s)\r\n", myVer, baseVersion);
     float sketchPct = 100 * sketchSize / sketchSpace;
-    d += sprintf(d, "Sketch Size: %i (total: %i, %.1f%% used)<br>\n", sketchSize, sketchSpace, sketchPct);
-    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
-    d += sprintf(d, "MD5: %s<br>\n", sketchMD5.c_str());
-    Serial.printf("MD5: %s\n", sketchMD5.c_str());
-    d += sprintf(d, "ESP sdk: %s<br>\n", ESP.getSdkVersion());
-    Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
+    d += sprintf(d, "Sketch Size: %i (total: %i, %.1f%% used)<br>\r\n", sketchSize, sketchSpace, sketchPct);
+    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\r\n", sketchSize, sketchSpace, sketchPct);
+    d += sprintf(d, "MD5: %s<br>\r\n", sketchMD5.c_str());
+    Serial.printf("MD5: %s\r\n", sketchMD5.c_str());
+    d += sprintf(d, "ESP sdk: %s<br>\r\n", ESP.getSdkVersion());
+    Serial.printf("ESP sdk: %s\r\n", ESP.getSdkVersion());
     // Network
-    d += sprintf(d, "<h2>WiFi</h2>\n");
-    if (accesspoint)
-    {
-        if (captivePortal)
-        {
-            d += sprintf(d, "Mode: AccessPoint with captive portal<br>\n");
-            Serial.printf("Mode: AccessPoint with captive portal\n");
-        }
-        else
-        {
-            d += sprintf(d, "Mode: AccessPoint<br>\n");
-            Serial.printf("Mode: AccessPoint\n");
-        }
-        d += sprintf(d, "SSID: %s<br>\n", apName);
-        Serial.printf("SSID: %s\n", apName);
-    }
-    else
-    {
-        d += sprintf(d, "Mode: Client<br>\n");
-        Serial.printf("Mode: Client\n");
-        String ssidName = WiFi.SSID();
-        d += sprintf(d, "SSID: %s<br>\n", ssidName.c_str());
-        Serial.printf("Ssid: %s\n", ssidName.c_str());
-        d += sprintf(d, "Rssi: %i<br>\n", WiFi.RSSI());
-        Serial.printf("Rssi: %i\n", WiFi.RSSI());
-        String bssid = WiFi.BSSIDstr();
-        d += sprintf(d, "BSSID: %s<br>\n", bssid.c_str());
-        Serial.printf("BSSID: %s\n", bssid.c_str());
-    }
-    d += sprintf(d, "IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
-    Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
-    if (!accesspoint)
-    {
-        d += sprintf(d, "Netmask: %d.%d.%d.%d<br>\n", net[0], net[1], net[2], net[3]);
-        Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
-        d += sprintf(d, "Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
-        Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
-    }
-    d += sprintf(d, "Http port: %i<br>\n", httpPort);
-    Serial.printf("Http port: %i\n", httpPort);
+    d += sprintf(d, "<h2>WiFi</h2>\r\n");
+    d += sprintf(d, "Mode: Client<br>\r\n");
+    Serial.printf("Mode: Client\r\n");
+    String ssidName = WiFi.SSID();
+    d += sprintf(d, "SSID: %s<br>\r\n", ssidName.c_str());
+    Serial.printf("Ssid: %s\r\n", ssidName.c_str());
+    d += sprintf(d, "Rssi: %i<br>\r\n", WiFi.RSSI());
+    Serial.printf("Rssi: %i\r\n", WiFi.RSSI());
+    String bssid = WiFi.BSSIDstr();
+    d += sprintf(d, "BSSID: %s<br>\r\n", bssid.c_str());
+    Serial.printf("BSSID: %s\r\n", bssid.c_str());
+
+    d += sprintf(d, "IP address: %d.%d.%d.%d<br>\r\n", espIP[0], espIP[1], espIP[2], espIP[3]);
+    Serial.printf("IP address: %d.%d.%d.%d\r\n", espIP[0], espIP[1], espIP[2], espIP[3]);
+    d += sprintf(d, "Http port: %i<br>\r\n", httpPort);
+    Serial.printf("Http port: %i\r\n", httpPort);
     byte mac[6];
     WiFi.macAddress(mac);
-    d += sprintf(d, "MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    d += sprintf(d, "MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     // System
-    d += sprintf(d, "<h2>System</h2>\n");
+    d += sprintf(d, "<h2>System</h2>\r\n");
     int64_t sec = esp_timer_get_time() / 1000000;
     int64_t upDays = int64_t(floor(sec / 86400));
     int upHours = int64_t(floor(sec / 3600)) % 24;
     int upMin = int64_t(floor(sec / 60)) % 60;
     int upSec = sec % 60;
-    d += sprintf(d, "Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
-    d += sprintf(d, "Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
-    Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
-    d += sprintf(d, "Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    d += sprintf(d, "Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    d += sprintf(d, "Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\r\n", upDays, upHours, upMin, upSec);
+    Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
+    d += sprintf(d, "Freq: %i MHz<br>\r\n", ESP.getCpuFreqMHz());
+    Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
+    d += sprintf(d, "Heap: %i, free: %i, min free: %i, max block: %i<br>\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    d += sprintf(d, "Psram: %i, free: %i, min free: %i, max block: %i<br>\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     if (filesystem)
     {
-        d += sprintf(d, "Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
-        Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+        d += sprintf(d, "Spiffs: %i, used: %i<br>\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+        Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
 
     // Footer
-    d += sprintf(d, "<br><div class=\"input-group\">\n");
-    d += sprintf(d, "<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
-    d += sprintf(d, "<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
-    d += sprintf(d, "</div>\n</body>\n</html>\n");
+    d += sprintf(d, "<br><div class=\"input-group\">\r\n");
+    d += sprintf(d, "<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\r\n");
+    d += sprintf(d, "<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\r\n");
+    d += sprintf(d, "</div>\r\n</body>\r\n</html>\r\n");
     *d++ = 0;
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, dumpOut, strlen(dumpOut));
+
+    request->send(200, "image/html", dumpOut);
 }
 
-static esp_err_t style_handler(httpd_req_t *req)
+void style_handler(AsyncWebServerRequest *request)
 {
-    httpd_resp_set_type(req, "text/css");
-    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)style_css, style_css_len);
+    request->send(200, "text/css", (const char *)style_css);
 }
 
-static esp_err_t index_handler(httpd_req_t *req)
+void handleIndex(AsyncWebServerRequest *request)
 {
-    char *buf;
-    size_t buf_len;
-    char view[32] = {
-        0,
-    };
+
+    flashLED(150);
+    // See if we have a specific target (full/simple/portal) and serve as appropriate
+    String view = default_index;
+
+    if (request->hasArg("view"))
+    {
+        view = request->arg("view").c_str();
+    }
+
+    if (strncmp(view.c_str(), "simple", sizeof(view)) == 0)
+    {
+        Serial.println("Simple index page requested");
+        request->send_P(200, "text/html", (const char *)index_simple_html);
+        return;
+    }
+    else if (strncmp(view.c_str(), "full", sizeof(view)) == 0)
+    {
+        
+        sensor_t *s = esp_camera_sensor_get();
+
+        if (s->id.PID == OV3660_PID)
+        {
+            Serial.println("Full OV3660 index page requested");
+            request->send_P(200, "text/html", (const char *)index_ov3660_html);
+            return;
+        }
+
+        Serial.println("Full OV2640 index page requested");
+        request->send_P(200, "text/html",(const char *)index_ov2640_html);
+        
+        return;
+    }
+
+    Serial.print("Unknown page requested: ");
+    Serial.println(view);
+    request->send(404, "text/plain", "Unknown page requested");
+}
+
+void handleFirmware(AsyncWebServerRequest *request)
+{
 
     flashLED(75);
     // See if we have a specific target (full/simple/portal) and serve as appropriate
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len > 1)
+
+    Serial.println("Firmware page requested");
+    request->send(200, "text/html", firmware_html.c_str());
+}
+
+String getHTMLHead()
+{
+    String header = F("<!DOCTYPE html><html lang=\"en\"><head>");
+    header += F("<link href=\"/local.css\" rel=\"stylesheet\">");
+    header += F("</head>");
+    header += F("<body>");
+    return header;
+}
+
+String getHTMLFoot()
+{
+    return F("</body></html>");
+}
+void handleUpdate(AsyncWebServerRequest *request)
+{
+    String response_message;
+    response_message.reserve(1000);
+    response_message = getHTMLHead();
+    response_message += "<script> function notify_update() {document.getElementById(\"update\").innerHTML = \"<h2>Updating...</h2>\"\; } </script>";
+    response_message += "Firmware = *.esp32.bin<br>SPIFFS = *.spiffs.bin<br> \
+  <form method='POST' action='/doUpdate' enctype='multipart/form-data' target='_self' onsubmit='notify_update()'> \
+  <input type='file' name='update'><br> \
+  <input type='submit' value='Do update'></form> \
+  <div id=\"update\"></div>";
+    response_message += getHTMLFoot();
+    request->send(200, "text/html", response_message);
+};
+
+void handleDoUpdate(AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
+{
+    updating = true;
+    delay(500);
+
+    if (!index)
     {
-        buf = (char *)malloc(buf_len);
-        if (!buf)
+        // check file names for type
+        int cmd = (filename.indexOf(F(".spiffs.bin")) > -1) ? U_SPIFFS : U_FLASH;
+        if (cmd == U_FLASH && !(filename.indexOf(F("esp32.bin")) > -1))
+            return; // wrong image for ESP32
+        if (!Update.begin(UPDATE_SIZE_UNKNOWN, cmd))
         {
-            httpd_resp_send_500(req);
-            return ESP_FAIL;
-        }
-        if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
-        {
-            if (httpd_query_key_value(buf, "view", view, sizeof(view)) == ESP_OK)
-            {
-            }
-            else
-            {
-                free(buf);
-                httpd_resp_send_404(req);
-                return ESP_FAIL;
-            }
-        }
-        else
-        {
-            free(buf);
-            httpd_resp_send_404(req);
-            return ESP_FAIL;
-        }
-        free(buf);
-    }
-    else
-    {
-        // no target specified; default.
-        strcpy(view, default_index);
-        // If captive portal is active send that instead
-        if (captivePortal)
-        {
-            strcpy(view, "portal");
+            Update.printError(Serial);
         }
     }
 
-    if (strncmp(view, "simple", sizeof(view)) == 0)
+    if (Update.write(data, len) != len)
     {
-        Serial.println("Simple index page requested");
-        httpd_resp_set_type(req, "text/html");
-        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)index_simple_html, index_simple_html_len);
+        Update.printError(Serial);
     }
-    else if (strncmp(view, "full", sizeof(view)) == 0)
+
+    if (final)
     {
-        Serial.println("Full index page requested");
-        httpd_resp_set_type(req, "text/html");
-        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        sensor_t *s = esp_camera_sensor_get();
-        if (s->id.PID == OV3660_PID)
+        if (!Update.end(true))
         {
-            return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
+            Update.printError(Serial);
         }
-        return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
-    }
-    else if (strncmp(view, "portal", sizeof(view)) == 0)
-    {
-        //Prototype captive portal landing page.
-        Serial.println("Portal page requested");
-        std::string s(portal_html);
-        size_t index;
-        while ((index = s.find("<APPURL>")) != std::string::npos)
-            s.replace(index, strlen("<APPURL>"), httpURL);
-        while ((index = s.find("<STREAMURL>")) != std::string::npos)
-            s.replace(index, strlen("<STREAMURL>"), streamURL);
-        while ((index = s.find("<CAMNAME>")) != std::string::npos)
-            s.replace(index, strlen("<CAMNAME>"), myName);
-        httpd_resp_set_type(req, "text/html");
-        httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)s.c_str(), s.length());
-    }
-    else
-    {
-        Serial.print("Unknown page requested: ");
-        Serial.println(view);
-        httpd_resp_send_404(req);
-        return ESP_FAIL;
+        else
+        {
+            String response_message;
+            response_message.reserve(1000);
+            response_message = getHTMLHead();
+            response_message += "<h2>Please wait while the device reboots</h2> <meta http-equiv=\"refresh\" content=\"20;url=/\" />";
+            response_message += getHTMLFoot();
+            AsyncWebServerResponse *response = request->beginResponse(200, "text/html", response_message);
+            response->addHeader("Refresh", "20");
+            response->addHeader("Location", "/");
+            request->send(response);
+            delay(100);
+            ESP.restart();
+        }
     }
 }
 
 void startCameraServer()
 {
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 12; // we use more than the default 8 (on port 80)
+    Serial.printf("Starting web server on port: '%d'\r\n", httpPort);
 
-    httpd_uri_t index_uri = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = index_handler,
-        .user_ctx = NULL};
-    httpd_uri_t status_uri = {
-        .uri = "/status",
-        .method = HTTP_GET,
-        .handler = status_handler,
-        .user_ctx = NULL};
-    httpd_uri_t cmd_uri = {
-        .uri = "/control",
-        .method = HTTP_GET,
-        .handler = cmd_handler,
-        .user_ctx = NULL};
-    httpd_uri_t capture_uri = {
-        .uri = "/capture",
-        .method = HTTP_GET,
-        .handler = capture_handler,
-        .user_ctx = NULL};
-    httpd_uri_t style_uri = {
-        .uri = "/style.css",
-        .method = HTTP_GET,
-        .handler = style_handler,
-        .user_ctx = NULL};
-    httpd_uri_t favicon_16x16_uri = {
-        .uri = "/favicon-16x16.png",
-        .method = HTTP_GET,
-        .handler = favicon_16x16_handler,
-        .user_ctx = NULL};
-    httpd_uri_t favicon_32x32_uri = {
-        .uri = "/favicon-32x32.png",
-        .method = HTTP_GET,
-        .handler = favicon_32x32_handler,
-        .user_ctx = NULL};
-    httpd_uri_t favicon_ico_uri = {
-        .uri = "/favicon.ico",
-        .method = HTTP_GET,
-        .handler = favicon_ico_handler,
-        .user_ctx = NULL};
-    httpd_uri_t logo_svg_uri = {
-        .uri = "/logo.svg",
-        .method = HTTP_GET,
-        .handler = logo_svg_handler,
-        .user_ctx = NULL};
-    httpd_uri_t dump_uri = {
-        .uri = "/dump",
-        .method = HTTP_GET,
-        .handler = dump_handler,
-        .user_ctx = NULL};
+    appServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        handleIndex(request);
+    });
+    appServer.on("/firmware", HTTP_GET, handleFirmware);
+    appServer.on("/status", HTTP_GET, status_handler);
+    appServer.on("/control", HTTP_GET, cmd_handler);
+    appServer.on("/capture", HTTP_GET, capture_handler);
+    appServer.on("/style.css", HTTP_GET, style_handler);
+    appServer.on("/favicon-16x16.png", HTTP_GET, favicon_16x16_handler);
+    appServer.on("/favicon-32x32.png", HTTP_GET, favicon_32x32_handler);
+    appServer.on("/favicon.ico", HTTP_GET, favicon_ico_handler);
+    appServer.on("/logo.svg", HTTP_GET, logo_svg_handler);
+    appServer.on("/dump", HTTP_GET, dump_handler);
+    /*handling uploading firmware file */
+    appServer.on("/update", HTTP_GET, [](AsyncWebServerRequest *request) {
+        handleUpdate(request);
+    });
+    appServer.on(
+        "/doUpdate", HTTP_POST, [](AsyncWebServerRequest *request) {}, [](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final) { handleDoUpdate(request, filename, index, data, len, final); });
 
-    config.server_port = httpPort;
-    config.ctrl_port = httpPort;
-    Serial.printf("Starting web server on port: '%d'\n", config.server_port);
-    if (httpd_start(&camera_httpd, &config) == ESP_OK)
-    {
-        // Note; config.max_uri_handlers (above) must be >= the number of handlers
-        httpd_register_uri_handler(camera_httpd, &index_uri);
-        httpd_register_uri_handler(camera_httpd, &cmd_uri);
-        httpd_register_uri_handler(camera_httpd, &status_uri);
-        httpd_register_uri_handler(camera_httpd, &capture_uri);
-        httpd_register_uri_handler(camera_httpd, &style_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
-        httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
-        httpd_register_uri_handler(camera_httpd, &logo_svg_uri);
-        httpd_register_uri_handler(camera_httpd, &dump_uri);
-    }
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    appServer.begin();
+    Serial.println("Web server started!");
+
+    sprintf(httpURL, "http://%d.%d.%d.%d:%d/", espIP[0], espIP[1], espIP[2], espIP[3], httpPort);
 }

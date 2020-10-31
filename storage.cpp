@@ -6,15 +6,13 @@
 extern void flashLED(int flashtime);
 extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
-extern int8_t detection_enabled;    // Face detection enable
-extern int8_t recognition_enabled;  // Face recognition enable
 
 /*
  * Useful utility when debugging... 
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-  Serial.printf("Listing SPIFFS directory: %s\n", dirname);
+  Serial.printf("Listing SPIFFS directory: %s\r\n", dirname);
 
   File root = fs.open(dirname);
   if(!root){
@@ -52,7 +50,7 @@ void dumpPrefs(fs::FS &fs){
     Serial.println("");
     file.close();
   } else {
-    Serial.printf("%s not found, nothing to dump.\n", PREFERENCES_FILE);
+    Serial.printf("%s not found, nothing to dump.\r\n", PREFERENCES_FILE);
   }
 }
 
@@ -60,7 +58,7 @@ void loadPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
     // read file into a string
     String prefs;
-    Serial.printf("Loading preferences from file %s\n", PREFERENCES_FILE);
+    Serial.printf("Loading preferences from file %s\r\n", PREFERENCES_FILE);
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
     if (!file) {
       Serial.println("Failed to open preferences file");
@@ -100,22 +98,20 @@ void loadPrefs(fs::FS &fs){
     s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
     s->set_dcw(s, jsonExtract(prefs, "dcw").toInt());
     s->set_colorbar(s, jsonExtract(prefs, "colorbar").toInt());
-    detection_enabled = jsonExtract(prefs, "face_detect").toInt();
-    recognition_enabled = jsonExtract(prefs, "face_recognize").toInt();
     myRotation = jsonExtract(prefs, "rotate").toInt();
     // close the file
     file.close();
     dumpPrefs(SPIFFS);
   } else {
-    Serial.printf("Preference file %s not found; using system defaults.\n", PREFERENCES_FILE);
+    Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
   }
 }
 
 void savePrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
-    Serial.printf("Updating %s\n", PREFERENCES_FILE);
+    Serial.printf("Updating %s\r\n", PREFERENCES_FILE);
   } else {
-    Serial.printf("Creating %s\n", PREFERENCES_FILE);
+    Serial.printf("Creating %s\r\n", PREFERENCES_FILE);
   }
   File file = fs.open(PREFERENCES_FILE, FILE_WRITE);
   static char json_response[1024];
@@ -147,8 +143,6 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
   p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
   p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
-  p+=sprintf(p, "\"face_detect\":%u,", detection_enabled);
-  p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
   p+=sprintf(p, "\"rotate\":\"%d\"", myRotation);
   *p++ = '}';
   *p++ = 0;
@@ -159,7 +153,7 @@ void savePrefs(fs::FS &fs){
 
 void removePrefs(fs::FS &fs) {
   if (fs.exists(PREFERENCES_FILE)) {
-    Serial.printf("Removing %s\r\n", PREFERENCES_FILE);
+    Serial.printf("Removing %s\r\r\n", PREFERENCES_FILE);
     if (!fs.remove(PREFERENCES_FILE)) {
       Serial.println("Error removing preferences");
     }

@@ -1,119 +1,105 @@
 #include "Arduino.h"
+#include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include "PubSubClient.h"
+#include <Preferences.h>
 #include <ESPmDNS.h>
 #include <cstring>
+#include "myconfig.h"
+#include <string.h>
 
 extern UBaseType_t activeClients;
+extern int mqtt_port;
+extern bool updating;
+
+char KEY_CAM_NAME[] = "cam_name";
+char KEY_MMQT_HOST[] = "mmqt_host";
+char KEY_MMQT_PORT[] = "mmqt_port";
+char KEY_MMQT_USER[] = "mmqt_user";
+char KEY_MMQT_PASS[] = "mmqt_pass";
+char KEY_MMQT_TOPIC[] = "mmqt_topic";
+char KEY_MMQT_CERT[] = "mmqt_cert";
+
+char camera_name[64];
+char client_id[64];
+char mqtt_topic[64];
+const unsigned long publishPeriod = 60000;
+unsigned long lastMQTTPublish = 0;
+
+const static char *MQTT_JSON = "{ \
+\"ClientId\":\"%s\", \
+\"CameraName\":\"%s\", \
+\"Millis\":\"%lu\", \
+\"ActiveClients\":%d \
+}";
 
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
-uint16_t mqtt_port = 1883;
-char *mqtt_host = new char[64];
-char *mqtt_pub_topic = new char[256];
-char *mqtt_client_id = new char[64];
-const char *MQTT_JSON = "{\"ClientId\":\"%s\",\"ActiveClients\":%d}";
 
-void startMQTTClient(char *host, char *topic, char *cert);
 void mqttconnect();
-void mqttCB(void *pvParameters);
-
-TaskHandle_t tMQTT; // handles client connection to the MQTT Server
-void mqttCB(void *pvParameters)
-{
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    TickType_t xFrequency = pdMS_TO_TICKS(60000); //Every minute
-
-    while (true)
-    {
-        /* if client was disconnected then try to reconnect again */
-        if (!mqttClient.connected())
-        {
-            mqttconnect();
-        }
-
-        Serial.printf("ActiveClients %d\n", activeClients);
-
-        char msg[64] = "";
-        snprintf(msg, 64, MQTT_JSON, mqtt_client_id, activeClients);
-        Serial.printf("Publishing message %s\n", msg);
-        /* publish the message */
-        mqttClient.publish(mqtt_pub_topic, msg);
-
-        //  Let other tasks run after serving every client
-        taskYIELD();
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-}
+void startMQTTClient(char *host, char *topic, char *cert);
 
 void mqttconnect()
 {
-    u32_t defaultIp = 0;
-    IPAddress noConnIP = IPAddress(defaultIp);
-    IPAddress serverIp = IPAddress(defaultIp);
-    unsigned long period = 5000;
-    unsigned long lastRun = 0;
 
-    /* Loop until reconnected */
-    while (!mqttClient.connected())
+    Preferences preferences;
+    preferences.begin("ESP32-CAM", true);
+
+    String tmp_camera_name = preferences.getString(KEY_CAM_NAME, "Camera Name");
+    String tmp_mqtt_topic = preferences.getString(KEY_MMQT_TOPIC, "default/topic");
+    int mqtt_port = preferences.getInt(KEY_MMQT_PORT, 1883);
+    String mqtt_host = preferences.getString(KEY_MMQT_HOST, "");
+    String mqtt_user = preferences.getString(KEY_MMQT_USER, "");
+    String mqtt_pass = preferences.getString(KEY_MMQT_PASS, "");
+    String mqtt_cert = preferences.getString(KEY_MMQT_CERT, "");
+
+    preferences.end();
+
+    if (mqtt_host == "" || mqtt_pass == "" || mqtt_user == "")
     {
+        Serial.printf("Couldn't establish MQTT Connection: %s, %s, %s", mqtt_host.c_str(), mqtt_user.c_str(), mqtt_pass.c_str());
+        return;
+    }
 
-        if (millis() - lastRun < period)
-        {
-            yield();
-            continue;
-        }
+    sprintf(camera_name, "%s", tmp_camera_name.c_str());
+    sprintf(mqtt_topic, "%s", tmp_mqtt_topic.c_str());
 
-        lastRun = millis();
+    /* Configure the MQTT server with IPaddress and port. */
+    Serial.printf("Querying '%s:%d'...\r\n", mqtt_host.c_str(), mqtt_port);
 
-        /* Configure the MQTT server with IPaddress and port. */
-        while (noConnIP == serverIp)
-        {
-            Serial.printf("Querying '%s:%d'...\n", mqtt_host, mqtt_port);
+    IPAddress serverIp = MDNS.queryHost(mqtt_host);
 
-            serverIp = MDNS.queryHost(mqtt_host);
+    if ((uint32_t)serverIp == 0)
+    {
+        WiFi.hostByName(mqtt_host.c_str(), serverIp);
+    }
 
-            Serial.printf("IP address of server: %s\n", serverIp.toString().c_str());
+    if ((uint32_t)serverIp == 0)
+    {
+        return;
+    }
 
-            if (noConnIP == serverIp)
-            {
-                WiFi.hostByName(mqtt_host, serverIp);
-                Serial.printf("IP address of server: %s\n", serverIp.toString().c_str());
-                if ((uint32_t)serverIp == 0)
-                {
-                    serverIp = noConnIP;
-                }
-            }
+    Serial.printf("IP address of MQTT server: %s\r\n", serverIp.toString().c_str());
 
-            if (noConnIP != serverIp)
-            {
-                break;
-            }
-            yield();
-        }
+    tmp_camera_name.toUpperCase();
+    char random[32] = {'-'};
+    char char1[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (int index = 1; index < 31; index++)
+    {
+        random[index] = char1[rand() % (sizeof char1 - 1)];
+    }
+    sprintf(client_id, "%s%s", tmp_camera_name.c_str(), random);
+
+    /* connect now */
+    Serial.printf("MQTT connecting as '%s' (%s:%s)...\r\n", client_id, mqtt_host.c_str(), mqtt_pass.c_str());
+    try
+    {
 
         mqttClient.setServer(serverIp, mqtt_port);
 
-        /* connect now */
-        char clientId[100] = {};
-        char random[32] = {'-'};
-
-        srand((unsigned int)(time(NULL)));
-        int index = 0;
-
-        char char1[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (index = 1; index < 31; index++)
+        if (mqttClient.connect(client_id, mqtt_user.c_str(), mqtt_pass.c_str()))
         {
-            random[index] = char1[rand() % (sizeof char1 - 1)];
-        }
-        Serial.println(random);
-        sprintf(clientId, "%s", mqtt_client_id);
-        strcat(clientId, random);
-
-        Serial.printf("MQTT connecting as '%s'...\n", clientId);
-        if (mqttClient.connect(clientId, "testUser", "1234")) //, "security/healthcheck", 20, true, "WillMessage", true))
-        {
-            Serial.println("connected");
+            Serial.printf("MQTT Connected to '%s'\r\n", mqtt_host.c_str());
         }
         else
         {
@@ -123,27 +109,52 @@ void mqttconnect()
             Serial.printf("try again in %d seconds/n", 5);
         }
     }
+    catch (const std::exception &e)
+    {                             // reference to the base of a polymorphic object
+        Serial.println(e.what()); // information from length_error printed
+    }
 }
 
-void startMQTTClient(const char *host, int port, const char *topic, const char *client_id, const void *cert)
+void handleMQTT()
 {
-    mqtt_port = port;
-    strcpy(mqtt_pub_topic, topic);
-    strcpy(mqtt_host, host);
-    strcpy(mqtt_client_id, client_id);
 
-    Serial.printf("Starting MQTT Client '%s'\n", client_id);
+    if (updating)
+    {
+        Serial.println("Updating, killing MQTT Server");
+        mqttClient.disconnect();
+    }
+
+    mqttClient.loop();
+
+    unsigned long now = millis();
+
+    if (lastMQTTPublish == 0 || ((now - lastMQTTPublish) >= publishPeriod))
+    {
+        /* if client was disconnected then try to reconnect again */
+        if (!mqttClient.connected())
+        {
+            mqttconnect();
+        }
+
+        lastMQTTPublish = now;
+
+        char msg[128] = "";
+        snprintf(msg, 128, MQTT_JSON, client_id, camera_name, lastMQTTPublish, activeClients);
+        Serial.printf("Publishing message %s\r\n", msg);
+        /* publish the message */
+        mqttClient.publish(mqtt_topic, msg);
+    }
+}
+
+void startMQTTClient()
+{
+    Serial.printf("Starting MQTT Client '%s'\r\n", camera_name);
 
     /* Set SSL/TLS certificate */
     // wifiClient.setCACert(ca_cert);
 
-    /* Start main task. */
-    xTaskCreatePinnedToCore(
-        mqttCB,
-        "mqtt",
-        4096,
-        NULL,
-        2,
-        &tMQTT,
-        1);
+    if (!mqttClient.connected())
+    {
+        mqttconnect();
+    }
 }

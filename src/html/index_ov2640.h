@@ -252,6 +252,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <button id="save_prefs" title="Save Preferences on camera module">Save</button>
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
               </div>
+              <div class="input-group" id="esp32-group">
+                <label for="clear_wifi" style="line-height: 2em;">Config</label>
+                <button id="clear_wifi" title="Clear the WiFi config">Clear WiFi Config</button>
+                <button id="firmware" title="Update module firmware">Update Firmware</button>
+              </div>
               <div class="input-group" id="cam_name-group">
                 <label for="cam_name">
                 <a href="/dump" title="System Info" target="_blank">Name</a></label>
@@ -303,11 +308,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const recognize = document.getElementById('face_recognize')
     const framesize = document.getElementById('framesize')
     const swapButton = document.getElementById('swap-viewer')
-    // const saveFaceButton = document.getElementById('save_face')
-    // const clearFaceButton = document.getElementById('clear_face')
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
+    const clearWifiButton = document.getElementById('clear_wifi')
+    const firmwareButton = document.getElementById('firmware')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -593,18 +598,6 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       window.open('/?view=simple','_self');
     }
  
-//    saveFaceButton.onclick = () => {
-//      if (confirm("Saving the current face database?")) {
-//        updateConfig(saveFaceButton);
-//      }
-//    }
-
-//    clearFaceButton.onclick = () => {
-//      if (confirm("Removing the face database?")) {
-//        updateConfig(clearFaceButton);
-//      }
-//    }
-
     savePrefsButton.onclick = () => {
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);
@@ -625,8 +618,19 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       }
     }
 
+    clearWifiButton.onclick = () => {
+      if (confirm("Clear the Wifi Config?")) {
+        updateConfig(clearWifiButton);
+        location.reload();
+      }
+    }
+
+    firmwareButton.onclick = () => {
+       window.open('/firmware','_self');
+    }
+
   })
   </script>
 </html>)=====";
 
-size_t index_ov2640_html_len = sizeof(index_ov2640_html)-1;
+size_t index_ov2640_html_len = sizeof(index_ov2640_html) - 1;

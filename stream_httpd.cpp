@@ -11,15 +11,11 @@
 #include <esp_wifi.h>
 #include <esp_sleep.h>
 #include <driver/rtc_io.h>
-
-// Select camera model
-//#define CAMERA_MODEL_WROVER_KIT
-//#define CAMERA_MODEL_ESP_EYE
-//#define CAMERA_MODEL_M5STACK_PSRAM
-//#define CAMERA_MODEL_M5STACK_WIDE
-#define CAMERA_MODEL_AI_THINKER // default
-
+#include "myconfig.h"
 #include "camera_pins.h"
+
+extern IPAddress espIP;
+extern bool updating;
 
 /*
   Next one is an include with wifi credentials.
@@ -39,6 +35,7 @@
 #endif
 int streamPort = STREAM_PORT;
 WebServer server(streamPort);
+char streamURL[64] = {"Undefined"};
 
 // ===== rtos task handles =========================
 // Streaming is implemented with 3 tasks:
@@ -54,7 +51,7 @@ QueueHandle_t streamingClients;
 UBaseType_t activeClients;
 
 // We will try to achieve 25 FPS frame rate
-const int FPS = 14;
+const int FPS = 10;
 
 // We will handle web client requests every 50 ms (20 Hz)
 const int WSINTERVAL = 100;
@@ -67,8 +64,7 @@ void handleJPGSstream(void);
 void streamCB(void *pvParameters);
 void handleJPG(void);
 void handleNotFound();
-void startStreamServer(int sPort);
-
+void startStreamServer();
 
 // ==== Memory allocator that takes advantage of PSRAM if present =======================
 char *allocateMemory(char *aPtr, size_t aSize)
@@ -133,7 +129,7 @@ void mjpegCB(void *pvParameters)
         NULL,     // parameters
         2,        // priority
         &tCam,    // RTOS task handle
-        APP_CPU); // core
+        tskNO_AFFINITY); // core
 
     //  Creating task to push the stream to all connected clients
     xTaskCreatePinnedToCore(
@@ -143,7 +139,7 @@ void mjpegCB(void *pvParameters)
         NULL, //(void*) handler,
         2,
         &tStream,
-        APP_CPU);
+        tskNO_AFFINITY);
 
     //  Registering webserver handling routines
     server.on("/mjpeg/1", HTTP_GET, handleJPGSstream);
@@ -427,7 +423,7 @@ void handleNotFound()
 void startStreamServer()
 {
 
-    Serial.printf("Starting web server on port: '%d'\n", streamPort);
+    Serial.printf("Starting stream server on port: '%d'\n", streamPort);
 
     // Start mainstreaming RTOS task
     xTaskCreatePinnedToCore(
@@ -437,5 +433,7 @@ void startStreamServer()
         NULL,
         2,
         &tMjpeg,
-        APP_CPU);
+        tskNO_AFFINITY);
+
+    sprintf(streamURL, "http://%d.%d.%d.%d:%d/mjpeg/1/", espIP[0], espIP[1], espIP[2], espIP[3], streamPort);
 }
