@@ -482,4 +482,9 @@ const std::string error_html = R"=====(<!doctype html>
     <h1><CAMNAME></h1>
     <ERRORTEXT>
   </body>
+  <script>
+    setTimeout(function(){
+      location.replace(document.URL);
+    }, 60000);
+  </script>
 </html>)=====";
