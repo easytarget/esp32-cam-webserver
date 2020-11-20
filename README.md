@@ -31,7 +31,7 @@ https://wiki.ai-thinker.com/esp32-cam
 
 ## Troubleshooting:
 
-Please read this excellent guide for help with all the common issues:
+Please read this excellent guide for help with some common issues seen with the camera modules:
 https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 
 ## Setup:
@@ -102,12 +102,6 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 Time allowing; my Current plan is:
 
-V3 Options, UI and server enhancements; 
-* All the primary config options moved to the `myconfig.h` file. 
-* Miniviewer, favicons
-* UI now shows stream links and build info
-* Nearly Complete
-
 V4 Remove face recognition entirely;
 * Dont try to make it optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
 * Investigate using SD card to capture images
@@ -115,5 +109,3 @@ V4 Remove face recognition entirely;
 * UI Skinning/Theming
 
 You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
-* The module has a SD/TF card slot; this is currently unused, but I would like to add the ability to store snapshots; recording Video at low resolution may be possible, but the card interface is too slow for HD video as far as I know.
-* Remove face rcognition to save a Mb+ of code space and then implement over the air updates.

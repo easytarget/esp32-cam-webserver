@@ -293,6 +293,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     var streamURL = 'Undefined';
     var viewerURL = 'Undefined';
 
+    const header = document.getElementById('logo')
     const settings = document.getElementById('sidebar')
     const waitSettings = document.getElementById('wait-settings')
     const lampGroup = document.getElementById('lamp-group')
@@ -632,7 +633,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       if (confirm("Reboot the Camera Module?")) {
         updateConfig(rebootButton);
         // Some sort of countdown here?
-        location.reload();
+        hide(settings);
+        hide(viewContainer);
+        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+        setTimeout(function() {
+          location.replace(document.URL);
+        }, 30000);
       }
     }
 

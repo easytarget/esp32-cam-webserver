@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Original Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,11 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "esp_http_server.h"
-#include "esp_timer.h"
-#include "esp_camera.h"
-#include "img_converters.h"
-#include "Arduino.h"
+
+#include <esp_http_server.h>
+#include <esp_timer.h>
+#include <esp_camera.h>
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
+#include <img_converters.h>
+#include <Arduino.h>
 #include <WiFi.h>
 
 #include "index_ov2640.h"
@@ -52,6 +55,7 @@ extern bool autoLamp;
 extern int8_t detection_enabled;
 extern int8_t recognition_enabled;
 extern bool filesystem;
+extern String critERR;
 extern bool debugData;
 extern int sketchSize;
 extern int sketchSpace;
@@ -622,14 +626,18 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         if (filesystem) removePrefs(SPIFFS);
     }
     else if(!strcmp(variable, "reboot")) {
+        esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
+        esp_task_wdt_add(NULL);
+        periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly
+        periph_module_disable(PERIPH_I2C1_MODULE);
+        periph_module_reset(PERIPH_I2C0_MODULE);
+        periph_module_reset(PERIPH_I2C1_MODULE);
         Serial.print("REBOOT requested");
-        for (int i=0; i<20; i++) {
+        while(true) {
           flashLED(50);
           delay(150);
           Serial.print('.');
         }
-        Serial.printf(" Thats all folks!\n\n");
-        ESP.restart();
     }
     else {
         res = -1;
@@ -730,7 +738,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     Serial.println("\nDump Requested");
     Serial.print("Preferences file: ");
     dumpPrefs(SPIFFS);
-    static char dumpOut[1200] = "";
+    static char dumpOut[2000] = "";
     char * d = dumpOut;
     // Header
     d+= sprintf(d,"<html><head><meta charset=\"utf-8\">\n");
@@ -739,9 +747,14 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon-32x32.png\">\n");
     d+= sprintf(d,"<link rel=\"icon\" type=\"image/png\" sizes=\"16x16\" href=\"/favicon-16x16.png\">\n");
     d+= sprintf(d,"<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
-    d+= sprintf(d,"</head>\n<body>\n");
+    d+= sprintf(d,"</head>\n");
+    d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
-    d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n"); 
+    if (critERR.length() > 0) {
+        d+= sprintf(d,"%s<hr>\n", critERR.c_str());
+        Serial.printf("\n\nA critical error has occurred when initialising Hardware, see startup megssages\n\n\n");
+    }
+    d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
     // Module
     d+= sprintf(d,"Name: %s<br>\n", myName);
     Serial.printf("Name: %s\n", myName);
@@ -817,9 +830,12 @@ static esp_err_t dump_handler(httpd_req_t *req){
 
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
-    d+= sprintf(d,"<button title=\"Refresh this page\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
+    d+= sprintf(d,"<button title=\"Instant Refresh; the page reloads every minute anyway\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
     d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
-    d+= sprintf(d,"</div>\n</body>\n</html>\n");
+    d+= sprintf(d,"</div>\n</body>\n");
+    // A javascript timer to refresh the page every minute.
+    d+= sprintf(d,"<script>\nsetTimeout(function(){\nlocation.replace(document.URL);\n}, 60000);\n");
+    d+= sprintf(d,"</script>\n</html>\n");
     *d++ = 0;
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
@@ -838,6 +854,22 @@ static esp_err_t streamviewer_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)streamviewer_html, streamviewer_html_len);
+}
+
+static esp_err_t error_handler(httpd_req_t *req){
+    flashLED(75);
+    Serial.println("Sending Error page");
+    std::string s(error_html);
+    size_t index;
+    while ((index = s.find("<APPURL>")) != std::string::npos)
+        s.replace(index, strlen("<APPURL>"), httpURL);
+    while ((index = s.find("<CAMNAME>")) != std::string::npos)
+        s.replace(index, strlen("<CAMNAME>"), myName);
+    while ((index = s.find("<ERRORTEXT>")) != std::string::npos)
+        s.replace(index, strlen("<ERRORTEXT>"), critERR.c_str());
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "identity");
+    return httpd_resp_send(req, (const char *)s.c_str(), s.length());
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
@@ -994,6 +1026,18 @@ void startCameraServer(int hPort, int sPort){
         .handler   = info_handler,
         .user_ctx  = NULL
     };
+    httpd_uri_t error_uri = {
+        .uri       = "/",
+        .method    = HTTP_GET,
+        .handler   = error_handler,
+        .user_ctx  = NULL
+    };
+    httpd_uri_t viewerror_uri = {
+        .uri       = "/view",
+        .method    = HTTP_GET,
+        .handler   = error_handler,
+        .user_ctx  = NULL
+    };
 
     // Filter list; used during face detection
     ra_filter_init(&ra_filter, 20);
@@ -1017,15 +1061,20 @@ void startCameraServer(int hPort, int sPort){
     face_id_init(&id_list, FACE_ID_SAVE_NUMBER, ENROLL_CONFIRM_TIMES);
     // The size of the allocated data block; calculated in dl_lib_calloc()
 
+    
+    // Request Handlers; config.max_uri_handlers (above) must be >= the number of handlers
     config.server_port = hPort;
     config.ctrl_port = hPort;
     Serial.printf("Starting web server on port: '%d'\n", config.server_port);
     if (httpd_start(&camera_httpd, &config) == ESP_OK) {
-        // Note; config.max_uri_handlers (above) must be >= the number of handlers
-        httpd_register_uri_handler(camera_httpd, &index_uri);
-        httpd_register_uri_handler(camera_httpd, &cmd_uri);
-        httpd_register_uri_handler(camera_httpd, &status_uri);
-        httpd_register_uri_handler(camera_httpd, &capture_uri);
+        if (critERR.length() > 0) {
+            httpd_register_uri_handler(camera_httpd, &error_uri);
+        } else {
+            httpd_register_uri_handler(camera_httpd, &index_uri);
+            httpd_register_uri_handler(camera_httpd, &cmd_uri);
+            httpd_register_uri_handler(camera_httpd, &status_uri);
+            httpd_register_uri_handler(camera_httpd, &capture_uri);
+        }
         httpd_register_uri_handler(camera_httpd, &style_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(camera_httpd, &favicon_32x32_uri);
@@ -1034,14 +1083,18 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &dump_uri);
     }
 
-
     config.server_port = sPort;
     config.ctrl_port = sPort;
     Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
-        httpd_register_uri_handler(stream_httpd, &stream_uri);
-        httpd_register_uri_handler(stream_httpd, &info_uri);
-        httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
+        if (critERR.length() > 0) {
+            httpd_register_uri_handler(camera_httpd, &error_uri);
+            httpd_register_uri_handler(camera_httpd, &viewerror_uri);
+        } else {
+            httpd_register_uri_handler(stream_httpd, &stream_uri);
+            httpd_register_uri_handler(stream_httpd, &info_uri);
+            httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
+        }
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);

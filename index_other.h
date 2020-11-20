@@ -435,7 +435,7 @@ const uint8_t streamviewer_html[] = R"=====(<!doctype html>
 
 size_t streamviewer_html_len = sizeof(streamviewer_html)-1;
 
-/* Prototype Captive Portal page 
+/* Captive Portal page 
    we replace the <> delimited strings with correct values as it is served */
 
 const std::string portal_html = R"=====(<!doctype html>
@@ -462,4 +462,29 @@ const std::string portal_html = R"=====(<!doctype html>
     <hr>
     <a href="<APPURL>dump" title="Information dump page" target="_blank">Camera Details</a><br>
   </body>
+</html>)=====";
+
+/* Error page 
+   we replace the <> delimited strings with correct values as it is served */
+
+const std::string error_html = R"=====(<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title id="title"><CAMNAME> - Error</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="ico\" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="stylesheet" type="text/css" href="<APPURL>style.css">
+  </head>
+  <body style="text-align: center;">
+    <img src="<APPURL>logo.svg" style="position: relative; float: right;">
+    <h1><CAMNAME></h1>
+    <ERRORTEXT>
+  </body>
+  <script>
+    setTimeout(function(){
+      location.replace(document.URL);
+    }, 60000);
+  </script>
 </html>)=====";

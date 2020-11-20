@@ -1,7 +1,10 @@
-#include "esp_camera.h"
+#include <esp_camera.h>
+#include <esp_int_wdt.h>
+#include <esp_task_wdt.h>
 #include <WiFi.h>
 #include <DNSServer.h>
 #include "src/parsebytes.h"
+
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
@@ -169,6 +172,10 @@ const int pwmMax = pow(2,pwmresolution)-1;
     int8_t recognition_enabled = 0;
 #endif
 
+// Critical error string; if set during init (camera hardware failure) it
+// will be returned for all http requests
+String critERR = "";
+
 // Debug Data for stream and capture
 #if defined(DEBUG_DEFAULT_ON)
     bool debugData = true;
@@ -185,7 +192,7 @@ void flashLED(int flashtime) {
 #else
     return;                         // No notifcation LED, do nothing, no delay
 #endif
-} 
+}
 
 // Lamp Control
 void setLamp(int newVal) {
@@ -381,6 +388,8 @@ void WifiSetup() {
 }
 
 void setup() {
+    // This might reduce boot loops caused by camera init failures when soft rebooting
+    // See, for instance, https://esp32.com/viewtopic.php?t=3152
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     Serial.println();
@@ -443,96 +452,108 @@ void setup() {
 
     // camera init
     esp_err_t err = esp_camera_init(&config);
-    if (err == ESP_OK) {
-        Serial.println("Camera init succeeded");
-    } else {
+    if (err != ESP_OK) {
         delay(100);  // need a delay here or the next serial o/p gets missed
-        Serial.println("Halted: Camera sensor failed to initialise");
-        Serial.println("Will reboot to try again in 10s\n");
-        delay(10000);
-        ESP.restart();
-    }
-    sensor_t * s = esp_camera_sensor_get();
-
-    // Dump camera module, warn for unsupported modules.
-    switch (s->id.PID) {
-        case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
-        case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
-        case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
-        case OV3660_PID: Serial.println("OV3660 camera module detected"); break;
-        default: Serial.println("WARNING: Camera module is unknown and not properly supported, will fallback to OV2640 operation");
-    }
-
-    // OV3660 initial sensors are flipped vertically and colors are a bit saturated
-    if (s->id.PID == OV3660_PID) {
-        s->set_vflip(s, 1);  //flip it back
-        s->set_brightness(s, 1);  //up the blightness just a bit
-        s->set_saturation(s, -2);  //lower the saturation
-    }
-
-    // M5 Stack Wide has special needs
-    #if defined(CAMERA_MODEL_M5STACK_WIDE)
-        s->set_vflip(s, 1);
-        s->set_hmirror(s, 1);
-    #endif
-
-    // Config can override mirror and flip
-    #if defined(H_MIRROR)
-        s->set_hmirror(s, H_MIRROR);
-    #endif
-    #if defined(V_FLIP)
-        s->set_vflip(s, V_FLIP);
-    #endif
-
-    // set initial frame rate
-    #if defined(DEFAULT_RESOLUTION)
-        s->set_framesize(s, DEFAULT_RESOLUTION);
-    #else
-        s->set_framesize(s, FRAMESIZE_SVGA);
-    #endif
-
-    /*
-    * Add any other defaults you want to apply at startup here:
-    * uncomment the line and set the value as desired (see the comments)
-    * 
-    * these are defined in the esp headers here:
-    * https://github.com/espressif/esp32-camera/blob/master/driver/include/sensor.h#L149
-    */
-
-    //s->set_framesize(s, FRAMESIZE_SVGA); // FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]);
-    //s->set_quality(s, val);       // 10 to 63
-    //s->set_brightness(s, 0);      // -2 to 2
-    //s->set_contrast(s, 0);        // -2 to 2
-    //s->set_saturation(s, 0);      // -2 to 2
-    //s->set_special_effect(s, 0);  // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
-    //s->set_whitebal(s, 1);        // aka 'awb' in the UI; 0 = disable , 1 = enable
-    //s->set_awb_gain(s, 1);        // 0 = disable , 1 = enable
-    //s->set_wb_mode(s, 0);         // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
-    //s->set_exposure_ctrl(s, 1);   // 0 = disable , 1 = enable
-    //s->set_aec2(s, 0);            // 0 = disable , 1 = enable
-    //s->set_ae_level(s, 0);        // -2 to 2
-    //s->set_aec_value(s, 300);     // 0 to 1200
-    //s->set_gain_ctrl(s, 1);       // 0 = disable , 1 = enable
-    //s->set_agc_gain(s, 0);        // 0 to 30
-    //s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6
-    //s->set_bpc(s, 0);             // 0 = disable , 1 = enable
-    //s->set_wpc(s, 1);             // 0 = disable , 1 = enable
-    //s->set_raw_gma(s, 1);         // 0 = disable , 1 = enable
-    //s->set_lenc(s, 1);            // 0 = disable , 1 = enable
-    //s->set_hmirror(s, 0);         // 0 = disable , 1 = enable
-    //s->set_vflip(s, 0);           // 0 = disable , 1 = enable
-    //s->set_dcw(s, 1);             // 0 = disable , 1 = enable
-    //s->set_colorbar(s, 0);        // 0 = disable , 1 = enable
-
-    // We now have camera with default init
-    // check for saved preferences and apply them
-
-    if (filesystem) {
-        filesystemStart();
-        loadPrefs(SPIFFS);
-        loadFaceDB(SPIFFS);
+        Serial.printf("\n\nCRITICAL FAILURE: Camera sensor failed to initialise.\n\n");
+        Serial.printf("A full (hard, power off/on) reboot will probably be needed to recover from this.\n");
+        Serial.printf("Meanwhile; this unit will reboot in 1 minute since these errors sometime clear automatically\n");
+        // Reset the I2C bus.. may help when rebooting.
+        periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly in case that is the problem
+        periph_module_disable(PERIPH_I2C1_MODULE);
+        periph_module_reset(PERIPH_I2C0_MODULE);
+        periph_module_reset(PERIPH_I2C1_MODULE);
+        // And set the error text for the UI
+        critERR = "<h1>Error!</h1><hr><p>Camera module failed to initialise!</p><p>Please reset (power off/on) the camera.</p>";
+        critERR += "<p>We will continue to reboot once per minute since this error sometimes clears automatically.</p>";
+        // Start a 60 second watchdog timer
+        esp_task_wdt_init(60,true);
+        esp_task_wdt_add(NULL);        
     } else {
-        Serial.println("No Internal Filesystem, cannot save preferences or face DB");
+        Serial.println("Camera init succeeded");
+
+        // Get a reference to the sensor
+        sensor_t * s = esp_camera_sensor_get();
+
+        // Dump camera module, warn for unsupported modules.
+        switch (s->id.PID) {
+            case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
+            case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
+            case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
+            case OV3660_PID: Serial.println("OV3660 camera module detected"); break;
+            default: Serial.println("WARNING: Camera module is unknown and not properly supported, will fallback to OV2640 operation");
+        }
+
+        // OV3660 initial sensors are flipped vertically and colors are a bit saturated
+        if (s->id.PID == OV3660_PID) {
+            s->set_vflip(s, 1);  //flip it back
+            s->set_brightness(s, 1);  //up the blightness just a bit
+            s->set_saturation(s, -2);  //lower the saturation
+        }
+
+        // M5 Stack Wide has special needs
+        #if defined(CAMERA_MODEL_M5STACK_WIDE)
+            s->set_vflip(s, 1);
+            s->set_hmirror(s, 1);
+        #endif
+
+        // Config can override mirror and flip
+        #if defined(H_MIRROR)
+            s->set_hmirror(s, H_MIRROR);
+        #endif
+        #if defined(V_FLIP)
+            s->set_vflip(s, V_FLIP);
+        #endif
+
+        // set initial frame rate
+        #if defined(DEFAULT_RESOLUTION)
+            s->set_framesize(s, DEFAULT_RESOLUTION);
+        #else
+            s->set_framesize(s, FRAMESIZE_SVGA);
+        #endif
+
+        /*
+        * Add any other defaults you want to apply at startup here:
+        * uncomment the line and set the value as desired (see the comments)
+        * 
+        * these are defined in the esp headers here:
+        * https://github.com/espressif/esp32-camera/blob/master/driver/include/sensor.h#L149
+        */
+
+        //s->set_framesize(s, FRAMESIZE_SVGA); // FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]);
+        //s->set_quality(s, val);       // 10 to 63
+        //s->set_brightness(s, 0);      // -2 to 2
+        //s->set_contrast(s, 0);        // -2 to 2
+        //s->set_saturation(s, 0);      // -2 to 2
+        //s->set_special_effect(s, 0);  // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+        //s->set_whitebal(s, 1);        // aka 'awb' in the UI; 0 = disable , 1 = enable
+        //s->set_awb_gain(s, 1);        // 0 = disable , 1 = enable
+        //s->set_wb_mode(s, 0);         // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+        //s->set_exposure_ctrl(s, 1);   // 0 = disable , 1 = enable
+        //s->set_aec2(s, 0);            // 0 = disable , 1 = enable
+        //s->set_ae_level(s, 0);        // -2 to 2
+        //s->set_aec_value(s, 300);     // 0 to 1200
+        //s->set_gain_ctrl(s, 1);       // 0 = disable , 1 = enable
+        //s->set_agc_gain(s, 0);        // 0 to 30
+        //s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6
+        //s->set_bpc(s, 0);             // 0 = disable , 1 = enable
+        //s->set_wpc(s, 1);             // 0 = disable , 1 = enable
+        //s->set_raw_gma(s, 1);         // 0 = disable , 1 = enable
+        //s->set_lenc(s, 1);            // 0 = disable , 1 = enable
+        //s->set_hmirror(s, 0);         // 0 = disable , 1 = enable
+        //s->set_vflip(s, 0);           // 0 = disable , 1 = enable
+        //s->set_dcw(s, 1);             // 0 = disable , 1 = enable
+        //s->set_colorbar(s, 0);        // 0 = disable , 1 = enable
+
+        // We now have camera with default init
+        // check for saved preferences and apply them
+
+        if (filesystem) {
+            filesystemStart();
+            loadPrefs(SPIFFS);
+            loadFaceDB(SPIFFS);
+        } else {
+            Serial.println("No Internal Filesystem, cannot save preferences or face DB");
+        }
     }
 
     /*
@@ -573,12 +594,15 @@ void setup() {
         }
         sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
     #endif
-    Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
-    Serial.printf("Stream viewer available at '%sview'\n", streamURL);
-    Serial.printf("Raw stream URL is '%s'\n", streamURL);
-
-    if (debugData) Serial.println("Camera debug data is enabled (send any char to disable)");
-    else Serial.println("Camera debug data is disabled (send any char to enable)");
+    if (critERR.length() == 0) {
+        Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
+        Serial.printf("Stream viewer available at '%sview'\n", streamURL);
+        Serial.printf("Raw stream URL is '%s'\n", streamURL);
+        if (debugData) Serial.println("Camera debug data is enabled (send any char to disable)");
+        else Serial.println("Camera debug data is disabled (send any char to enable)");
+    } else {
+        Serial.printf("\nCamera unavailable due to initialisation errors.\n\n");
+    }
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
