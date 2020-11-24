@@ -138,7 +138,7 @@ button.disabled {
 
 input[type=range] {
   -webkit-appearance: none;
-  width: 100%;
+  width: 0;
   height: 22px;
   background: #363636;
   cursor: pointer;
