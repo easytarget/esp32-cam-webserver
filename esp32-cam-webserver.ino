@@ -5,6 +5,8 @@
 #include <DNSServer.h>
 #include "src/parsebytes.h"
 
+// #define FACE_DETECTION_COMPILE
+
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
@@ -160,16 +162,21 @@ const int pwmMax = pow(2,pwmresolution)-1;
     bool filesystem = true;
 #endif
 
-#if defined(FACE_DETECTION)
-    int8_t detection_enabled = 1;
-    #if defined(FACE_RECOGNITION)
-        int8_t recognition_enabled = 1;
-    #else
-       int8_t recognition_enabled = 0;
-    #endif
+#if defined(FACE_DETECTION_COMPILE)
+  #if defined(FACE_DETECTION)
+      int8_t detection_enabled = 1;
+      #if defined(FACE_RECOGNITION)
+          int8_t recognition_enabled = 1;
+      #else
+         int8_t recognition_enabled = 0;
+      #endif
+  #else
+      int8_t detection_enabled = 0;
+      int8_t recognition_enabled = 0;
+  #endif
 #else
-    int8_t detection_enabled = 0;
-    int8_t recognition_enabled = 0;
+  int8_t detection_enabled = 0;
+  int8_t recognition_enabled = 0;
 #endif
 
 // Critical error string; if set during init (camera hardware failure) it
@@ -550,7 +557,9 @@ void setup() {
         if (filesystem) {
             filesystemStart();
             loadPrefs(SPIFFS);
-            loadFaceDB(SPIFFS);
+            #if defined(FACE_DETECTION_COMPILE)
+              loadFaceDB(SPIFFS);
+            #endif
         } else {
             Serial.println("No Internal Filesystem, cannot save preferences or face DB");
         }
