@@ -87,6 +87,10 @@ section#buttons {
   display: flex
 }
 
+#quality {
+    transform: rotateY(180deg);
+}
+
 .input-group {
   display: flex;
   flex-wrap: nowrap;
