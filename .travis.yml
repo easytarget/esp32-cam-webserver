@@ -5,11 +5,7 @@ language: bash
 os:
   - linux
 
-addons:
-  apt:
-    packages:
-      - python3-pip
-      - python3-setuptools 
+dist: focal
 
 before_script:
   - "export DISPLAY=:99.0"
@@ -25,10 +21,8 @@ before_script:
   - git submodule update --init --recursive
   - cd tools
   - python --version
-  - sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-  - python --version
-  - python3 get.py
-  - pip3 install --user platformio
+  - python get.py
+  - pip install --user platformio
   - platformio update
   
 script:
