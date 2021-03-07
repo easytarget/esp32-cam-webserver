@@ -24,6 +24,7 @@ before_script:
   - cd esp32
   - git submodule update --init --recursive
   - cd tools
+  - python --version
   - python3 get.py
   - pip3 install --user platformio
   - platformio update
