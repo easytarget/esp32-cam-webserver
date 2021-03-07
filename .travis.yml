@@ -25,7 +25,7 @@ before_script:
   - git submodule update --init --recursive
   - cd tools
   - python --version
-  - update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+  - sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
   - python --version
   - python3 get.py
   - pip3 install --user platformio
