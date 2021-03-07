@@ -5,6 +5,8 @@ language: bash
 os:
   - linux
 
+dist: focal
+
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
@@ -18,6 +20,7 @@ before_script:
   - cd esp32
   - git submodule update --init --recursive
   - cd tools
+  - python --version
   - python get.py
   - pip install --user platformio
   - platformio update
