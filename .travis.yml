@@ -5,6 +5,11 @@ language: bash
 os:
   - linux
 
+addons:
+  apt:
+    packages:
+      - python3-pip
+
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
