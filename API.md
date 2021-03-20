@@ -72,8 +72,15 @@ clear_prefs     - Deletes the preferences file
 reboot          - Reboots the camera
 ```
 ## Examples
-* Flash light: on/off
-  * `http://<IP-ADDRESS>/control?var=lamp&val=100` On
-  * `http://<IP-ADDRESS>/control?var=lamp&val=50` 50%
-  * `http://<IP-ADDRESS>/control?var=lamp&val=0` Off
+* Flash light: on/mid/off
+  * `http://<IP-ADDRESS>/control?var=lamp&val=100`
+  * `http://<IP-ADDRESS>/control?var=lamp&val=50`
+  * `http://<IP-ADDRESS>/control?var=lamp&val=0`
+* Set resolution to VGA
+  * `http://10.0.0.180/control?var=framesize&val=6`
+* Show camera details and settings
+  * All settings are returned via single `status` call in [JSON](https://www.json.org/) format.
+  * `http://<IP-ADDRESS>/status`
+    `{"lamp":0,"autolamp":0,"framesize":10,"quality":10,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":168,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":0,"hmirror":0,"dcw":1,"colorbar":0,"face_detect":0,"face_enroll":0,"face_recognize":0,"cam_name":"General","code_ver":"Mar  6 2021 @ 17:54:00","rotate":"0","stream_url":"http://10.0.0.190:81/"}`
 
+You can try these yourself in a browser address bar, from the commandline with `curl` and co. or use them programatically from your scripting language of choice.
