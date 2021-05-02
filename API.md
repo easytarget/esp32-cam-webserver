@@ -25,7 +25,7 @@ Call `/control?var=<key>&val=<val>` with a settings key and value to set camera 
 #### Settings
 ```
 lamp            - Lamp value in percent; integer, 0 - 100 (-1 = disabled)
-framesize       - 0=QQVGA, 3=HQVGA, QVGA=4, CIF=5, VGA=6, SVGA=7, XGA=8, SXGA=9, UXGA=10, QXGA(ov3660)=11
+framesize       - See below
 quality         - 10 to 63 (ov3660: 4 to 10)
 contrast        - -2 to 2 (ov3660: -3 to 3)
 brightness      - -2 to 2 (ov3660: -3 to 3)
@@ -62,6 +62,25 @@ These values are returned in the `/status` JSON response, but cannot be set via 
 cam_name        - Camera Name; String
 code_ver        - Code compile date and time; String
 stream_url      - Raw stream URL; string
+```
+##### Framesize values
+These may vary between different ESP framework releases
+```
+ 0 - THUMB (96x96)
+ 1 - QQVGA (160x120)
+ 3 - HQVGA (240x176)
+ 5 - QVGA (320x240)
+ 6 - CIF (400x296)
+ 7 - HVGA (480x320)
+ 8 - VGA (640x480)
+ 9 - SVGA (800x600)
+10 - XGA (1024x768)
+11 - HD (1280x720)
+12 - SXGA (1280x1024)
+13 - UXGA (1600x1200)
+Only for 3Mp+ camera modules:
+14 - FHD (1920x1080)
+17 - QXGA (2048x1536)
 ```
 #### Commands
 These are commands; they can be sent by calling the `/control` URI with them as the `<key>` *(a `<val>` must also be supplied, but can be any value and is ignored)*.
