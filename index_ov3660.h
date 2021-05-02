@@ -53,7 +53,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
                   <option value="17">QXGA (2048x1536)</option>
-                  <option value="14">FHD (2048x1536)</option>
+                  <option value="14">FHD (1920x1080)</option>
                   <option value="13">UXGA (1600x1200)</option>
                   <option value="12">SXGA (1280x1024)</option>
                   <option value="11">HD (1280x720)</option>
