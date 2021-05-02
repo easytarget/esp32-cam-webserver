@@ -108,7 +108,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  *
  */
 // Initial Reslolution, default SVGA
-// available values are: FRAMESIZE_[QQVGA|HQVGA|QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA|QXGA(ov3660)]
+// available values are: FRAMESIZE_[THUMB|QQVGA|HQVGA|QVGA|CIF|HVGA|VGA|SVGA|XGA|HD|SXGA|UXGA] + [FHD|QXGA] for 3Mp Sensors; eg ov3660
 // #define DEFAULT_RESOLUTION FRAMESIZE_SVGA
 
 // Hardware Horizontal Mirror, 0 or 1 (overrides default board setting)
