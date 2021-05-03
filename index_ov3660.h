@@ -52,16 +52,20 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
               <div class="input-group" id="framesize-group">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
-                  <option value="11">QXGA(2048x1564)</option>
-                  <option value="10">UXGA(1600x1200)</option>
-                  <option value="9">SXGA(1280x1024)</option>
-                  <option value="8">XGA(1024x768)</option>
-                  <option value="7">SVGA(800x600)</option>
-                  <option value="6">VGA(640x480)</option>
-                  <option value="5">CIF(400x296)</option>
-                  <option value="4">QVGA(320x240)</option>
-                  <option value="3">HQVGA(240x176)</option>
-                  <option value="0">QQVGA(160x120)</option>
+                  <option value="17">QXGA (2048x1536)</option>
+                  <option value="14">FHD (1920x1080)</option>
+                  <option value="13">UXGA (1600x1200)</option>
+                  <option value="12">SXGA (1280x1024)</option>
+                  <option value="11">HD (1280x720)</option>
+                  <option value="10">XGA (1024x768)</option>
+                  <option value="9">SVGA (800x600)</option>
+                  <option value="8">VGA (640x480)</option>
+                  <option value="7">HVGA (480x320)</option>
+                  <option value="6">CIF (400x296)</option>
+                  <option value="5">QVGA (320x240)</option>
+                  <option value="3">HQVGA (240x176)</option>
+                  <option value="1">QQVGA (160x120)</option>
+                  <option value="0">THUMB (96x96)</option>
                 </select>
               </div>
               <div class="input-group" id="quality-group">

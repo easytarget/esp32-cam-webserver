@@ -16,10 +16,10 @@ before_script:
   - cd $HOME/arduino_ide/hardware
   - mkdir esp32
   - cd esp32
-  - git clone --depth 1 https://github.com/espressif/arduino-esp32.git esp32
-  - cd esp32
-  - git submodule update --init --recursive
-  - cd tools
+  - wget https://github.com/espressif/arduino-esp32/archive/refs/tags/1.0.6.tar.gz
+  - tar -xzf 1.0.6.tar.gz 
+  - mv arduino-esp32-1.0.6/ esp32
+  - cd esp32/tools
   - python --version
   - python get.py
   - pip install --user platformio
