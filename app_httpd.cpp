@@ -64,6 +64,7 @@ extern String sketchMD5;
 // Counters for connection and client debug/info
 uint8_t connectedClients = 0;
 unsigned long streamsServed = 0;
+unsigned long imagesServed = 0;
 
 
 #include "fb_gfx.h"
@@ -294,8 +295,6 @@ void serialDump() {
     WiFi.macAddress(mac);
     Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    // Stream info
-
     // System
     Serial.println("System:");
     int64_t sec = esp_timer_get_time() / 1000000;
@@ -304,7 +303,7 @@ void serialDump() {
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
     Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Active connections: %i, Total streams served: %i\n", connectedClients, streamsServed);
+    Serial.printf("Active connections: %i, Total streams served: %i, Total image captures: %i\n", connectedClients, streamsServed, imagesServed);
     Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
@@ -426,6 +425,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
     if (debugData) {
         Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
     }
+
+    imagesServed++;
     if (autoLamp && (lampVal != -1)) setLamp(0);
     return res;
 }
@@ -825,7 +826,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
     if (critERR.length() > 0) {
-        d+= sprintf(d,"Hardware Error Detected!\n- Use serial log to capture startup errors\n");
+        d+= sprintf(d,"Hardware Error Detected!\n(the serial log may give more information)\n");
         d+= sprintf(d,"%s<hr>\n", critERR.c_str());
     }
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
@@ -863,9 +864,6 @@ static esp_err_t dump_handler(httpd_req_t *req){
     WiFi.macAddress(mac);
     d+= sprintf(d,"MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    // Stream info
-    d+= sprintf(d,"Active connections: %i, Total streams served: %i<br>\n", connectedClients, streamsServed);
-
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
     int64_t sec = esp_timer_get_time() / 1000000;
@@ -874,6 +872,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
+    d+= sprintf(d,"Active connections: %i, Total streams served: %i, Total image captures: %i<br>\n", connectedClients, streamsServed, imagesServed);
     d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
