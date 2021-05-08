@@ -303,7 +303,7 @@ void serialDump() {
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
     Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Active connections: %i, Total streams served: %i, Total image captures: %i\n", connectedClients, streamsServed, imagesServed);
+    Serial.printf("Active connections: %i, Total streams served: %lu, Total image captures: %lu\n", connectedClients, streamsServed, imagesServed);
     Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
@@ -872,7 +872,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
-    d+= sprintf(d,"Active connections: %i, Total streams served: %i, Total image captures: %i<br>\n", connectedClients, streamsServed, imagesServed);
+    d+= sprintf(d,"Active connections: %i, Total streams served: %lu, Total image captures: %lu<br>\n", connectedClients, streamsServed, imagesServed);
     d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
