@@ -51,6 +51,14 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
 * The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is powered up to allow it to enter it's programming mode. This can be done with simple jumper cable connected at poweron, fitting a switch for this is useful if you will be reprogramming a lot.
 * You must supply 5v to the ESP32 in order to power it during programming, the FTDI board can supply this.
 
+### Download the Sketch, Unpack and Rename
+Download the latest release of the sketch from https://github.com/easytarget/esp32-cam-webserver/releases/latest
+- You can get the latest stable development release by cloning / downloading the `master` branch of the repo.
+
+This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-3.0.zip`. Tou need to unpack this into your Arduino sketch folder, and then you need to rename the folder you just extracted to remove the version number, eg.`esp32-cam-webserver-3.0` becomes `esp32-cam-webserver`. 
+
+Once you have done that you can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and selecting `esp32-cam-webserver.ino`.
+
 ### Config
 
 By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
