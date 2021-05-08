@@ -61,6 +61,11 @@ extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
 
+// Counters for connection and client debug/info
+uint8_t connectedClients = 0;
+unsigned long streamsServed = 0;
+
+
 #include "fb_gfx.h"
 #include "fd_forward.h"
 #include "fr_forward.h"
@@ -395,6 +400,8 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
+    connectedClients = 1;
+
     while(true){
         detected = false;
         face_id = 0;
@@ -511,6 +518,9 @@ static esp_err_t stream_handler(httpd_req_t *req){
                  );
         }
     }
+
+    connectedClients = 0;
+    streamsServed++;
 
     if (autoLamp && (lampVal != -1)) setLamp(0);
     streamCount = 0;  // at present we only have one stream handler..
@@ -805,6 +815,10 @@ static esp_err_t dump_handler(httpd_req_t *req){
     WiFi.macAddress(mac);
     d+= sprintf(d,"MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    // Stream info
+    d+= sprintf(d,"Active connections: %i, Total streams served: %i<br>\n", connectedClients, streamsServed);
+    Serial.printf("Active connections: %i, Total streams served: %i\n", connectedClients, streamsServed);
 
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
