@@ -49,6 +49,8 @@ extern char httpURL[];
 extern char streamURL[];
 extern char default_index[];
 extern int8_t streamCount;
+extern unsigned long streamsServed;
+extern unsigned long imagesServed;
 extern int myRotation;
 extern int lampVal;
 extern bool autoLamp;
@@ -60,6 +62,7 @@ extern bool debugData;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
+
 
 #include "fb_gfx.h"
 #include "fd_forward.h"
@@ -246,6 +249,63 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
     return matched_id;
 }
 
+void serialDump() {
+    Serial.println("\nPreferences file: ");
+    dumpPrefs(SPIFFS);
+    if (critERR.length() > 0) {
+        Serial.printf("\n\nA critical error has occurred when initialising Camera Hardware, see startup megssages\n");
+    }
+    // Module
+    Serial.printf("Name: %s\n", myName);
+    Serial.printf("Firmware: %s (base: %s)\n", myVer, baseVersion);
+    float sketchPct = 100 * sketchSize / sketchSpace;
+    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
+    Serial.printf("MD5: %s\n", sketchMD5.c_str());
+    Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
+    // Network
+    if (accesspoint) {
+        if (captivePortal) {
+            Serial.printf("WiFi Mode: AccessPoint with captive portal\n");
+        } else {
+            Serial.printf("WiFi Mode: AccessPoint\n");
+        }
+        Serial.printf("WiFi SSID: %s\n", apName);
+    } else {
+        Serial.printf("WiFi Mode: Client\n");
+        String ssidName = WiFi.SSID();
+        Serial.printf("WiFi Ssid: %s\n", ssidName.c_str());
+        Serial.printf("WiFi Rssi: %i\n", WiFi.RSSI());
+        String bssid = WiFi.BSSIDstr();
+        Serial.printf("WiFi BSSID: %s\n", bssid.c_str());
+    }
+    Serial.printf("WiFi IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+    if (!accesspoint) {
+        Serial.printf("WiFi Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
+        Serial.printf("WiFi Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+    }
+    Serial.printf("WiFi Http port: %i, Stream port: %i\n", httpPort, streamPort);
+    byte mac[6];
+    WiFi.macAddress(mac);
+    Serial.printf("WiFi MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    // System
+    int64_t sec = esp_timer_get_time() / 1000000;
+    int64_t upDays = int64_t(floor(sec/86400));
+    int upHours = int64_t(floor(sec/3600)) % 24;
+    int upMin = int64_t(floor(sec/60)) % 60;
+    int upSec = sec % 60;
+    Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
+    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\n", streamCount, streamsServed, imagesServed);
+    Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
+    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    if (filesystem) {
+        Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    }
+    Serial.printf("Enrolled faces: %i (max %i)\n", id_list.count, id_list.size);
+    Serial.println();
+    return;
+}
+
 static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size_t len){
     jpg_chunking_t *j = (jpg_chunking_t *)arg;
     if(!index){
@@ -301,6 +361,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         if (debugData) {
             Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
         }
+        imagesServed++;
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return res;
     }
@@ -356,6 +417,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
     if (debugData) {
         Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
     }
+
+    imagesServed++;
     if (autoLamp && (lampVal != -1)) setLamp(0);
     return res;
 }
@@ -377,7 +440,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     Serial.println("Stream requested");
     if (autoLamp && (lampVal != -1)) setLamp(lampVal);
-    streamCount = 1;  // at present we only have one stream handler..
+    streamCount = 1;  // at present we only have one stream handler, so values are 0 or 1..
     flashLED(75);     // double flash of status LED
     delay(75);
     flashLED(75);
@@ -389,6 +452,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
     if(res != ESP_OK){
+        streamCount = 0;
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return res;
     }
@@ -408,6 +472,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
             fr_face = fr_start; 
             fr_encode = fr_start;
             fr_recognize = fr_start;
+
             if(!detection_enabled || fb->width > 400){
                 if(fb->format != PIXFORMAT_JPEG){
                     bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
@@ -512,8 +577,9 @@ static esp_err_t stream_handler(httpd_req_t *req){
         }
     }
 
+    streamsServed++;
+    streamCount = 0;
     if (autoLamp && (lampVal != -1)) setLamp(0);
-    streamCount = 0;  // at present we only have one stream handler..
     Serial.println("Stream ended");
     last_frame = 0;
     return res;
@@ -735,9 +801,8 @@ static esp_err_t logo_svg_handler(httpd_req_t *req){
 
 static esp_err_t dump_handler(httpd_req_t *req){
     flashLED(75);
-    Serial.println("\nDump Requested");
-    Serial.print("Preferences file: ");
-    dumpPrefs(SPIFFS);
+    Serial.println("\nDump Requested via Web");
+    serialDump();
     static char dumpOut[2000] = "";
     char * d = dumpOut;
     // Header
@@ -751,60 +816,43 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
     if (critERR.length() > 0) {
+        d+= sprintf(d,"Hardware Error Detected!\n(the serial log may give more information)\n");
         d+= sprintf(d,"%s<hr>\n", critERR.c_str());
-        Serial.printf("\n\nA critical error has occurred when initialising Hardware, see startup megssages\n\n\n");
     }
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
     // Module
     d+= sprintf(d,"Name: %s<br>\n", myName);
-    Serial.printf("Name: %s\n", myName);
     d+= sprintf(d,"Firmware: %s (base: %s)<br>\n", myVer, baseVersion);
-    Serial.printf("Firmware: %s (base: %s)\n", myVer, baseVersion);
     float sketchPct = 100 * sketchSize / sketchSpace;
     d+= sprintf(d,"Sketch Size: %i (total: %i, %.1f%% used)<br>\n", sketchSize, sketchSpace, sketchPct);
-    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
     d+= sprintf(d,"MD5: %s<br>\n", sketchMD5.c_str());
-    Serial.printf("MD5: %s\n", sketchMD5.c_str());
     d+= sprintf(d,"ESP sdk: %s<br>\n", ESP.getSdkVersion());
-    Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
     // Network
     d+= sprintf(d,"<h2>WiFi</h2>\n");
     if (accesspoint) {
         if (captivePortal) {
             d+= sprintf(d,"Mode: AccessPoint with captive portal<br>\n");
-            Serial.printf("Mode: AccessPoint with captive portal\n");
         } else {
             d+= sprintf(d,"Mode: AccessPoint<br>\n");
-            Serial.printf("Mode: AccessPoint\n");
         }
         d+= sprintf(d,"SSID: %s<br>\n", apName);
-        Serial.printf("SSID: %s\n", apName);
     } else {
         d+= sprintf(d,"Mode: Client<br>\n");
-        Serial.printf("Mode: Client\n");
         String ssidName = WiFi.SSID();
         d+= sprintf(d,"SSID: %s<br>\n", ssidName.c_str());
-        Serial.printf("Ssid: %s\n", ssidName.c_str());
         d+= sprintf(d,"Rssi: %i<br>\n", WiFi.RSSI());
-        Serial.printf("Rssi: %i\n", WiFi.RSSI());
         String bssid = WiFi.BSSIDstr();
         d+= sprintf(d,"BSSID: %s<br>\n", bssid.c_str());
-        Serial.printf("BSSID: %s\n", bssid.c_str());
     }
     d+= sprintf(d,"IP address: %d.%d.%d.%d<br>\n", ip[0], ip[1], ip[2], ip[3]);
-    Serial.printf("IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
     if (!accesspoint) {
         d+= sprintf(d,"Netmask: %d.%d.%d.%d<br>\n", net[0], net[1], net[2], net[3]);
-        Serial.printf("Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
         d+= sprintf(d,"Gateway: %d.%d.%d.%d<br>\n", gw[0], gw[1], gw[2], gw[3]);
-        Serial.printf("Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
     }
     d+= sprintf(d,"Http port: %i, Stream port: %i<br>\n", httpPort, streamPort);
-    Serial.printf("Http port: %i, Stream port: %i\n", httpPort, streamPort);
     byte mac[6];
     WiFi.macAddress(mac);
     d+= sprintf(d,"MAC: %02X:%02X:%02X:%02X:%02X:%02X<br>\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    Serial.printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
@@ -814,19 +862,14 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
+    d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Image captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
     d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
-    Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     if (filesystem) {
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
-        Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
     d+= sprintf(d,"Enrolled faces: %i (max %i)<br>\n", id_list.count, id_list.size);
-    Serial.printf("Enrolled faces: %i (max %i)\n", id_list.count, id_list.size);
 
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
