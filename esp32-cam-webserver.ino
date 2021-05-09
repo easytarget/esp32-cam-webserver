@@ -186,6 +186,25 @@ String critERR = "";
     bool debugData = false;
 #endif
 
+void debugToggle() {
+    if (Serial.available()) {
+        if (Serial.read() == 'd' ) {
+            serialDump();
+        } else {
+            // Toggle debug output on serial input
+            if (debugData) {
+                debugData = false;
+                Serial.println("Camera debug data is disabled (send 'd' for status dump, or any other char to enable debug)");
+            } else {
+                debugData = true;
+                Serial.println("Camera debug data is enabled (send 'd' for status dump, or any other char to disable debug)");
+            }
+        }
+    }
+    while (Serial.available()) Serial.read();  // chomp the buffer
+}
+
+
 // Notification LED 
 void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
@@ -621,9 +640,11 @@ void loop() {
     */
     if (accesspoint) {
         // Accespoint is permanently up, so just loop, servicing the captive portal as needed
+        // Rather than loop forever, follow the watchdog, in case we later add auto re-scan.
         unsigned long start = millis();
         while (millis() - start < WIFI_WATCHDOG ) {
             delay(100);
+            debugToggle();
             if (captivePortal) dnsServer.processNextRequest();
         }
     } else {
@@ -640,21 +661,7 @@ void loop() {
             unsigned long start = millis();
             while (millis() - start < WIFI_WATCHDOG ) {
                 delay(100);
-                if (Serial.available()) {
-                    if (Serial.read() == 'd' ) {
-                        serialDump();
-                    } else {
-                        // Toggle debug output on serial input
-                        if (debugData) {
-                            debugData = false;
-                            Serial.println("Camera debug data is disabled (send 'd' for status dump, or any other char to enable debug)");
-                        } else {
-                            debugData = true;
-                            Serial.println("Camera debug data is enabled (send 'd' for status dump, or any other char to disable debug)");
-                        }
-                    }
-                }
-                while (Serial.available()) Serial.read();  // chomp the buffer
+                debugToggle();
             }
         } else {
             // disconnected; attempt to reconnect
