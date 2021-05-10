@@ -68,11 +68,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
               </div>
               <div class="input-group" id="quality-group">
                 <label for="quality">Quality</label>
-                <div class="range-min">63</div>
+                <div class="range-min">Low<br><span style="font-size: 80%;">(fast)</span></div>
                 <!-- Note; the following element is 'flipped' in CSS so that it slides from High to Low
                      As a result the 'min' and 'max' values are reversed here too -->
-                <input type="range" id="quality" min="10" max="63" value="10" class="default-action" title="Lower is Better">
-                <div class="range-max">10</div>
+                <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
+                <div class="range-max">High<br><span style="font-size: 80%;">(slow)</span></div>
               </div>
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
@@ -572,14 +572,14 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
-      if (framesize.value > 5) {
+      if (framesize.value > 6) {
         updateValue(detect, false)
         updateValue(recognize, false)
       }
     }
 
     detect.onchange = () => {
-      if (framesize.value > 5) {
+      if (framesize.value > 6) {
         alert("Please select CIF or lower resolution before enabling this feature!");
         updateValue(detect, false)
         return;
@@ -592,7 +592,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     }
 
     recognize.onchange = () => {
-      if (framesize.value > 5) {
+      if (framesize.value > 6) {
         alert("Please select CIF or lower resolution before enabling this feature!");
         updateValue(recognize, false)
         return;
