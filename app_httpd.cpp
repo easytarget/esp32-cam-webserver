@@ -398,11 +398,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
             face_id = run_face_recognition(image_matrix, net_boxes);
         }
         draw_face_boxes(image_matrix, net_boxes, face_id);
-        free(net_boxes->score);
-        free(net_boxes->box);
-        free(net_boxes->landmark);
-        free(net_boxes->category);
-        free(net_boxes);
     }
 
     jpg_chunking_t jchunk = {req, 0};
@@ -418,9 +413,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
     if (debugData) {
         Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
     }
-    Serial.printf("DEBUG: HEAP: %i, free: %i, min free: %i, max block: %i, ", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("PSRAM: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-
 
     imagesServed++;
     if (autoLamp && (lampVal != -1)) setLamp(0);
@@ -517,11 +509,6 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 }
                                 fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
-                                free(net_boxes->score);
-                                free(net_boxes->box);
-                                free(net_boxes->landmark);
-                                free(net_boxes->category);
-                                free(net_boxes);
                             }
                             if(!fmt2jpg(image_matrix->item, fb->width*fb->height*3, fb->width, fb->height, PIXFORMAT_RGB888, 90, &_jpg_buf, &_jpg_buf_len)){
                                 Serial.println("fmt2jpg failed");
@@ -580,8 +567,6 @@ static esp_err_t stream_handler(httpd_req_t *req){
                 (detected)?"DETECTED ":"", face_id
                  );
         }
-        Serial.printf("DEBUG: HEAP: %i, free: %i, min free: %i, max block: %i, ", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-        Serial.printf("PSRAM: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     }
 
     streamsServed++;
