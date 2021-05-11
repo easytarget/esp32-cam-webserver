@@ -7,14 +7,15 @@ https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/
 
 But expanded with:
 * More options for default network and camera settings
-* Control of on-board lamps, view rotation in the browser
+* Save and restore settings
+* Control of on-board lamps, rotate the view in the browser
 * Dedicated standalone stream viewer
-* Lots of minor fixes and tweaks
+* Lots of minor fixes and tweaks, documentation etc.
 
 The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
 * There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
 
-![My Gods, it's full of cats!](Docs/mygodsitsfullofcats.png)
+![Actually, there are two cats in this image!]( Docs/twocatsactually.png)
 
 Hopefully this expanded example is more useful for those users who wish to set up a simple ESP32 based webcam using the cheap(ish) modules freely available online. Especially the AI-THINKER board:
 
@@ -63,13 +64,11 @@ Once you have done that you can open the sketch in the IDE by going to the `esp3
 
 By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
 
-To make a permanent config for a different board, or with your home wifi settings etc. copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h`
-
-You can now set a camera name, board model, wifi settings and some other defaults in that file. And because this is your private copy it will not get overwritten if you update the main sketch!
+To make a permanent config with your home wifi settings, different defaults or a different board; copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h`. Because this is your private copy of the config it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
-Assuming you are using the latest Espressif Arduino core the AI-THINKER board (or whatever you use) will appear in the ESP32 Arduino section of the boards list. 
+Assuming you are using the latest Espressif Arduino core the `AI-THINKER` board (or whatever board you select for programming) will appear in the ESP32 Arduino section of the boards list. 
 ![IDE board config](Docs/board-selection-small.png)
 
 Compile and upload the code from the IDE, when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
@@ -90,7 +89,7 @@ The streamviewer, lamp control, and all the other new features have been added. 
 
 I have left all the Face Recognition code untouched, it works, and with good lighting and camera position it can work quite well. But you can only use it in low-resolution modes, and it is not something I will be using.
 
-The web UI has had minor changes to add the lamp control (only when enabled), I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
+The web UI has had changes to add the lamp control (only when enabled) and make the streamm window rotate and resize appropriately. I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
@@ -115,5 +114,7 @@ V4 Remove face recognition entirely;
 * Investigate using SD card to capture images
 * implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
 * UI Skinning/Theming
+* OSD
+** Temp/humi/press sensor suport (bme20,dht11)
 
 You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
