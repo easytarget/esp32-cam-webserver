@@ -144,6 +144,12 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define FACE_DETECTION
 // #define FACE_RECOGNITION
 
+// Uncomment and edit the following to change the text displayed next to faces when face recognition is on
+// The 'good' text will have the subject ID appended. Maximum 20 characters!
+// #define GOOD_FACE_TEXT "Hello Subject "
+// #define BAD_FACE_TEXT "Intruder Alert!"
+
+
 // Uncomment to enable camera debug info on serial by default
 // #define DEBUG_DEFAULT_ON
 

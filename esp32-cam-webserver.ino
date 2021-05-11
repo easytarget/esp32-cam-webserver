@@ -106,7 +106,7 @@ int stationCount = sizeof(stationList)/sizeof(stationList[0]);
     int firstStation = 0;
 #endif
 
-// Select bvetween full and simple index as the default.
+// Select between full and simple index as the default.
 #if defined(DEFAULT_INDEX_FULL)
     char default_index[] = "full";
 #else
@@ -173,6 +173,17 @@ const int pwmMax = pow(2,pwmresolution)-1;
 #else
     int8_t detection_enabled = 0;
     int8_t recognition_enabled = 0;
+#endif
+
+#if defined (GOOD_FACE_TEXT)
+    char knownFaceText[] = GOOD_FACE_TEXT;
+#else
+    char knownFaceText[] ="Hello Subject ";
+#endif
+#if defined (BAD_FACE_TEXT)
+    char unknownFaceText[] = BAD_FACE_TEXT;
+#else
+    char unknownFaceText[] = "Intruder Alert!";
 #endif
 
 // Critical error string; if set during init (camera hardware failure) it
@@ -245,7 +256,7 @@ void WifiSetup() {
     Serial.println();
     byte mac[6] = {0,0,0,0,0,0};
     WiFi.macAddress(mac);
-    Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     
     int bestStation = -1;
     long bestRSSI = -1024;
@@ -253,9 +264,9 @@ void WifiSetup() {
     uint8_t bestBSSID[6];
     if (stationCount > firstStation) {
         // We have a list to scan 
-        Serial.printf("Scanning local Wifi Networks\n");
+        Serial.printf("Scanning local Wifi Networks\r\n");
         int stationsFound = WiFi.scanNetworks();
-        Serial.printf("%i networks found\n", stationsFound);
+        Serial.printf("%i networks found\r\n", stationsFound);
         if (stationsFound > 0) {
             for (int i = 0; i < stationsFound; ++i) {
                 // Print SSID and RSSI for each network found
@@ -298,7 +309,7 @@ void WifiSetup() {
             Serial.println("AccessPoint mode selected in config");
         }
     } else {
-        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \n", 
+        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \r\n", 
                        bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3], 
                        bestBSSID[4], bestBSSID[5], bestSSID);
         // Apply static settings if necesscary
@@ -348,9 +359,9 @@ void WifiSetup() {
             ip = WiFi.localIP();
             net = WiFi.subnetMask();
             gw = WiFi.gatewayIP();
-            Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
-            Serial.printf("Netmask   : %d.%d.%d.%d\n",net[0],net[1],net[2],net[3]);
-            Serial.printf("Gateway   : %d.%d.%d.%d\n",gw[0],gw[1],gw[2],gw[3]);
+            Serial.printf("IP address: %d.%d.%d.%d\r\n",ip[0],ip[1],ip[2],ip[3]);
+            Serial.printf("Netmask   : %d.%d.%d.%d\r\n",net[0],net[1],net[2],net[3]);
+            Serial.printf("Gateway   : %d.%d.%d.%d\r\n",gw[0],gw[1],gw[2],gw[3]);
             // Flash the LED to show we are connected
             for (int i = 0; i < 5; i++) {
                 flashLED(50);
@@ -395,7 +406,7 @@ void WifiSetup() {
         net = WiFi.subnetMask();
         gw = WiFi.gatewayIP();
         strcpy(apName, stationList[0].ssid);
-        Serial.printf("IP address: %d.%d.%d.%d\n",ip[0],ip[1],ip[2],ip[3]);
+        Serial.printf("IP address: %d.%d.%d.%d\r\n",ip[0],ip[1],ip[2],ip[3]);
         // Flash the LED to show we are connected
         for (int i = 0; i < 5; i++) {
             flashLED(150);
@@ -425,9 +436,11 @@ void setup() {
     Serial.println(baseVersion);
 
     if (stationCount == 0) {
-      Serial.println("\nFatal Error; Halting");
-      Serial.println("No wifi ssid details have been configured; we cannot connect to WiFi or start our own AccessPoint");
-      while (true) delay(1000);
+      Serial.println("\r\nFatal Error; Halting");
+      while (true) {
+       Serial.println("No wifi details have been configured; we cannot connect to existing WiFi or start our own AccessPoint, there is no point in proceeding.");
+       delay(5000); 
+      }
     }
 
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
@@ -477,9 +490,9 @@ void setup() {
     esp_err_t err = esp_camera_init(&config);
     if (err != ESP_OK) {
         delay(100);  // need a delay here or the next serial o/p gets missed
-        Serial.printf("\n\nCRITICAL FAILURE: Camera sensor failed to initialise.\n\n");
-        Serial.printf("A full (hard, power off/on) reboot will probably be needed to recover from this.\n");
-        Serial.printf("Meanwhile; this unit will reboot in 1 minute since these errors sometime clear automatically\n");
+        Serial.printf("\r\n\r\nCRITICAL FAILURE: Camera sensor failed to initialise.\r\n\r\n");
+        Serial.printf("A full (hard, power off/on) reboot will probably be needed to recover from this.\r\n");
+        Serial.printf("Meanwhile; this unit will reboot in 1 minute since these errors sometime clear automatically\r\n");
         // Reset the I2C bus.. may help when rebooting.
         periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly in case that is the problem
         periph_module_disable(PERIPH_I2C1_MODULE);
@@ -618,22 +631,25 @@ void setup() {
         sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
     #endif
     if (critERR.length() == 0) {
-        Serial.printf("\nCamera Ready!\nUse '%s' to connect\n", httpURL);
-        Serial.printf("Stream viewer available at '%sview'\n", streamURL);
-        Serial.printf("Raw stream URL is '%s'\n", streamURL);
+        Serial.printf("\r\nCamera Ready!\r\nUse '%s' to connect\r\n", httpURL);
+        Serial.printf("Stream viewer available at '%sview'\r\n", streamURL);
+        Serial.printf("Raw stream URL is '%s'\r\n", streamURL);
         #if defined(DEBUG_DEFAULT_ON)
             debugOn();
         #else
             debugOff();
         #endif
     } else {
-        Serial.printf("\nCamera unavailable due to initialisation errors.\n\n");
+        Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
     sketchMD5 = ESP.getSketchMD5();
+
+    // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
+    while (Serial.available()) Serial.read();
 }
 
 void loop() {
