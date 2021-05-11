@@ -81,6 +81,8 @@ Go to the URL given in the serial output, the web UI should appear with the sett
 
 ## My Modifications:
 
+![The simplified viewer]( Docs/simpleviewer.png)
+
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
