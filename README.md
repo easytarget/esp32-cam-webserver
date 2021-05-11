@@ -81,7 +81,7 @@ Go to the URL given in the serial output, the web UI should appear with the sett
 
 ## My Modifications:
 
-![The simplified viewer](Docs/simpleviewer.png)
+![The simplified viewer](Docs/simpleviewer.png)<br>*The new default Simple view, just the basics*
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
@@ -95,7 +95,9 @@ The web UI has had changes to add the lamp control (only when enabled) and make 
 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
-![The stream viewer](Docs/streamview.png) ![The info page](Docs/infodump.png)
+![The stream viewer](Docs/streamview.png)<br>*Standalone StreamViewer; No decoration or controls, resizable, doubleclick image for fullscreen*
+
+![The info page](Docs/infodump.png)<br>*Boring Details*
 
 ## Notes:
 
