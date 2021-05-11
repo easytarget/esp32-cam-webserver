@@ -15,7 +15,7 @@ extern int8_t recognition_enabled;  // Face recognition enable
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-  Serial.printf("Listing SPIFFS directory: %s\n", dirname);
+  Serial.printf("Listing SPIFFS directory: %s\r\n", dirname);
 
   File root = fs.open(dirname);
   if(!root){
@@ -53,7 +53,7 @@ void dumpPrefs(fs::FS &fs){
     Serial.println("");
     file.close();
   } else {
-    Serial.printf("%s not found, nothing to dump.\n", PREFERENCES_FILE);
+    Serial.printf("%s not found, nothing to dump.\r\n", PREFERENCES_FILE);
   }
 }
 
@@ -61,7 +61,7 @@ void loadPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
     // read file into a string
     String prefs;
-    Serial.printf("Loading preferences from file %s\n", PREFERENCES_FILE);
+    Serial.printf("Loading preferences from file %s\r\n", PREFERENCES_FILE);
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
     if (!file) {
       Serial.println("Failed to open preferences file");
@@ -109,15 +109,15 @@ void loadPrefs(fs::FS &fs){
     file.close();
     dumpPrefs(SPIFFS);
   } else {
-    Serial.printf("Preference file %s not found; using system defaults.\n", PREFERENCES_FILE);
+    Serial.printf("Preference file %s not found; using system defaults.\r\n", PREFERENCES_FILE);
   }
 }
 
 void savePrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
-    Serial.printf("Updating %s\n", PREFERENCES_FILE);
+    Serial.printf("Updating %s\r\n", PREFERENCES_FILE);
   } else {
-    Serial.printf("Creating %s\n", PREFERENCES_FILE);
+    Serial.printf("Creating %s\r\n", PREFERENCES_FILE);
   }
   File file = fs.open(PREFERENCES_FILE, FILE_WRITE);
   static char json_response[1024];

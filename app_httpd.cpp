@@ -221,18 +221,18 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
             int8_t left_sample_face = enroll_face(&id_list, aligned_face);
 
             if(left_sample_face == (ENROLL_CONFIRM_TIMES - 1)){
-                Serial.printf("Enrolling Face ID: %d\n", this_face);
+                Serial.printf("Enrolling Face ID: %d\r\n", this_face);
             }
-            Serial.printf("Enrolling Face ID: %d sample %d\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
+            Serial.printf("Enrolling Face ID: %d sample %d\r\n", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
             rgb_printf(image_matrix, FACE_COLOR_CYAN, "ID[%u] Sample[%u]", this_face, ENROLL_CONFIRM_TIMES - left_sample_face);
             if (left_sample_face == 0){
                 is_enrolling = 0;
-                Serial.printf("Enrolled Face ID: %d\n", this_face);
+                Serial.printf("Enrolled Face ID: %d\r\n", this_face);
             }
         } else {
             matched_id = recognize_face(&id_list, aligned_face);
             if (matched_id >= 0) {
-                Serial.printf("Match Face ID: %u\n", matched_id);
+                Serial.printf("Match Face ID: %u\r\n", matched_id);
                 rgb_printf(image_matrix, FACE_COLOR_GREEN, "Hello Subject %u", matched_id);
             } else {
                 Serial.println("No Match Found");
@@ -250,58 +250,58 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
 }
 
 void serialDump() {
-    Serial.println("\nPreferences file: ");
+    Serial.println("\r\nPreferences file: ");
     dumpPrefs(SPIFFS);
     if (critERR.length() > 0) {
-        Serial.printf("\n\nA critical error has occurred when initialising Camera Hardware, see startup megssages\n");
+        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
     }
     // Module
-    Serial.printf("Name: %s\n", myName);
-    Serial.printf("Firmware: %s (base: %s)\n", myVer, baseVersion);
+    Serial.printf("Name: %s\r\n", myName);
+    Serial.printf("Firmware: %s (base: %s)\r\n", myVer, baseVersion);
     float sketchPct = 100 * sketchSize / sketchSpace;
-    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\n", sketchSize, sketchSpace, sketchPct);
-    Serial.printf("MD5: %s\n", sketchMD5.c_str());
-    Serial.printf("ESP sdk: %s\n", ESP.getSdkVersion());
+    Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\r\n", sketchSize, sketchSpace, sketchPct);
+    Serial.printf("MD5: %s\r\n", sketchMD5.c_str());
+    Serial.printf("ESP sdk: %s\r\n", ESP.getSdkVersion());
     // Network
     if (accesspoint) {
         if (captivePortal) {
-            Serial.printf("WiFi Mode: AccessPoint with captive portal\n");
+            Serial.printf("WiFi Mode: AccessPoint with captive portal\r\n");
         } else {
-            Serial.printf("WiFi Mode: AccessPoint\n");
+            Serial.printf("WiFi Mode: AccessPoint\r\n");
         }
-        Serial.printf("WiFi SSID: %s\n", apName);
+        Serial.printf("WiFi SSID: %s\r\n", apName);
     } else {
-        Serial.printf("WiFi Mode: Client\n");
+        Serial.printf("WiFi Mode: Client\r\n");
         String ssidName = WiFi.SSID();
-        Serial.printf("WiFi Ssid: %s\n", ssidName.c_str());
-        Serial.printf("WiFi Rssi: %i\n", WiFi.RSSI());
+        Serial.printf("WiFi Ssid: %s\r\n", ssidName.c_str());
+        Serial.printf("WiFi Rssi: %i\r\n", WiFi.RSSI());
         String bssid = WiFi.BSSIDstr();
-        Serial.printf("WiFi BSSID: %s\n", bssid.c_str());
+        Serial.printf("WiFi BSSID: %s\r\n", bssid.c_str());
     }
-    Serial.printf("WiFi IP address: %d.%d.%d.%d\n", ip[0], ip[1], ip[2], ip[3]);
+    Serial.printf("WiFi IP address: %d.%d.%d.%d\r\n", ip[0], ip[1], ip[2], ip[3]);
     if (!accesspoint) {
-        Serial.printf("WiFi Netmask: %d.%d.%d.%d\n", net[0], net[1], net[2], net[3]);
-        Serial.printf("WiFi Gateway: %d.%d.%d.%d\n", gw[0], gw[1], gw[2], gw[3]);
+        Serial.printf("WiFi Netmask: %d.%d.%d.%d\r\n", net[0], net[1], net[2], net[3]);
+        Serial.printf("WiFi Gateway: %d.%d.%d.%d\r\n", gw[0], gw[1], gw[2], gw[3]);
     }
-    Serial.printf("WiFi Http port: %i, Stream port: %i\n", httpPort, streamPort);
+    Serial.printf("WiFi Http port: %i, Stream port: %i\r\n", httpPort, streamPort);
     byte mac[6];
     WiFi.macAddress(mac);
-    Serial.printf("WiFi MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    Serial.printf("WiFi MAC: %02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     // System
     int64_t sec = esp_timer_get_time() / 1000000;
     int64_t upDays = int64_t(floor(sec/86400));
     int upHours = int64_t(floor(sec/3600)) % 24;
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
-    Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\n", streamCount, streamsServed, imagesServed);
-    Serial.printf("Freq: %i MHz\n", ESP.getCpuFreqMHz());
-    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
+    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
+    Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
+    Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
+    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     if (filesystem) {
-        Serial.printf("Spiffs: %i, used: %i\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+        Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
     }
-    Serial.printf("Enrolled faces: %i (max %i)\n", id_list.count, id_list.size);
+    Serial.printf("Enrolled faces: %i (max %i)\r\n", id_list.count, id_list.size);
     Serial.println();
     return;
 }
@@ -359,7 +359,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         esp_camera_fb_return(fb);
         int64_t fr_end = esp_timer_get_time();
         if (debugData) {
-            Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+            Serial.printf("JPG: %uB %ums\r\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
         }
         imagesServed++;
         if (autoLamp && (lampVal != -1)) setLamp(0);
@@ -411,7 +411,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
     int64_t fr_end = esp_timer_get_time();
     if (debugData) {
-        Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+        Serial.printf("FACE: %uB %ums %s%d\r\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
     }
 
     imagesServed++;
@@ -559,7 +559,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
         frame_time /= 1000;
         uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
         if (debugData) {
-            Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\n",
+            Serial.printf("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps), %u+%u+%u+%u=%u %s%d\r\n",
                 (uint32_t)(_jpg_buf_len),
                 (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time,
                 avg_frame_time, 1000.0 / avg_frame_time,
@@ -793,7 +793,7 @@ static esp_err_t logo_svg_handler(httpd_req_t *req){
 
 static esp_err_t dump_handler(httpd_req_t *req){
     flashLED(75);
-    Serial.println("\nDump Requested via Web");
+    Serial.println("\r\nDump Requested via Web");
     serialDump();
     static char dumpOut[2000] = "";
     char * d = dumpOut;
@@ -1100,7 +1100,7 @@ void startCameraServer(int hPort, int sPort){
     // Request Handlers; config.max_uri_handlers (above) must be >= the number of handlers
     config.server_port = hPort;
     config.ctrl_port = hPort;
-    Serial.printf("Starting web server on port: '%d'\n", config.server_port);
+    Serial.printf("Starting web server on port: '%d'\r\n", config.server_port);
     if (httpd_start(&camera_httpd, &config) == ESP_OK) {
         if (critERR.length() > 0) {
             httpd_register_uri_handler(camera_httpd, &error_uri);
@@ -1120,7 +1120,7 @@ void startCameraServer(int hPort, int sPort){
 
     config.server_port = sPort;
     config.ctrl_port = sPort;
-    Serial.printf("Starting stream server on port: '%d'\n", config.server_port);
+    Serial.printf("Starting stream server on port: '%d'\r\n", config.server_port);
     if (httpd_start(&stream_httpd, &config) == ESP_OK) {
         if (critERR.length() > 0) {
             httpd_register_uri_handler(camera_httpd, &error_uri);
