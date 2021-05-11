@@ -270,7 +270,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
-      if (framesize.value > 5) {
+      if (framesize.value > 6) {
         updateValue(detect, false)
         updateValue(recognize, false)
       }
