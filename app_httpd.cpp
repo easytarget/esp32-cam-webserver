@@ -330,7 +330,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
     fb = esp_camera_fb_get();
     if (!fb) {
-        Serial.println("Camera capture failed");
+        Serial.println("Capture failed to acquire frame");
         httpd_resp_send_500(req);
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
@@ -369,7 +369,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
     if (!image_matrix) {
         esp_camera_fb_return(fb);
-        Serial.println("dl_matrix3du_alloc failed");
+        Serial.println("Capture dl_matrix3du_alloc failed");
         httpd_resp_send_500(req);
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
@@ -384,7 +384,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_camera_fb_return(fb);
     if(!s){
         dl_matrix3du_free(image_matrix);
-        Serial.println("to rgb888 failed");
+        Serial.println("Capture frame convert to rgb888 failed");
         httpd_resp_send_500(req);
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
@@ -404,7 +404,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     s = fmt2jpg_cb(out_buf, out_len, out_width, out_height, PIXFORMAT_RGB888, 90, jpg_encode_stream, &jchunk);
     dl_matrix3du_free(image_matrix);
     if(!s){
-        Serial.println("JPEG compression failed");
+        Serial.println("Capture JPEG compression failed");
         if (autoLamp && (lampVal != -1)) setLamp(0);
         return ESP_FAIL;
     }
@@ -450,6 +450,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
     if(res != ESP_OK){
         streamCount = 0;
         if (autoLamp && (lampVal != -1)) setLamp(0);
+        Serial.println("Stream failed to set HTTP response type");
         return res;
     }
 
@@ -460,7 +461,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
         face_id = 0;
         fb = esp_camera_fb_get();
         if (!fb) {
-            Serial.println("Camera capture failed");
+            Serial.println("Stream failed to acquire frame");
             res = ESP_FAIL;
         } else {
             fr_start = esp_timer_get_time();
@@ -475,7 +476,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                     esp_camera_fb_return(fb);
                     fb = NULL;
                     if(!jpeg_converted){
-                        Serial.println("JPEG compression failed");
+                        Serial.println("Stream JPEG compression failed");
                         res = ESP_FAIL;
                     }
                 } else {
@@ -487,11 +488,11 @@ static esp_err_t stream_handler(httpd_req_t *req){
                 image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
 
                 if (!image_matrix) {
-                    Serial.println("dl_matrix3du_alloc failed");
+                    Serial.println("Stream dl_matrix3du_alloc failed");
                     res = ESP_FAIL;
                 } else {
                     if(!fmt2rgb888(fb->buf, fb->len, fb->format, image_matrix->item)){
-                        Serial.println("fmt2rgb888 failed");
+                        Serial.println("Stream frame convert to rgb888 failed");
                         res = ESP_FAIL;
                     } else {
                         fr_ready = esp_timer_get_time();
@@ -511,7 +512,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
                             }
                             if(!fmt2jpg(image_matrix->item, fb->width*fb->height*3, fb->width, fb->height, PIXFORMAT_RGB888, 90, &_jpg_buf, &_jpg_buf_len)){
-                                Serial.println("fmt2jpg failed");
+                                Serial.println("Stream fmt2jpg failed");
                                 res = ESP_FAIL;
                             }
                             esp_camera_fb_return(fb);
@@ -545,6 +546,8 @@ static esp_err_t stream_handler(httpd_req_t *req){
             _jpg_buf = NULL;
         }
         if(res != ESP_OK){
+            // This is the only exit point from the stream loop.
+            // We end the stream here only if a Hardware failure has been encountered or the connection has been interrupted.
             break;
         }
 
