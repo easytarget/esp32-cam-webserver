@@ -106,7 +106,7 @@ int stationCount = sizeof(stationList)/sizeof(stationList[0]);
     int firstStation = 0;
 #endif
 
-// Select bvetween full and simple index as the default.
+// Select between full and simple index as the default.
 #if defined(DEFAULT_INDEX_FULL)
     char default_index[] = "full";
 #else
@@ -173,6 +173,17 @@ const int pwmMax = pow(2,pwmresolution)-1;
 #else
     int8_t detection_enabled = 0;
     int8_t recognition_enabled = 0;
+#endif
+
+#if defined (GOOD_FACE_TEXT)
+    char knownFaceText[] = GOOD_FACE_TEXT;
+#else
+    char knownFaceText[] ="Hello Subject ";
+#endif
+#if defined (BAD_FACE_TEXT)
+    char unknownFaceText[] = BAD_FACE_TEXT;
+#else
+    char unknownFaceText[] = "Intruder Alert!";
 #endif
 
 // Critical error string; if set during init (camera hardware failure) it
