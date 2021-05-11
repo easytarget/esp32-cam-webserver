@@ -95,7 +95,7 @@ The web UI has had changes to add the lamp control (only when enabled) and make 
 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
-![The stream viewer](Docs/streamviewer.png) ![The info page](Docs/infodump.png)
+![The stream viewer](Docs/streamview.png) ![The info page](Docs/infodump.png)
 
 ## Notes:
 
