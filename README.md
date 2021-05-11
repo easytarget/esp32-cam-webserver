@@ -81,7 +81,7 @@ Go to the URL given in the serial output, the web UI should appear with the sett
 
 ## My Modifications:
 
-![The simplified viewer]( Docs/simpleviewer.png)
+![The simplified viewer](Docs/simpleviewer.png)
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
@@ -95,7 +95,9 @@ The web UI has had changes to add the lamp control (only when enabled) and make 
 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
-## Notes: 
+![The stream viewer](Docs/streamviewer.png) ![The info page](Docs/infodump.png)
+
+## Notes:
 
 * I only have AI-THINKER modules with OV2640 camera installed; so I have only been able to test with this combination. I have attempted to preserve all the code for other boards and the OV3660 module, and I have merged all changes for the WebUI etc, but I cannot guarantee operation for these.
 * I created a small board with a handy switch for power, a pushbutton for the GPIO0 programming switch, and a socket for the AI-THINKER board. This proved very useful for development work and programming multiple devices.
