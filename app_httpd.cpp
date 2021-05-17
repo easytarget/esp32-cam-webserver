@@ -347,7 +347,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     bool s;
     bool detected = false;
     int face_id = 0;
-    if(!detection_enabled || fb->width > 400){
+    if(!detection_enabled || fb->width > 400 || streamCount != 0){
         size_t fb_len = 0;
         if(fb->format == PIXFORMAT_JPEG){
             fb_len = fb->len;

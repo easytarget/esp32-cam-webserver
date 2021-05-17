@@ -35,6 +35,16 @@ https://wiki.ai-thinker.com/esp32-cam
 Please read this excellent guide for help with some common issues seen with the camera modules:
 https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 
+### Known Issues
+
+The ESP itself is susceptable to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptable to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
+
+A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
+
+Another known issue is that if you are streaming with face detection turned on any new tatic mage capture request will cause the stream to exit.
+
+The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above
+
 ## Setup:
 
 * For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
@@ -64,7 +74,7 @@ Once you have done that you can open the sketch in the IDE by going to the `esp3
 
 By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
 
-To make a permanent config with your home wifi settings, different defaults or a different board; copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h`. Because this is your private copy of the config it will not get overwritten if you update the main sketch!
+To make a permanent config with your home wifi settings, different defaults or a different board; copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` and edit that, all the usable defaults are in that file. Because this is your private copy of the config it will not get overwritten if you update the main sketch!
 
 ### Programming 
 
@@ -121,6 +131,6 @@ V4 Remove face recognition entirely;
 * implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
 * UI Skinning/Theming
 * OSD
-** Temp/humi/press sensor suport (bme20,dht11)
+  * Temperature/humidity/pressure sensor suport (bme20,dht11)
+You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there.
 
-You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there. Things that have occurred to me are, in no particular order:
