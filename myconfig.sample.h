@@ -131,21 +131,21 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Uncomment to disable the illumination lamp features
 // #define LAMP_DISABLE
 
-// Define a initial lamp setting as a percentage, defaults to 0%
+// Define the startup lamp power setting (as a percentage, defaults to 0%)
 // #define LAMP_DEFAULT 0
 
-// Assume we have SPIFFS/LittleFS partition, uncomment to disable this. 
-// Controls will still be shown in the UI but are inoperative.
+// Assume the module used has a SPIFFS/LittleFS partition, and use that for persistent setting storage
+// Uncomment to disable this this, the controls will still be shown in the UI but are inoperative.
 // #define NO_FS
 
 // Uncomment to enable Face Detection (+ Recognition if desired) by default 
-//  Notes: You must set DEFAULT_RESOLUTION (above) to FRAMESIZE_CIF or lower before enabling this
-//         Face recognition enrolements are currently lost between reboots.
+//  Note: 1) You must set DEFAULT_RESOLUTION (above) to FRAMESIZE_CIF or lower before enabling this
+//        2) Face recognition enrolements are lost between reboots.
 // #define FACE_DETECTION
 // #define FACE_RECOGNITION
 
-// Uncomment and edit the following to change the text displayed next to faces when face recognition is on
-// The 'good' text will have the subject ID appended. Maximum 20 characters!
+// Uncomment and edit the following to change the on screen labels for known and unknown faces
+// The 'good' text will have the subject ID number appended. Maximum 20 characters!
 // #define GOOD_FACE_TEXT "Hello Subject "
 // #define BAD_FACE_TEXT "Intruder Alert!"
 
