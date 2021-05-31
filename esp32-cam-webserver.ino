@@ -602,7 +602,7 @@ void setup() {
         // Port defaults to 3232
         // ArduinoOTA.setPort(3232); 
         // Hostname defaults to esp3232-[MAC]
-        ArduinoOTA.setHostname(CAM_NAME); 
+        ArduinoOTA.setHostname(myName);
         // No authentication by default
         // ArduinoOTA.setPassword("admin"); 
         // Password can be set with it's md5 value as well
