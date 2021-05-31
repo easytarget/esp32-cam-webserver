@@ -103,6 +103,11 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  */
 // #define WIFI_WATCHDOG 5000
 
+/* 
+ * Over The Air firmware updates can be disabled by uncommenting the folowing line
+ */
+// #define NO_OTA
+
 /*
  * Camera Defaults
  *
@@ -137,18 +142,6 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Assume the module used has a SPIFFS/LittleFS partition, and use that for persistent setting storage
 // Uncomment to disable this this, the controls will still be shown in the UI but are inoperative.
 // #define NO_FS
-
-// Uncomment to enable Face Detection (+ Recognition if desired) by default 
-//  Note: 1) You must set DEFAULT_RESOLUTION (above) to FRAMESIZE_CIF or lower before enabling this
-//        2) Face recognition enrolements are lost between reboots.
-// #define FACE_DETECTION
-// #define FACE_RECOGNITION
-
-// Uncomment and edit the following to change the on screen labels for known and unknown faces
-// The 'good' text will have the subject ID number appended. Maximum 20 characters!
-// #define GOOD_FACE_TEXT "Hello Subject "
-// #define BAD_FACE_TEXT "Intruder Alert!"
-
 
 // Uncomment to enable camera debug info on serial by default
 // #define DEBUG_DEFAULT_ON

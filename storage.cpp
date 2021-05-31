@@ -7,8 +7,6 @@ extern void flashLED(int flashtime);
 extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
 extern int autoLamp;                // Automatic lamp mode
-extern int8_t detection_enabled;    // Face detection enable
-extern int8_t recognition_enabled;  // Face recognition enable
 
 /*
  * Useful utility when debugging... 
@@ -102,8 +100,6 @@ void loadPrefs(fs::FS &fs){
     s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
     s->set_dcw(s, jsonExtract(prefs, "dcw").toInt());
     s->set_colorbar(s, jsonExtract(prefs, "colorbar").toInt());
-    detection_enabled = jsonExtract(prefs, "face_detect").toInt();
-    recognition_enabled = jsonExtract(prefs, "face_recognize").toInt();
     myRotation = jsonExtract(prefs, "rotate").toInt();
     // close the file
     file.close();
@@ -150,8 +146,6 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
   p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
   p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
-  p+=sprintf(p, "\"face_detect\":%u,", detection_enabled);
-  p+=sprintf(p, "\"face_recognize\":%u,", recognition_enabled);
   p+=sprintf(p, "\"rotate\":\"%d\"", myRotation);
   *p++ = '}';
   *p++ = 0;
@@ -169,19 +163,6 @@ void removePrefs(fs::FS &fs) {
   } else {
     Serial.println("No saved preferences file to remove");
   }
-}
-
-void saveFaceDB(fs::FS &fs) {
-  // Stub!
-  return;
-}
-void loadFaceDB(fs::FS &fs) {
-  // Stub!
-  return;
-}
-void removeFaceDB(fs::FS &fs) {
-  // Stub!
-  return;
 }
 
 void filesystemStart(){

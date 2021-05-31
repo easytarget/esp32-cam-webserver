@@ -57,8 +57,6 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
               <div id="rotate" class="action-setting hidden"></div>
               <div id="cam_name" class="action-setting hidden"></div>
               <div id="stream_url" class="action-setting hidden"></div>
-              <div id="detect" class="action-setting hidden"></div> 
-              <div id="recognize" class="action-setting hidden"></div>
             </nav>
         </div>
         <figure>
@@ -270,10 +268,6 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
-      if (framesize.value > 6) {
-        updateValue(detect, false)
-        updateValue(recognize, false)
-      }
     }
 
     swapButton.onclick = () => {
