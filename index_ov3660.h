@@ -251,28 +251,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
-              <div class="input-group" id="face_detect-group">
-                <label for="face_detect">Face Detection</label>
-                <div class="switch">
-                  <input id="face_detect" type="checkbox" class="default-action">
-                  <label class="slider" for="face_detect"></label>
-                </div>
-              </div>
-              <div class="input-group" id="face_recognize-group">
-                <label for="face_recognize">Face Recognition</label>
-                <div class="switch">
-                  <input id="face_recognize" type="checkbox" class="default-action">
-                  <label class="slider" for="face_recognize"></label>
-                </div>
-              </div>
-              <div class="input-group" id="facedb-group">
-                <label for="face_enroll" style="line-height: 2em;">Face Database</label>
-                <button id="face_enroll" class="disabled" disabled="disabled" title="Enroll Faces in Database">Enroll</button>
-                <!--
-                <button id="save_face" title="Save Database on camera module">Save</button>
-                <button id="clear_face" title="Erase saved Database on camera module">Erase</button>
-                -->
-              </div>
               <div class="input-group" id="preferences-group">
                 <label for="reboot" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
@@ -312,6 +290,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     var streamURL = 'Undefined';
     var viewerURL = 'Undefined';
 
+    const header = document.getElementById('logo')
     const settings = document.getElementById('sidebar')
     const waitSettings = document.getElementById('wait-settings')
     const lampGroup = document.getElementById('lamp-group')
@@ -324,15 +303,10 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const viewContainer = document.getElementById('stream-container')
     const stillButton = document.getElementById('get-still')
     const streamButton = document.getElementById('toggle-stream')
-    const enrollButton = document.getElementById('face_enroll')
     const closeButton = document.getElementById('close-stream')
     const streamLink = document.getElementById('stream_link')
-    const detect = document.getElementById('face_detect')
-    const recognize = document.getElementById('face_recognize')
     const framesize = document.getElementById('framesize')
     const swapButton = document.getElementById('swap-viewer')
-    // const saveFaceButton = document.getElementById('save_face')
-    // const clearFaceButton = document.getElementById('clear_face')
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
@@ -379,8 +353,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
           }
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
-        } else if(el.id === "face_recognize"){
-          value ? enable(enrollButton) : disable(enrollButton)
         } else if(el.id === "lamp"){
           if (value == -1) { 
             hide(lampGroup)
@@ -532,10 +504,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       }
     }
 
-    enrollButton.onclick = () => {
-      updateConfig(enrollButton);
-    }
-
     // Attach default on change action
     document
       .querySelectorAll('.default-action')
@@ -580,38 +548,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
-      if (framesize.value > 6) {
-        updateValue(detect, false)
-        updateValue(recognize, false)
-      }
-    }
-
-    detect.onchange = () => {
-      if (framesize.value > 6) {
-        alert("Please select CIF or lower resolution before enabling this feature!");
-        updateValue(detect, false)
-        return;
-      }
-      updateConfig(detect)
-      if (!detect.checked) {
-        disable(enrollButton)
-        updateValue(recognize, false)
-      }
-    }
-
-    recognize.onchange = () => {
-      if (framesize.value > 6) {
-        alert("Please select CIF or lower resolution before enabling this feature!");
-        updateValue(recognize, false)
-        return;
-      }
-      updateConfig(recognize)
-      if (recognize.checked) {
-        enable(enrollButton)
-        updateValue(detect, true)
-      } else {
-        disable(enrollButton)
-      }
     }
 
     swapButton.onclick = () => {
@@ -646,7 +582,12 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       if (confirm("Reboot the Camera Module?")) {
         updateConfig(rebootButton);
         // Some sort of countdown here?
-        location.reload();
+        hide(settings);
+        hide(viewContainer);
+        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+        setTimeout(function() {
+          location.replace(document.URL);
+        }, 30000);
       }
     }
 
