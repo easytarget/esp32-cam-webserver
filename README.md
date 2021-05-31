@@ -10,7 +10,12 @@ But expanded with:
 * Save and restore settings
 * Control of on-board lamps, rotate the view in the browser
 * Dedicated standalone stream viewer
+* Over The Air firmware updates
 * Lots of minor fixes and tweaks, documentation etc.
+
+And 'reduced' by removing the Face Recognition features 
+* They were a demo, only worked in low resolution modes, and were of little use in real-world applications.
+* There are other (specialised) sketches for the ESP-CAM that do use face recognition, if this is your thing :-)
 
 The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
 * There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
@@ -40,8 +45,6 @@ https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 The ESP itself is susceptable to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptable to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
 
 A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
-
-Another known issue is that if you are streaming with face detection turned on any new tatic mage capture request will cause the stream to exit.
 
 The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above
 
@@ -78,12 +81,16 @@ To make a permanent config with your home wifi settings, different defaults or a
 
 ### Programming 
 
-Assuming you are using the latest Espressif Arduino core the `AI-THINKER` board (or whatever board you select for programming) will appear in the ESP32 Arduino section of the boards list. 
-![IDE board config](Docs/board-selection-small.png)
+Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board will appear in the ESP32 Arduino section of the boards list. Select this (do not use the `AI-THINKER` entry listed in the boiards menu, it is not OTA compatible, and will caus the module to crash and reboot rather than updating if you use it.
+![IDE board config](Docs/ota-board-selection.png)
 
-Compile and upload the code from the IDE, when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
+Make sure you select the `Default 4MB with Spiffs` partition scheme and turn `PSRAM` on.
+
+The first time you program (or if OTA is failing) you need to compile and upload the code from the IDE, and when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
 
 Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.
+
+Once you have the initial upload done and the board is connected to the wifi network you should see it appearing in the `network ports` list of the IDE, and you can upload wirelessly.
 
 If you have a status LED configured it will give a double flash when it begins attempting to conenct to WiFi, and five short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.
 
@@ -95,17 +102,17 @@ Go to the URL given in the serial output, the web UI should appear with the sett
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
+All of the face recognition code has been removed as of V4.0; this reduces the code size enough to allow OTA programming while improving compile and programming times. 
+
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
 
 The streamviewer, lamp control, and all the other new features have been added. I have tried to retain the basic structure of the original example,extending where necesscary.
-
-I have left all the Face Recognition code untouched, it works, and with good lighting and camera position it can work quite well. But you can only use it in low-resolution modes, and it is not something I will be using.
 
 The web UI has had changes to add the lamp control (only when enabled) and make the streamm window rotate and resize appropriately. I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
 
 I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
 
-![The stream viewer](Docs/streamview.png)<br>*Standalone StreamViewer; No decoration or controls, resizable, doubleclick image for fullscreen*
+![The stream viewer](Docs/streamview.png)<br>*Standalone StreamViewer; No decoration or controls, the image is resizable, and you can doubleclick it for fullscreen*
 
 ![The info page](Docs/infodump.png)<br>*Boring Details*
 
@@ -125,10 +132,15 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 Time allowing; my Current plan is:
 
-V4 Remove face recognition entirely;
-* Dont try to make it optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
+V4 
+* Remove face recognition entirely;
+  * **Done**, see the `NoFace` branch :sunglasses:
+  * Not optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
 * Investigate using SD card to capture images
-* implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
+* Implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
+  * **Basic OTA is Done**, see the `NoFace` branch.
+  * Advanced (web upload) OTA might be nice to have is possible
+  * For the Network setup I want to implement https://github.com/Hieromon/AutoConnect 
 * UI Skinning/Theming
 * OSD
   * Temperature/humidity/pressure sensor suport (bme20,dht11)
