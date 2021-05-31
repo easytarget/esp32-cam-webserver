@@ -1,3 +1,4 @@
 /* Version of upstream code */
 
-char baseVersion[] = "3.2.1";
+char baseVersion[] = "4.0.alpha";
+
