@@ -400,6 +400,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
             face_id = run_face_recognition(image_matrix, net_boxes);
         }
         draw_face_boxes(image_matrix, net_boxes, face_id);
+	dl_lib_free(net_boxes->score);
+        dl_lib_free(net_boxes->box);
+        dl_lib_free(net_boxes->landmark);
+        dl_lib_free(net_boxes);
     }
 
     jpg_chunking_t jchunk = {req, 0};
@@ -512,6 +516,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 }
                                 fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
+				dl_lib_free(net_boxes->score);
+                                dl_lib_free(net_boxes->box);
+                                dl_lib_free(net_boxes->landmark);
+                                dl_lib_free(net_boxes);
                             }
                             if(!fmt2jpg(image_matrix->item, fb->width*fb->height*3, fb->width, fb->height, PIXFORMAT_RGB888, 90, &_jpg_buf, &_jpg_buf_len)){
                                 Serial.println("STREAM: fmt2jpg failed");
