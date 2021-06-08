@@ -103,10 +103,15 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  */
 // #define WIFI_WATCHDOG 5000
 
-/* 
+/*
  * Over The Air firmware updates can be disabled by uncommenting the folowing line
  */
 // #define NO_OTA
+
+/*
+ * OTA can be password protected to prevent the device being hijacked
+ */
+// #define OTA_PASSWORD "SuperVisor"
 
 /*
  * Camera Defaults

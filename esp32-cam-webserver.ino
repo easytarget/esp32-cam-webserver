@@ -609,10 +609,10 @@ void setup() {
         // Hostname defaults to esp3232-[MAC]
         ArduinoOTA.setHostname(myName);
         // No authentication by default
-        // ArduinoOTA.setPassword("admin"); 
-        // Password can be set with it's md5 value as well
-        // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-        // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3"); 
+        #if defined (OTA_PASSWORD)
+            ArduinoOTA.setPassword(OTA_PASSWORD);
+            Serial.printf("OTA Password: %s\n\r", OTA_PASSWORD);
+        #endif
         ArduinoOTA
             .onStart([]() {
               String type;
@@ -672,13 +672,13 @@ void setup() {
     } else {
         Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
+    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
+
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
     sketchSpace = ESP.getFreeSketchSpace();
     sketchMD5 = ESP.getSketchMD5();
-
-    Serial.print("\r\nFace detection has been removed!\r\n");
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
