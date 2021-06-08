@@ -233,7 +233,7 @@ void WifiSetup() {
     flashLED(300);
     Serial.println("Starting WiFi");
 
-    // Disable poser saving on WiFi to improve responsiveness 
+    // Disable power saving on WiFi to improve responsiveness 
     // (https://github.com/espressif/arduino-esp32/issues/1484)
     WiFi.setSleep(false);
 
