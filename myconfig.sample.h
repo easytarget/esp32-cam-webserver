@@ -113,6 +113,19 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  */
 // #define OTA_PASSWORD "SuperVisor"
 
+/* NTP
+ *  Uncomment the following to enable the on-board clock
+ *  Pick a nearby pool server from: https://www.ntppool.org/zone/@
+ *  Set the GMT offset to match your timezone IN SECONDS;
+ *    see https://en.wikipedia.org/wiki/List_of_UTC_time_offsets
+ *    1hr = 3600 seconds; do the math ;-)
+ *    Default is CET (Central European Time), eg GMT + 1hr
+ *  The DST offset is usually 1 hour (again, in seconds) if used in your country.
+ */
+//#define NTPSERVER "<EDIT THIS>.pool.ntp.org"
+//#define NTP_GMT_OFFSET 3600
+//#define NTP_DST_OFFSET 3600
+
 /*
  * Camera Defaults
  *
