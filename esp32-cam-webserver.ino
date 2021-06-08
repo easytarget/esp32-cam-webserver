@@ -3,6 +3,7 @@
 #include <esp_task_wdt.h>
 #include <WiFi.h>
 #include <DNSServer.h>
+#include <ArduinoOTA.h>
 #include "src/parsebytes.h"
 
 
@@ -51,7 +52,7 @@
 #include "camera_pins.h"
 
 // Internal filesystem (SPIFFS)
-// used for non-volatile camera settings and face DB store
+// used for non-volatile camera settings
 #include "storage.h"
 
 // Sketch Info
@@ -163,28 +164,12 @@ const int pwmMax = pow(2,pwmresolution)-1;
     bool filesystem = true;
 #endif
 
-#if defined(FACE_DETECTION)
-    int8_t detection_enabled = 1;
-    #if defined(FACE_RECOGNITION)
-        int8_t recognition_enabled = 1;
-    #else
-       int8_t recognition_enabled = 0;
-    #endif
+#if defined(NO_OTA)
+    bool otaEnabled = false;
 #else
-    int8_t detection_enabled = 0;
-    int8_t recognition_enabled = 0;
+    bool otaEnabled = true;
 #endif
 
-#if defined (GOOD_FACE_TEXT)
-    char knownFaceText[] = GOOD_FACE_TEXT;
-#else
-    char knownFaceText[] ="Hello Subject ";
-#endif
-#if defined (BAD_FACE_TEXT)
-    char unknownFaceText[] = BAD_FACE_TEXT;
-#else
-    char unknownFaceText[] = "Intruder Alert!";
-#endif
 
 // Critical error string; if set during init (camera hardware failure) it
 // will be returned for all http requests
@@ -591,9 +576,8 @@ void setup() {
         if (filesystem) {
             filesystemStart();
             loadPrefs(SPIFFS);
-            loadFaceDB(SPIFFS);
         } else {
-            Serial.println("No Internal Filesystem, cannot save preferences or face DB");
+            Serial.println("No Internal Filesystem, cannot save preferences");
         }
     }
 
@@ -615,7 +599,48 @@ void setup() {
     while ((WiFi.status() != WL_CONNECTED) && !accesspoint)  {
         WifiSetup();
         delay(1000);
-    } 
+    }
+
+    if (otaEnabled) {
+        // Start OTA once connected
+        Serial.println("Setting up OTA");
+        // Port defaults to 3232
+        // ArduinoOTA.setPort(3232); 
+        // Hostname defaults to esp3232-[MAC]
+        ArduinoOTA.setHostname(myName);
+        // No authentication by default
+        #if defined (OTA_PASSWORD)
+            ArduinoOTA.setPassword(OTA_PASSWORD);
+            Serial.printf("OTA Password: %s\n\r", OTA_PASSWORD);
+        #endif
+        ArduinoOTA
+            .onStart([]() {
+              String type;
+              if (ArduinoOTA.getCommand() == U_FLASH)
+                type = "sketch";
+              else // U_SPIFFS
+                type = "filesystem";
+              // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+              Serial.println("Start updating " + type);
+            })
+            .onEnd([]() {
+              Serial.println("\nEnd");
+            })
+            .onProgress([](unsigned int progress, unsigned int total) {
+              Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+            })
+            .onError([](ota_error_t error) {
+              Serial.printf("Error[%u]: ", error);
+              if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+              else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+              else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+              else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+              else if (error == OTA_END_ERROR) Serial.println("End Failed");
+            });
+        ArduinoOTA.begin();
+    } else {
+        Serial.println("OTA is disabled");
+    }
 
     // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
@@ -647,6 +672,8 @@ void setup() {
     } else {
         Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
+    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
+
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
@@ -669,6 +696,7 @@ void loop() {
         unsigned long start = millis();
         while (millis() - start < WIFI_WATCHDOG ) {
             delay(100);
+            if (otaEnabled) ArduinoOTA.handle();
             handleSerial();
             if (captivePortal) dnsServer.processNextRequest();
         }
@@ -686,6 +714,7 @@ void loop() {
             unsigned long start = millis();
             while (millis() - start < WIFI_WATCHDOG ) {
                 delay(100);
+                if (otaEnabled) ArduinoOTA.handle();
                 handleSerial();
             }
         } else {
