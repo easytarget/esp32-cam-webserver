@@ -31,6 +31,7 @@
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
+extern void printLocalTime(bool extraData);
 
 // External variables declared in the main .ino
 extern char myName[];
@@ -56,6 +57,7 @@ extern bool autoLamp;
 extern bool filesystem;
 extern String critERR;
 extern bool debugData;
+extern bool haveTime;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
@@ -73,15 +75,14 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
 
-
 void serialDump() {
-    Serial.println("\r\nPreferences file: ");
-    dumpPrefs(SPIFFS);
-    if (critERR.length() > 0) {
-        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
-    }
+    Serial.println();
     // Module
     Serial.printf("Name: %s\r\n", myName);
+    if (haveTime) {
+        Serial.print("Time: ");
+        printLocalTime(true);
+    }
     Serial.printf("Firmware: %s (base: %s)\r\n", myVer, baseVersion);
     float sketchPct = 100 * sketchSize / sketchSpace;
     Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\r\n", sketchSize, sketchSpace, sketchPct);
@@ -123,8 +124,14 @@ void serialDump() {
     Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    // Filesystems
     if (filesystem) {
         Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    }
+    Serial.println("Preferences file: ");
+    dumpPrefs(SPIFFS);
+    if (critERR.length() > 0) {
+        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
     }
     Serial.println();
     return;
@@ -522,6 +529,15 @@ static esp_err_t dump_handler(httpd_req_t *req){
 
     // System
     d+= sprintf(d,"<h2>System</h2>\n");
+    if (haveTime) {
+        struct tm timeinfo;
+        if(getLocalTime(&timeinfo)){
+            char timeStringBuff[50]; //50 chars should be enough
+            strftime(timeStringBuff, sizeof(timeStringBuff), "%H:%M:%S, %A, %B %d %Y", &timeinfo);
+            //print like "const char*"
+            d+= sprintf(d,"Time: %s<br>\n", timeStringBuff);
+        }
+    }
     int64_t sec = esp_timer_get_time() / 1000000;
     int64_t upDays = int64_t(floor(sec/86400));
     int upHours = int64_t(floor(sec/3600)) % 24;

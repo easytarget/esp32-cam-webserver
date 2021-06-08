@@ -5,6 +5,7 @@
 #include <DNSServer.h>
 #include <ArduinoOTA.h>
 #include "src/parsebytes.h"
+#include "time.h"
 
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
@@ -170,6 +171,17 @@ const int pwmMax = pow(2,pwmresolution)-1;
     bool otaEnabled = true;
 #endif
 
+#if defined(NTPSERVER)
+    bool haveTime = true;
+    const char* ntpServer = NTPSERVER;
+    const long  gmtOffset_sec = NTP_GMT_OFFSET;
+    const int   daylightOffset_sec = NTP_DST_OFFSET;
+#else
+    bool haveTime = false;
+    const char* ntpServer = "";
+    const long  gmtOffset_sec = 0;
+    const int   daylightOffset_sec = 0;
+#endif
 
 // Critical error string; if set during init (camera hardware failure) it
 // will be returned for all http requests
@@ -223,6 +235,18 @@ void setLamp(int newVal) {
         Serial.print(newVal);
         Serial.print("%, pwm = ");
         Serial.println(brightness);
+    }
+}
+
+void printLocalTime(bool extraData=false) {
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+        Serial.println("Failed to obtain time");
+    } else {
+        Serial.println(&timeinfo, "%H:%M:%S, %A, %B %d %Y");
+    }
+    if (extraData) {
+        Serial.printf("NTP Server: %s, GMT Offset: %u(s), DST Offset: %u(s)\r\n", ntpServer, gmtOffset_sec, daylightOffset_sec);
     }
 }
 
@@ -642,6 +666,15 @@ void setup() {
         Serial.println("OTA is disabled");
     }
 
+    // Set time via NTP server when enabled
+    if (haveTime) {
+        Serial.print("Time: ");
+        configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+        printLocalTime(true);
+    } else {
+        Serial.println("Time functions disabled");
+    }
+
     // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
 
@@ -672,8 +705,6 @@ void setup() {
     } else {
         Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
-    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
-
 
     // Used when dumping status; these are slow functions, so just do them once during startup
     sketchSize = ESP.getSketchSize();
@@ -682,6 +713,9 @@ void setup() {
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
+
+    // While in Beta; Warn!
+    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
 }
 
 void loop() {
