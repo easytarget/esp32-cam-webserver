@@ -246,7 +246,7 @@ void printLocalTime(bool extraData=false) {
         Serial.println(&timeinfo, "%H:%M:%S, %A, %B %d %Y");
     }
     if (extraData) {
-        Serial.printf("NTP Server: %s, GMT Offset: %u(s), DST Offset: %i(s)\r\n", ntpServer, gmtOffset_sec, daylightOffset_sec);
+        Serial.printf("NTP Server: %s, GMT Offset: %i(s), DST Offset: %i(s)\r\n", ntpServer, gmtOffset_sec, daylightOffset_sec);
     }
 }
 
