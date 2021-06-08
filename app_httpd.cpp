@@ -164,10 +164,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
-    size_t out_len, out_width, out_height;
-    uint8_t * out_buf;
-    bool s;
-
     size_t fb_len = 0;
     if(fb->format == PIXFORMAT_JPEG){
         fb_len = fb->len;
