@@ -238,12 +238,12 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
                 rgb_printf(image_matrix, FACE_COLOR_GREEN, "%s%u", knownFaceText, matched_id);
             } else {
                 matched_id = -1;
-                Serial.print("FACE: no match found: ");
+                Serial.println("FACE: no match found:");
                 rgb_printf(image_matrix, FACE_COLOR_RED, "%s", unknownFaceText);
             }
         }
     } else {
-        Serial.print("FACE: not aligned: ");
+        Serial.println("FACE: not aligned:");
         rgb_print(image_matrix, FACE_COLOR_YELLOW, "???");
     }
 
@@ -400,7 +400,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
             face_id = run_face_recognition(image_matrix, net_boxes);
         }
         draw_face_boxes(image_matrix, net_boxes, face_id);
-	dl_lib_free(net_boxes->score);
+        dl_lib_free(net_boxes->score);
         dl_lib_free(net_boxes->box);
         dl_lib_free(net_boxes->landmark);
         dl_lib_free(net_boxes);
@@ -516,7 +516,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
                                 }
                                 fr_recognize = esp_timer_get_time();
                                 draw_face_boxes(image_matrix, net_boxes, face_id);
-				dl_lib_free(net_boxes->score);
+                                dl_lib_free(net_boxes->score);
                                 dl_lib_free(net_boxes->box);
                                 dl_lib_free(net_boxes->landmark);
                                 dl_lib_free(net_boxes);
