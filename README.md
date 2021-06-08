@@ -14,7 +14,7 @@ But expanded with:
 * Lots of minor fixes and tweaks, documentation etc.
 
 And 'reduced' by removing the Face Recognition features 
-* **If you want to try the Face Recognition features** please use the '3.x' maintenance branch, which still recieves bugfixes, but is not reciving any further development.
+* **If you want to try the Face Recognition features** please use the [`3.x` maintenance branch](https://github.com/easytarget/esp32-cam-webserver/tree/3.x), which still recieves bugfixes, but is not reciving any further development.
 * They were a demo, only worked in low resolution modes, did not preserve the face database between power cycles, and were of little use in real-world applications.
 * There are other (specialised) sketches for the ESP-CAM that do use face recognitioni more effectively, if this is your thing :-)
 

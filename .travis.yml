@@ -28,7 +28,7 @@ before_script:
 script:
   - cd $TRAVIS_BUILD_DIR
   - export PATH="$HOME/arduino_ide:$PATH"
-  - arduino --board esp32:esp32:esp32:PartitionScheme=huge_app,FlashFreq=80 --pref compiler.warning_level=all --save-prefs
+  - arduino --board esp32:esp32:esp32:PartitionScheme=default,FlashFreq=80 --pref compiler.warning_level=all --save-prefs
   - arduino --verbose --verify esp32-cam-webserver.ino
   - cp --preserve --verbose myconfig.sample.h myconfig.h
   - arduino --verbose --verify esp32-cam-webserver.ino
