@@ -14,8 +14,9 @@ But expanded with:
 * Lots of minor fixes and tweaks, documentation etc.
 
 And 'reduced' by removing the Face Recognition features 
-* They were a demo, only worked in low resolution modes, and were of little use in real-world applications.
-* There are other (specialised) sketches for the ESP-CAM that do use face recognition, if this is your thing :-)
+* **If you want to try the Face Recognition features** please use the '3.x' maintenance branch, which still recieves bugfixes, but is not reciving any further development.
+* They were a demo, only worked in low resolution modes, did not preserve the face database between power cycles, and were of little use in real-world applications.
+* There are other (specialised) sketches for the ESP-CAM that do use face recognitioni more effectively, if this is your thing :-)
 
 The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
 * There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
