@@ -1,5 +1,11 @@
 # ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
+# V3.x - Legacy Branch
+### This is the *old* 3.x branch of the project, with Face Recognition, but no Over The Air updates
+I will continue to fix bugs as needed on this branch for the forseeable future, but will not be adding any new features
+
+See the [master](https://github.com/easytarget/esp32-cam-webserver/tree/master/) branch for the current (v4+) version which has lost the basic Face Recognition features, but gained Over The Air updates and other new features.
+
 ## Taken from the ESP examples, and expanded
 This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
 
