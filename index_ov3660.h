@@ -554,18 +554,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       window.open('/?view=simple','_self');
     }
  
-//    saveFaceButton.onclick = () => {
-//      if (confirm("Saving the current face database?")) {
-//        updateConfig(saveFaceButton);
-//      }
-//    }
-
-//    clearFaceButton.onclick = () => {
-//      if (confirm("Removing the face database?")) {
-//        updateConfig(clearFaceButton);
-//      }
-//    }
-
     savePrefsButton.onclick = () => {
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);
