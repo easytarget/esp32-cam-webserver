@@ -247,6 +247,11 @@ void WifiSetup() {
     delay(100);
     flashLED(300);
     Serial.println("Starting WiFi");
+
+    // Disable poser saving on WiFi to improve responsiveness 
+    // (https://github.com/espressif/arduino-esp32/issues/1484)
+    WiFi.setSleep(false);
+
     Serial.print("Known external SSIDs: ");
     if (stationCount > firstStation) {
         for (int i=firstStation; i < stationCount; i++) Serial.printf(" '%s'", stationList[i].ssid);
