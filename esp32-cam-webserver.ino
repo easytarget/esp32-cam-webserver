@@ -485,11 +485,11 @@ void setup() {
     // originally: config.xclk_freq_hz = 20000000;
     config.xclk_freq_hz = 16500000; // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
     config.pixel_format = PIXFORMAT_JPEG;
-    //init with highest supported specs to pre-allocate large buffers
+    // Pre-allocate large buffers
     if(psramFound()){
         config.frame_size = FRAMESIZE_UXGA;
         config.jpeg_quality = 10;
-        config.fb_count = 2;
+        config.fb_count = 6;  // We can be generous since we are not using facedetect anymore, allows for bigger jpeg frame size (data)
     } else {
         config.frame_size = FRAMESIZE_SVGA;
         config.jpeg_quality = 12;
