@@ -715,6 +715,12 @@ void setup() {
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
 
+    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
+    if(!psramFound()){
+        Serial.printf("\r\nNo PSRAM found.\r\nPlease check the board config for your module.\r\n");
+        Serial.printf("High resolution/quality images & streams will show incomplete frames due to low memory.\r\n");
+    }
+
     // While in Beta; Warn!
     Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
 }
