@@ -47,7 +47,11 @@ void dumpPrefs(fs::FS &fs){
   if (fs.exists(PREFERENCES_FILE)) {
     // Dump contents for debug
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
-    while (file.available()) Serial.print(char(file.read()));
+    int countSize = 0;
+    while (file.available() && countSize <= PREFERENCES_MAX_SIZE) {
+        Serial.print(char(file.read()));
+        countSize++;
+    }
     Serial.println("");
     file.close();
   } else {
@@ -62,15 +66,25 @@ void loadPrefs(fs::FS &fs){
     Serial.printf("Loading preferences from file %s\r\n", PREFERENCES_FILE);
     File file = fs.open(PREFERENCES_FILE, FILE_READ);
     if (!file) {
-      Serial.println("Failed to open preferences file");
+      Serial.println("Failed to open preferences file for reading, maybe corrupt, removing");
+      removePrefs(SPIFFS);
       return;
     }
     size_t size = file.size();
-    if (size > 800) {
-      Serial.println("Preferences file size is too large, maybe corrupt");
+    if (size > PREFERENCES_MAX_SIZE) {
+      Serial.println("Preferences file size is too large, maybe corrupt, removing");
+      removePrefs(SPIFFS);
       return;
     }
-    while (file.available()) prefs += char(file.read());
+    while (file.available()) {
+        prefs += char(file.read());
+        if (prefs.length() > size) {
+          // corrupted SPIFFS files can return data beyond their declared size.
+          Serial.println("Preferences file failed to load properly, appears to be corrupt, removing");
+          removePrefs(SPIFFS);
+          return;
+        }
+    }
     // get sensor reference
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
