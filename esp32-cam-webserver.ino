@@ -133,6 +133,13 @@ unsigned long imagesServed = 0;  // Total image requests
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
+// Camera module bus communications frequency.
+// Originally: config.xclk_freq_hz = 20000000, but this lead to visual artifacts on many modules.
+// See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
+#if !defined (XCLK_FREQ_HZ)
+    #define XCLK_FREQ_HZ 16500000;
+#endif
+
 // initial rotation
 // can be set in myconfig.h
 #if !defined(CAM_ROTATION)
@@ -482,8 +489,7 @@ void setup() {
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    // originally: config.xclk_freq_hz = 20000000;
-    config.xclk_freq_hz = 16500000; // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
+    config.xclk_freq_hz = XCLK_FREQ_HZ;
     config.pixel_format = PIXFORMAT_JPEG;
     // Pre-allocate large buffers
     if(psramFound()){

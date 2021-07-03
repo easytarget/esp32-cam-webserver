@@ -179,3 +179,8 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define CAMERA_MODEL_M5STACK_WIDE
 // #define CAMERA_MODEL_M5STACK_ESP32CAM   // Originally: CAMERA_MODEL_M5STACK_NO_PSRAM
 // #define CAMERA_MODEL_TTGO_T_JOURNAL
+
+// Camera module bus communications frequency, setting too high can cause visual artifacts.
+// Currently defaults to 16.5MHz, but some (non-clone) modules may be able to use the 
+// original frequency of 20MHz for to allow higher framerates etc.
+// #define XCLK_FREQ_HZ 20000000;
