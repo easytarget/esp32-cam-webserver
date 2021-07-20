@@ -36,10 +36,10 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
               <div class="input-group hidden" id="lamp-group">
-                <label for="lamp">Light</label>
+                <label for="lamp">Lamp</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full</div>
+                <div class="range-max">Full&#9888;</div>
               </div>
               <div class="input-group hidden" id="autolamp-group">
                 <label for="autolamp">Auto Lamp</label>

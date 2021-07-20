@@ -30,10 +30,10 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
           <input type="checkbox" id="nav-toggle-cb">
             <nav id="menu" style="width:24em;">
               <div class="input-group hidden" id="lamp-group">
-                <label for="lamp">Light</label>
+                <label for="lamp">Lamp</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="action-setting">
-                <div class="range-max">Full</div>
+                <div class="range-max">Full&#9888;</div>
               </div>
               <div class="input-group" id="framesize-group">
                 <label for="framesize">Resolution</label>
