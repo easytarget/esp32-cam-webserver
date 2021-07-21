@@ -35,11 +35,11 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
-              <div class="input-group hidden" id="lamp-group">
+              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full</div>
+                <div class="range-max">Full&#9888;</div>
               </div>
               <div class="input-group hidden" id="autolamp-group">
                 <label for="autolamp">Auto Lamp</label>
