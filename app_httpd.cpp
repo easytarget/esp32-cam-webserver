@@ -75,6 +75,15 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+uint8_t temprature_sens_read();
+#ifdef __cplusplus
+}
+#endif
+
+uint8_t temprature_sens_read();
 void serialDump() {
     Serial.println();
     // Module
@@ -543,9 +552,14 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upHours = int64_t(floor(sec/3600)) % 24;
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
+    int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
+    int McuTf = temprature_sens_read(); // fahrenheit
+
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
     d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
     d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
+    // Add a check if reading fails (sensor not available) to report 'Not Available'
+    d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     if (filesystem) {
