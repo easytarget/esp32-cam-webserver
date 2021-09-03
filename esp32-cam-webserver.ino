@@ -178,6 +178,12 @@ const int pwmMax = pow(2,pwmresolution)-1;
     bool otaEnabled = true;
 #endif
 
+#if defined(OTA_PASSWORD)
+    char otaPassword[] = OTA_PASSWORD;
+#else
+    char otaPassword[] = "";
+#endif
+
 #if defined(NTPSERVER)
     bool haveTime = true;
     const char* ntpServer = NTPSERVER;
@@ -640,10 +646,12 @@ void setup() {
         // Hostname defaults to esp3232-[MAC]
         ArduinoOTA.setHostname(myName);
         // No authentication by default
-        #if defined (OTA_PASSWORD)
-            ArduinoOTA.setPassword(OTA_PASSWORD);
-            Serial.printf("OTA Password: %s\n\r", OTA_PASSWORD);
-        #endif
+        if (strlen(otaPassword) != 0) {
+            ArduinoOTA.setPassword(otaPassword);
+            Serial.printf("OTA Password: %s\n\r", otaPassword);
+        } else {
+            Serial.printf("\n\rNo OTA password has been set! (insecure)\n\r\n\r");
+        }
         ArduinoOTA
             .onStart([]() {
               String type;

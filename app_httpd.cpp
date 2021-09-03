@@ -61,6 +61,8 @@ extern bool haveTime;
 extern int sketchSize;
 extern int sketchSpace;
 extern String sketchMD5;
+extern bool otaEnabled;
+extern char otaPassword[];
 
 typedef struct {
         httpd_req_t *req;
@@ -83,7 +85,6 @@ uint8_t temprature_sens_read();
 }
 #endif
 
-uint8_t temprature_sens_read();
 void serialDump() {
     Serial.println();
     // Module
@@ -97,6 +98,15 @@ void serialDump() {
     Serial.printf("Sketch Size: %i (total: %i, %.1f%% used)\r\n", sketchSize, sketchSpace, sketchPct);
     Serial.printf("MD5: %s\r\n", sketchMD5.c_str());
     Serial.printf("ESP sdk: %s\r\n", ESP.getSdkVersion());
+    if (otaEnabled) {
+         if (strlen(otaPassword) != 0) {
+            Serial.printf("OTA: Enabled, Password: %s\n\r", otaPassword);
+         } else {
+            Serial.printf("OTA: Enabled, No Password! (insecure)\n\r");
+         }
+    } else {
+        Serial.printf("OTA: Disabled\n\r");
+    }
     // Network
     if (accesspoint) {
         if (captivePortal) {
@@ -128,9 +138,12 @@ void serialDump() {
     int upHours = int64_t(floor(sec/3600)) % 24;
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
+    int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
+    int McuTf = temprature_sens_read(); // fahrenheit
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
     Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
     Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
+    Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     // Filesystems
@@ -558,8 +571,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
     d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
     d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
-    // Add a check if reading fails (sensor not available) to report 'Not Available'
-    d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F\n<br>", McuTc, McuTf);
+    d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
+    d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
     if (filesystem) {
