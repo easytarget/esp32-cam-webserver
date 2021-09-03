@@ -159,18 +159,6 @@ void serialDump() {
     return;
 }
 
-static size_t jpg_encode_stream(void * arg, size_t index, const void* data, size_t len){
-    jpg_chunking_t *j = (jpg_chunking_t *)arg;
-    if(!index){
-        j->len = 0;
-    }
-    if(httpd_resp_send_chunk(j->req, (const char *)data, len) != ESP_OK){
-        return 0;
-    }
-    j->len += len;
-    return len;
-}
-
 static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t * fb = NULL;
     esp_err_t res = ESP_OK;
@@ -198,10 +186,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
         fb_len = fb->len;
         res = httpd_resp_send(req, (const char *)fb->buf, fb->len);
     } else {
-        jpg_chunking_t jchunk = {req, 0};
-        res = frame2jpg_cb(fb, 80, jpg_encode_stream, &jchunk)?ESP_OK:ESP_FAIL;
-        httpd_resp_send_chunk(req, NULL, 0);
-        fb_len = jchunk.len;
+        res = ESP_FAIL;
+        Serial.println("Capture Error: Non-JPEG image returned by camera module");
     }
     esp_camera_fb_return(fb);
     int64_t fr_end = esp_timer_get_time();
@@ -249,13 +235,8 @@ static esp_err_t stream_handler(httpd_req_t *req){
             res = ESP_FAIL;
         } else {
             if(fb->format != PIXFORMAT_JPEG){
-                bool jpeg_converted = frame2jpg(fb, 80, &_jpg_buf, &_jpg_buf_len);
-                esp_camera_fb_return(fb);
-                fb = NULL;
-                if(!jpeg_converted){
-                    Serial.println("STREAM: JPEG compression failed");
-                    res = ESP_FAIL;
-                }
+                Serial.println("STREAM: Non-JPEG frame returned by camera module");
+                res = ESP_FAIL;
             } else {
                 _jpg_buf_len = fb->len;
                 _jpg_buf = fb->buf;
