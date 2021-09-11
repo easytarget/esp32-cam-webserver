@@ -263,6 +263,26 @@ void printLocalTime(bool extraData=false) {
     }
 }
 
+void calcURLs() {
+    // Set the URL's
+    #if defined(URL_HOSTNAME)
+        if (httpPort != 80) {
+            sprintf(httpURL, "http://%s:%d/", URL_HOSTNAME, httpPort);
+        } else {
+            sprintf(httpURL, "http://%s/", URL_HOSTNAME);
+        }
+        sprintf(streamURL, "http://%s:%d/", URL_HOSTNAME, streamPort);
+    #else
+        Serial.println("Setting httpURL");
+        if (httpPort != 80) {
+            sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
+        } else {
+            sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
+        }
+        sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
+    #endif
+}
+
 void WifiSetup() {
     // Feedback that we are now attempting to connect
     flashLED(300);
@@ -389,6 +409,7 @@ void WifiSetup() {
             Serial.printf("IP address: %d.%d.%d.%d\r\n",ip[0],ip[1],ip[2],ip[3]);
             Serial.printf("Netmask   : %d.%d.%d.%d\r\n",net[0],net[1],net[2],net[3]);
             Serial.printf("Gateway   : %d.%d.%d.%d\r\n",gw[0],gw[1],gw[2],gw[3]);
+            calcURLs();
             // Flash the LED to show we are connected
             for (int i = 0; i < 5; i++) {
                 flashLED(50);
@@ -434,6 +455,7 @@ void WifiSetup() {
         gw = WiFi.gatewayIP();
         strcpy(apName, stationList[0].ssid);
         Serial.printf("IP address: %d.%d.%d.%d\r\n",ip[0],ip[1],ip[2],ip[3]);
+        calcURLs();
         // Flash the LED to show we are connected
         for (int i = 0; i < 5; i++) {
             flashLED(150);
@@ -693,21 +715,6 @@ void setup() {
     // Now we have a network we can start the two http handlers for the UI and Stream.
     startCameraServer(httpPort, streamPort);
 
-    #if defined(URL_HOSTNAME)
-        if (httpPort != 80) {
-            sprintf(httpURL, "http://%s:%d/", URL_HOSTNAME, httpPort);
-        } else {
-            sprintf(httpURL, "http://%s/", URL_HOSTNAME);
-        }
-        sprintf(streamURL, "http://%s:%d/", URL_HOSTNAME, streamPort);
-    #else
-         if (httpPort != 80) {
-            sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
-        } else {
-            sprintf(httpURL, "http://%d.%d.%d.%d/", ip[0], ip[1], ip[2], ip[3]);
-        }
-        sprintf(streamURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], streamPort);
-    #endif
     if (critERR.length() == 0) {
         Serial.printf("\r\nCamera Ready!\r\nUse '%s' to connect\r\n", httpURL);
         Serial.printf("Stream viewer available at '%sview'\r\n", streamURL);
