@@ -258,6 +258,11 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
       .forEach(el => {
         el.onchange = () => updateConfig(el)
       })
+    document
+      .querySelectorAll('input[type="range"]')
+      .forEach(el => {
+        el.oninput = () => updateConfig(el)
+      })
 
     // Custom actions
     // Detection and framesize
