@@ -374,7 +374,8 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       }
     }
 
-    function updateConfig (el) {
+    var serialCounter = 0;
+    function updateConfig (el, serial=false) {
       let value
       switch (el.type) {
         case 'checkbox':
@@ -392,7 +393,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           return
       }
 
-      const query = `${baseHost}/control?var=${el.id}&val=${value}`
+      var query = ''
+      if (serial) {
+        query = `${baseHost}/control?var=${el.id}&val=${value}&ser=${++serialCounter}`
+      } else {
+        query = `${baseHost}/control?var=${el.id}&val=${value}`
+      }
 
       fetch(query)
         .then(response => {
@@ -501,7 +507,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     document
       .querySelectorAll('input[type="range"]')
       .forEach(el => {
-        el.oninput = () => updateConfig(el)
+        el.oninput = () => updateConfig(el, serial=true)
       })
 
     // Custom actions
