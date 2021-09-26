@@ -636,7 +636,7 @@ void setup() {
             filesystemStart();
             loadPrefs(SPIFFS);
         } else {
-            Serial.println("No Internal Filesystem, cannot save preferences");
+            Serial.println("No Internal Filesystem, cannot load or save preferences");
         }
     }
 

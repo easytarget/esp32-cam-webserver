@@ -145,10 +145,18 @@ void serialDump() {
     Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
     Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    if(psramFound()) {
+        Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    } else {
+        Serial.printf("Psram: Not found; please check your board configuration.\r\n");
+        Serial.printf("- High resolution/quality settings will show incomplete frames to low memory.\r\n");
+    }
     // Filesystems
-    if (filesystem) {
+    if (filesystem && (SPIFFS.totalBytes() > 0)) {
         Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    } else {
+        Serial.printf("Spiffs: No filesystem found, please check your board configuration.\r\n");
+        Serial.printf("- Saving and restoring camera settings will not function without this.\r\n");
     }
     Serial.println("Preferences file: ");
     dumpPrefs(SPIFFS);
@@ -493,8 +501,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
     if (critERR.length() > 0) {
-        d+= sprintf(d,"Hardware Error Detected!\n(the serial log may give more information)\n");
-        d+= sprintf(d,"%s<hr>\n", critERR.c_str());
+        d+= sprintf(d,"<span style=\"color:red;\">%s<hr></span>\n", critERR.c_str());
+        d+= sprintf(d,"<h2 style=\"color:red;\">(the serial log may give more information)</h2><br>\n");
     }
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
     // Module
@@ -556,9 +564,17 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-    if (filesystem) {
+    if (psramFound()) {
+        d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    } else {
+        d+= sprintf(d,"Psram: <span style=\"color:red;\">Not found</span>, please check your board configuration.<br>\n");
+        d+= sprintf(d,"- High resolution/quality images & streams will show incomplete frames due to low memory.<br>\n");
+    }
+    if (filesystem && (SPIFFS.totalBytes() > 0)) {
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    } else {
+        d+= sprintf(d,"Spiffs: <span style=\"color:red;\">No filesystem found</span>, please check your board configuration.<br>\n");
+        d+= sprintf(d,"- saving and restoring camera settings will not function without this.<br>\n");
     }
 
     // Footer
