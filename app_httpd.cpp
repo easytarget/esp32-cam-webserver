@@ -77,8 +77,6 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
 
-unsigned long long int cmdSerial = 0;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -290,7 +288,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     size_t buf_len;
     char variable[32] = {0,};
     char value[32] = {0,};
-    unsigned long long int serial = 0;
 
     flashLED(75);
 
@@ -304,10 +301,6 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) {
             if (httpd_query_key_value(buf, "var", variable, sizeof(variable)) == ESP_OK &&
                 httpd_query_key_value(buf, "val", value, sizeof(value)) == ESP_OK) {
-                    char s[32] = {0,};
-                    if (httpd_query_key_value(buf, "ser", s, sizeof(s)) == ESP_OK) {
-                      serial = atoi(s);
-                    }
             } else {
                 free(buf);
                 httpd_resp_send_404(req);
@@ -327,16 +320,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     int val = atoi(value);
     sensor_t * s = esp_camera_sensor_get();
     int res = 0;
-    if(serial > 0) {  // If the command has a serialisation number
-        if(serial>cmdSerial) {    // test if in sequence
-            cmdSerial = serial;
-        } else {
-            strcpy(variable, "skip");  // skip when out of sequence
-        }
-    }
-
-    if(!strcmp(variable, "skip")) {} // do nothing, but return success
-    else if(!strcmp(variable, "framesize")) {
+    if(!strcmp(variable, "framesize")) {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
     }
     else if(!strcmp(variable, "quality")) res = s->set_quality(s, val);

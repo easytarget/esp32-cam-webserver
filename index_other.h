@@ -148,14 +148,12 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
         rangeUpdateScheduled = true;
         setTimeout(function(){
           rangeUpdateScheduled = false
-          updateConfig(latestRangeConfig, serial=true)
-        }, 100);
+          updateConfig(latestRangeConfig)
+        }, 150);
       }
     }
 
-    var serialCounter = 0
-
-    function updateConfig (el, serial=false) {
+    function updateConfig (el) {
       let value
       switch (el.type) {
         case 'checkbox':
@@ -173,12 +171,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
           return
       }
 
-      var query = ''
-      if (serial) {
-        query = `${baseHost}/control?var=${el.id}&val=${value}&ser=${++serialCounter}`
-      } else {
-        query = `${baseHost}/control?var=${el.id}&val=${value}`
-      }
+      const query = `${baseHost}/control?var=${el.id}&val=${value}`
 
       fetch(query)
         .then(response => {
