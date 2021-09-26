@@ -649,7 +649,9 @@ void setup() {
         ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
         if (autoLamp) setLamp(0);                        // set default value
         else setLamp(lampVal);
-        ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+        #if defined(LAMP_PIN)
+            ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+        #endif
     } else {
         Serial.println("No lamp, or lamp disabled in config");
     }
