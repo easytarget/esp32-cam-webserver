@@ -147,7 +147,7 @@ char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 #endif
 int myRotation = CAM_ROTATION;
 
-// Illumination LAMP/LED
+// Illumination LAMP and status LED
 #if defined(LAMP_DISABLE)
     int lampVal = -1; // lamp is disabled in config
 #elif defined(LAMP_PIN)
@@ -159,6 +159,11 @@ int myRotation = CAM_ROTATION;
 #else 
     int lampVal = -1; // no lamp pin assigned
 #endif
+
+#if defined(LED_DISABLE)
+    #undef LED_PIN    // undefining this disables the notification LED
+#endif
+
 bool autoLamp = false;         // Automatic lamp (auto on while camera running)
 
 int lampChannel = 7;           // a free PWM channel (some channels used by camera)

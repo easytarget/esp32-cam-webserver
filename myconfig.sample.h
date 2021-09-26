@@ -151,6 +151,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Default Page: uncomment to make the full control page the default, otherwise show simple viewer
 // #define DEFAULT_INDEX_FULL
 
+// Uncomment to disable the notification LED on the module
+// #define LED_DISABLE
+
 // Uncomment to disable the illumination lamp features
 // #define LAMP_DISABLE
 
