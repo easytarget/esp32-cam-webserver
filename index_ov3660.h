@@ -386,7 +386,22 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       }
     }
 
+    var rangeUpdateScheduled = false
+    var latestRangeConfig
+
+    function updateRangeConfig (el) {
+      latestRangeConfig = el
+      if (!rangeUpdateScheduled) {
+        rangeUpdateScheduled = true;
+        setTimeout(function(){
+          rangeUpdateScheduled = false
+          updateConfig(latestRangeConfig, serial=true)
+        }, 100);
+      }
+    }
+
     var serialCounter = 0;
+
     function updateConfig (el, serial=false) {
       let value
       switch (el.type) {
@@ -516,10 +531,12 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       .forEach(el => {
         el.onchange = () => updateConfig(el)
       })
+
+    // Update range sliders as they are being moved
     document
       .querySelectorAll('input[type="range"]')
       .forEach(el => {
-        el.oninput = () => updateConfig(el, serial=true)
+        el.oninput = () => updateRangeConfig(el)
       })
 
     // Custom actions
