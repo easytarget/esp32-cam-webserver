@@ -96,7 +96,7 @@ reboot          - Reboots the camera
   * `http://<IP-ADDRESS>/control?var=lamp&val=50`
   * `http://<IP-ADDRESS>/control?var=lamp&val=0`
 * Set resolution to VGA
-  * `http://<IP-ADDRESS>/control?var=framesize&val=6`
+  * `http://<IP-ADDRESS>/control?var=framesize&val=8`
 * Show camera details and settings
   * All settings are returned via single `status` call in [JSON](https://www.json.org/) format.
   * `http://<IP-ADDRESS>/status`

@@ -7,18 +7,22 @@ os:
 
 dist: focal
 
+ branches:
+  only:
+  - master
+
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
-  - wget http://downloads.arduino.cc/arduino-1.8.13-linux64.tar.xz
-  - tar xf arduino-1.8.13-linux64.tar.xz
-  - mv arduino-1.8.13 $HOME/arduino_ide
+  - wget http://downloads.arduino.cc/arduino-1.8.16-linux64.tar.xz
+  - tar xf arduino-1.8.16-linux64.tar.xz
+  - mv arduino-1.8.16 $HOME/arduino_ide
   - cd $HOME/arduino_ide/hardware
   - mkdir esp32
   - cd esp32
-  - wget https://github.com/espressif/arduino-esp32/archive/refs/tags/1.0.6.tar.gz
-  - tar -xzf 1.0.6.tar.gz 
-  - mv arduino-esp32-1.0.6/ esp32
+  - wget https://github.com/espressif/arduino-esp32/archive/refs/tags/2.0.0.tar.gz
+  - tar -xzf 2.0.0.tar.gz 
+  - mv arduino-esp32-2.0.0/ esp32
   - cd esp32/tools
   - python --version
   - python get.py
