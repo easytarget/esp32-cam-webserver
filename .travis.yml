@@ -7,6 +7,11 @@ os:
 
 dist: focal
 
+branches:
+  only:
+  - master
+
+
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
