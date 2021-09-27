@@ -7,7 +7,7 @@ os:
 
 dist: focal
 
- branches:
+branches:
   only:
   - master
 
