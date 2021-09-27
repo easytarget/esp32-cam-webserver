@@ -1,4 +1,4 @@
-# ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
+# ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
 ## Taken from the ESP examples, and expanded
 This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
@@ -46,13 +46,17 @@ https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 The ESP itself is susceptable to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptable to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
 
 A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
+* You can check the `/dump` page of the cam to see if it currently reports the camera as streaming or not.
 
-The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above
+The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above.
+
+Note that I do not respond to any Private Messages (via github, hackaday, or wherever) for support.
 
 ## Setup:
 
 * For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
-* Make sure you are using the [latest version](https://www.arduino.cc/en/main/software#download) of the IDE and then follow [This Guide](https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md) to set up the Espressif Arduino core for the IDE.
+* Make sure you are using the [latest version](https://www.arduino.cc/en/main/software#download) of the IDE and then follow [This Guide](https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html) to set up the Espressif Arduino core for the IDE.
+* _I do not recommend or support running with development builds of either the IDE or the ESP arduino core._
 * If you have a development board (anything that can be programmed via a standard USB cable/jack on the board itself) you are in luck. Just plug it in and skip ahead to the [config](#config) section. Remember to set your board model.
 * The AI-THINKER board requires use of an external **3.3v** serial adapter to program; I use a `FTDI Friend` adapter, for more about this read AdaFruits excellent [FTDI Friend guide](https://learn.adafruit.com/ftdi-friend).
 * Be careful not to use a 5v serial adapter since this will damage the ESP32.
@@ -115,7 +119,11 @@ I would also like to shoutout to @jmfloyd; who suggested rotating the image in t
 
 ![The stream viewer](Docs/streamview.png)<br>*Standalone StreamViewer; No decoration or controls, the image is resizable, and you can doubleclick it for fullscreen*
 
-![The info page](Docs/infodump.png)<br>*Boring Details*
+![The info page](Docs/infodump.png)<br>*Boring Details, useful when debugging or if you want to check stats*
+
+### API
+The communications between the web browser and the camera module can also be used to send commands directly to the camera (eg to automate it, etc) and form, in effect, an API for the camera.
+* I have [documented this here](https://github.com/easytarget/esp32-cam-webserver/blob/master/API.md).
 
 ## Notes:
 
