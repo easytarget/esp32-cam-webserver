@@ -12,7 +12,14 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/style.css">
     <style>
-    // style overrides here
+      @media (min-width: 800px) and (orientation:landscape) {
+        #content {
+          display:flex;
+          flex-wrap: nowrap;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
     </style>
   </head>
 
