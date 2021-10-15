@@ -89,7 +89,7 @@ To make a permanent config with your home wifi settings, different defaults or a
 Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board will appear in the ESP32 Arduino section of the boards list. Select this (do not use the `AI-THINKER` entry listed in the boiards menu, it is not OTA compatible, and will caus the module to crash and reboot rather than updating if you use it.
 ![IDE board config](Docs/ota-board-selection.png)
 
-Make sure you select the `Default 4MB with Spiffs` partition scheme and turn `PSRAM` on.
+Make sure you select the `Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)` partition scheme and turn `PSRAM` on.
 
 The first time you program (or if OTA is failing) you need to compile and upload the code from the IDE, and when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
 
@@ -148,7 +148,7 @@ V4
 * Investigate using SD card to capture images
 * Implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
   * **Basic OTA is Done**, see the `NoFace` branch.
-  * Advanced (web upload) OTA might be nice to have is possible
+  * Advanced (web upload) OTA might be nice to have if possible
   * For the Network setup I want to implement https://github.com/Hieromon/AutoConnect 
 * UI Skinning/Theming
 * OSD
