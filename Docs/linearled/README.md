@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 }
 ```
 
-Adjust the width as necesscary and compile with: 
+Adjust the width as necessary and compile with: 
 
     $ gcc linearled.c -o linearled -lm
     

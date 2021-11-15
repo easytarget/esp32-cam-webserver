@@ -14,7 +14,7 @@ But expanded with:
 * Lots of minor fixes and tweaks, documentation etc.
 
 And 'reduced' by removing the Face Recognition features 
-* **If you want to try the Face Recognition features** please use the [`3.x` maintenance branch](https://github.com/easytarget/esp32-cam-webserver/tree/3.x), which still recieves bugfixes, but is not reciving any further development.
+* **If you want to try the Face Recognition features** please use the [`3.x` maintenance branch](https://github.com/easytarget/esp32-cam-webserver/tree/3.x), which still recieves bugfixes, but is not receiving any further development.
 * They were a demo, only worked in low resolution modes, did not preserve the face database between power cycles, and were of little use in real-world applications.
 * There are other (specialised) sketches for the ESP-CAM that do use face recognitioni more effectively, if this is your thing :-)
 
@@ -43,7 +43,7 @@ https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
 
 ### Known Issues
 
-The ESP itself is susceptable to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptable to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
+The ESP itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptible to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
 
 A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
 * You can check the `/dump` page of the cam to see if it currently reports the camera as streaming or not.
@@ -111,7 +111,7 @@ All of the face recognition code has been removed as of V4.0; this reduces the c
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
 
-The streamviewer, lamp control, and all the other new features have been added. I have tried to retain the basic structure of the original example,extending where necesscary.
+The streamviewer, lamp control, and all the other new features have been added. I have tried to retain the basic structure of the original example,extending where necessary.
 
 The web UI has had changes to add the lamp control (only when enabled) and make the streamm window rotate and resize appropriately. I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
 
@@ -152,6 +152,6 @@ V4
   * For the Network setup I want to implement https://github.com/Hieromon/AutoConnect 
 * UI Skinning/Theming
 * OSD
-  * Temperature/humidity/pressure sensor suport (bme20,dht11)
-You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there.
+  * Temperature/humidity/pressure sensor support (bme20,dht11)
+You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoughts you may have there.
 

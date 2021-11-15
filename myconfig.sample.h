@@ -25,14 +25,14 @@ struct station stationList[] = {{"ssid1", "pass1", true},
                                 {"ssid2", "pass2", true},
                                 {"ssid3", "pass3", false}};
 
- * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to seperate them.
+ * Note the use of nested braces '{' and '}' to group each entry, and commas ',' to separate them.
  *
  * The first entry (ssid1, above) in the stationList is special, if WIFI_AP_ENABLE has been uncommented (below)
  * it will be used for the AccessPoint ssid and password. See the comments there for more.
  *
  * The 'dhcp' setting controls whether the station uses DHCP or static IP settings; if in doubt leave 'true'
   * 
- * You can also use a BSSID (eg: "2F:67:94:F5:BB:6A", a colon seperated mac address string) in place of
+ * You can also use a BSSID (eg: "2F:67:94:F5:BB:6A", a colon separated mac address string) in place of
  * the ssid to force connections to specific networks even when the ssid's collide,
  */
 
@@ -55,7 +55,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
  * You must define all three: IP, Gateway and NetMask
  */
-// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// warning - IP addresses must be separated with commas (,) and not decimals (.)
 // #define ST_IP      192,168,0,123
 // #define ST_GATEWAY 192,168,0,2 
 // #define ST_NETMASK 255,255,255,0
@@ -83,7 +83,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  *  browser and other settings.
  */
 // Optionally change the AccessPoint ip address (default = 192.168.4.1)
-// warning - IP addresses must be seperated with commas (,) and not decimals (.)
+// warning - IP addresses must be separated with commas (,) and not decimals (.)
 // #define AP_ADDRESS 192,168,4,1
 
 // Uncomment this to force the AccessPoint channel number, default = 1
