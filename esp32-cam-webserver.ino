@@ -679,7 +679,7 @@ void setup() {
             ArduinoOTA.setPassword(otaPassword);
             Serial.printf("OTA Password: %s\n\r", otaPassword);
         } else {
-            Serial.printf("\n\rNo OTA password has been set! (insecure)\n\r\n\r");
+            Serial.printf("\r\nNo OTA password has been set! (insecure)\r\n\r\n");
         }
         ArduinoOTA
             .onStart([]() {
@@ -692,7 +692,7 @@ void setup() {
               Serial.println("Start updating " + type);
             })
             .onEnd([]() {
-              Serial.println("\nEnd");
+              Serial.println("\r\nEnd");
             })
             .onProgress([](unsigned int progress, unsigned int total) {
               Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
