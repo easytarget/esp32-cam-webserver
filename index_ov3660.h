@@ -251,6 +251,20 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
+              <div class="input-group" id="framerate_limit-group">
+                <label for="framerate_limit">FPS Limit</label>
+                <select id="framerate_limit" class="default-action">
+                  <option value="3333">0.3</option>
+                  <option value="2000">0.5</option>
+                  <option value="1000">1</option>
+                  <option value="500">2</option>
+                  <option value="333">3</option>
+                  <option value="200">5</option>
+                  <option value="100">10</option>
+                  <option value="50">20</option>
+                  <option value="0" selected="selected">Disabled</option>
+                </select>
+              </div>
               <div class="input-group" id="preferences-group">
                 <label for="reboot" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
@@ -310,6 +324,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
+    const framerateLimit = document.getElementById('framerate_limit')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -371,6 +386,8 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
+        } else if(el.id === "framerate_limit"){
+          framerate_limit.value = value;
         } else if(el.id === "stream_url"){
           streamURL = value;
           viewerURL = value + 'view';
@@ -569,6 +586,10 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
+    }
+
+    framerateLimit.onchange = () => {
+      updateConfig(framerateLimit)
     }
 
     swapButton.onclick = () => {
