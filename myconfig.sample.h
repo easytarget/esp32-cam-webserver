@@ -143,6 +143,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Browser Rotation (one of: -90,0,90, default 0)
 // #define CAM_ROTATION 0
 
+// Minimal frame duration in ms, used to limit max FPS
+// max_fps = 1000/framerate_limit
+// #define FRAMERATE_LIMIT 500
 
 /*
  * Additional Features

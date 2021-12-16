@@ -7,6 +7,7 @@ extern void flashLED(int flashtime);
 extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
 extern int autoLamp;                // Automatic lamp mode
+extern int framerateLimit;          // Minimal frame duration
 
 /*
  * Useful utility when debugging... 
@@ -90,6 +91,7 @@ void loadPrefs(fs::FS &fs){
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
     autoLamp = jsonExtract(prefs, "autolamp").toInt();
+    framerateLimit = jsonExtract(prefs, "framerate_limit").toInt();
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
@@ -136,6 +138,7 @@ void savePrefs(fs::FS &fs){
   *p++ = '{';
   p+=sprintf(p, "\"lamp\":%i,", lampVal);
   p+=sprintf(p, "\"autolamp\":%u,", autoLamp);
+  p+=sprintf(p, "\"framerate_limit\":%d,", framerateLimit);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
