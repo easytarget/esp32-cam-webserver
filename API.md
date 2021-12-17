@@ -6,7 +6,7 @@ The WebUI and camera server communicate entirely via HTTP requests and responses
 ## URI's
 ### Http Port
 * `/` - Default index
-* `/?target=full|simple|portal` - Go direct to specific index
+* `/?view=full|simple|portal` - Go direct to specific index
 * `/capture` - Return a Jpeg snapshot image
 * `/status` - Returns a JSON string with all camera status <key>/<value> pairs listed
 * `/control?var=<key>&val=<val>` - Set `<key>` to `<val>`
