@@ -237,6 +237,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
+    if(res == ESP_OK){
+        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+    }
+
     while(true){
         fb = esp_camera_fb_get();
         if (!fb) {
