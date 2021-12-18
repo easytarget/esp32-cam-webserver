@@ -251,9 +251,9 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
-              <div class="input-group" id="framerate_limit-group">
-                <label for="framerate_limit">FPS Limit</label>
-                <select id="framerate_limit" class="default-action">
+              <div class="input-group" id="min_frame_time-group">
+                <label for="min_frame_time">FPS Limit</label>
+                <select id="min_frame_time" class="default-action">
                   <option value="3333">0.3</option>
                   <option value="2000">0.5</option>
                   <option value="1000">1</option>
@@ -324,7 +324,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
-    const framerateLimit = document.getElementById('framerate_limit')
+    const minFrameTime = document.getElementById('min_frame_time')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -386,8 +386,8 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
-        } else if(el.id === "framerate_limit"){
-          framerate_limit.value = value;
+        } else if(el.id === "min_frame_time"){
+          min_frame_time.value = value;
         } else if(el.id === "stream_url"){
           streamURL = value;
           viewerURL = value + 'view';
@@ -588,8 +588,8 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       updateConfig(framesize)
     }
 
-    framerateLimit.onchange = () => {
-      updateConfig(framerateLimit)
+    minFrameTime.onchange = () => {
+      updateConfig(minFrameTime)
     }
 
     swapButton.onclick = () => {

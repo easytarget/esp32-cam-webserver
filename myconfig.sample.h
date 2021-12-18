@@ -144,8 +144,8 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define CAM_ROTATION 0
 
 // Minimal frame duration in ms, used to limit max FPS
-// max_fps = 1000/framerate_limit
-// #define FRAMERATE_LIMIT 500
+// max_fps = 1000/min_frame_time
+// #define MIN_FRAME_TIME 500
 
 /*
  * Additional Features

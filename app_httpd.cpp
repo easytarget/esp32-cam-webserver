@@ -52,7 +52,7 @@ extern int8_t streamCount;
 extern unsigned long streamsServed;
 extern unsigned long imagesServed;
 extern int myRotation;
-extern int framerateLimit;
+extern int minFrameTime;
 extern int lampVal;
 extern bool autoLamp;
 extern bool filesystem;
@@ -276,7 +276,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
         }
         int64_t frame_time = esp_timer_get_time() - last_frame;
         frame_time /= 1000;
-        int32_t frame_delay = (framerateLimit > frame_time) ? framerateLimit - frame_time : 0;
+        int32_t frame_delay = (minFrameTime > frame_time) ? minFrameTime - frame_time : 0;
         delay(frame_delay);
 
         if (debugData) {
@@ -359,7 +359,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(variable, "ae_level")) res = s->set_ae_level(s, val);
     else if(!strcmp(variable, "rotate")) myRotation = val;
-    else if(!strcmp(variable, "framerate_limit")) framerateLimit = val;
+    else if(!strcmp(variable, "min_frame_time")) minFrameTime = val;
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {
@@ -415,7 +415,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     *p++ = '{';
     p+=sprintf(p, "\"lamp\":%d,", lampVal);
     p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
-    p+=sprintf(p, "\"framerate_limit\":%d,", framerateLimit);
+    p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
