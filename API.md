@@ -26,6 +26,7 @@ Call `/control?var=<key>&val=<val>` with a settings key and value to set camera 
 ```
 lamp            - Lamp value in percent; integer, 0 - 100 (-1 = disabled)
 framesize       - See below
+framerate_limit - Minimal frame duration in ms, used to limit max FPS. Must be positive integer
 quality         - 10 to 63 (ov3660: 4 to 10)
 contrast        - -2 to 2 (ov3660: -3 to 3)
 brightness      - -2 to 2 (ov3660: -3 to 3)
