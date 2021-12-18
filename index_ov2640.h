@@ -238,16 +238,16 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </div>
               </div>
               <div class="input-group" id="min_frame_time-group">
-                <label for="min_frame_time">FPS Limit</label>
+                <label for="min_frame_time">Frame Duration Limit</label>
                 <select id="min_frame_time" class="default-action">
-                  <option value="3333">0.3</option>
-                  <option value="2000">0.5</option>
-                  <option value="1000">1</option>
-                  <option value="500">2</option>
-                  <option value="333">3</option>
-                  <option value="200">5</option>
-                  <option value="100">10</option>
-                  <option value="50">20</option>
+                  <option value="3333">3333ms (0.3fps)</option>
+                  <option value="2000">2000ms (0.5fps)</option>
+                  <option value="1000">1000ms (1fps)</option>
+                  <option value="500">500ms (2fps)</option>
+                  <option value="333">333ms (3fps)</option>
+                  <option value="200">200ms (5fps)</option>
+                  <option value="100">100ms (10fps)</option>
+                  <option value="50">50ms (20fps)</option>
                   <option value="0" selected="selected">Disabled</option>
                 </select>
               </div>
