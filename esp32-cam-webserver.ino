@@ -524,11 +524,12 @@ void setup() {
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = XCLK_FREQ_HZ;
     config.pixel_format = PIXFORMAT_JPEG;
+    config.grab_mode = CAMERA_GRAB_LATEST;
     // Pre-allocate large buffers
     if(psramFound()){
         config.frame_size = FRAMESIZE_UXGA;
         config.jpeg_quality = 10;
-        config.fb_count = 6;  // We can be generous since we are not using facedetect anymore, allows for bigger jpeg frame size (data)
+        config.fb_count = 2;
     } else {
         config.frame_size = FRAMESIZE_SVGA;
         config.jpeg_quality = 12;
