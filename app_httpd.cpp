@@ -172,7 +172,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_err_t res = ESP_OK;
 
     Serial.println("Capture Requested");
-    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(lampVal);
+        delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+    }
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -198,12 +201,16 @@ static esp_err_t capture_handler(httpd_req_t *req){
         Serial.println("Capture Error: Non-JPEG image returned by camera module");
     }
     esp_camera_fb_return(fb);
+    fb = NULL;
+
     int64_t fr_end = esp_timer_get_time();
     if (debugData) {
         Serial.printf("JPG: %uB %ums\r\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
     }
     imagesServed++;
-    if (autoLamp && (lampVal != -1)) setLamp(0);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(0);
+    }
     return res;
 }
 
