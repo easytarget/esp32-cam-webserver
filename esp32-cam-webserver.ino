@@ -95,7 +95,7 @@ extern void serialDump();
 #endif
 
 #if !defined(WIFI_WATCHDOG)
-    #define WIFI_WATCHDOG 8000
+    #define WIFI_WATCHDOG 15000
 #endif
 
 // Number of known networks in stationList[]

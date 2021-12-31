@@ -99,9 +99,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 /*
  * Wifi Watchdog defines how long we spend waiting for a connection before retrying,
  * and how often we check to see if we are still connected, milliseconds
- * You may wish to increase this if your WiFi is slow at conencting,
+ * You may wish to increase this if your WiFi is slow at conencting.
  */
-// #define WIFI_WATCHDOG 8000
+// #define WIFI_WATCHDOG 15000
 
 /*
  * Over The Air firmware updates can be disabled by uncommenting the folowing line
@@ -188,4 +188,4 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // original frequency of 20MHz for to allow higher framerates etc.
 // #define XCLK_FREQ_HZ 20000000;
 // For clone modules that have camera module artifacts and SPIFFS issues; try setting this very low:
-// #define XCLK_FREQ_HZ 4000000;
+// #define XCLK_FREQ_HZ 3000000;
