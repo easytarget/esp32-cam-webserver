@@ -187,3 +187,5 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Currently defaults to 16.5MHz, but some (non-clone) modules may be able to use the 
 // original frequency of 20MHz for to allow higher framerates etc.
 // #define XCLK_FREQ_HZ 20000000;
+// For clone modules that have camera module artifacts and SPIFFS issues; try setting this very low:
+// #define XCLK_FREQ_HZ 4000000;
