@@ -87,6 +87,8 @@ To make a permanent config with your home wifi settings, different defaults or a
 Assuming you are using the latest Espressif Arduino core the `AI-THINKER` board (or whatever board you select for programming) will appear in the ESP32 Arduino section of the boards list. 
 ![IDE board config](Docs/board-selection-small.png)
 
+If you have a different board and are using a generic ESP32 DEV board select `Huge APP (3MB No OTA/1MB SPIFFS` for the partition scheme, and make sure PSRAM is enabled (it defaults to off!)
+
 Compile and upload the code from the IDE, when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
 
 Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.

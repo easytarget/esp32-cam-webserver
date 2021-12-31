@@ -93,7 +93,7 @@ extern void serialDump();
 #endif
 
 #if !defined(WIFI_WATCHDOG)
-    #define WIFI_WATCHDOG 5000
+    #define WIFI_WATCHDOG 15000
 #endif
 
 // Number of known networks in stationList[]
@@ -130,6 +130,15 @@ unsigned long imagesServed = 0;  // Total image requests
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
+
+// Camera module bus communications frequency.
+// Originally: config.xclk_freq_hz = 20000000, but this lead to visual artifacts on many modules.
+// See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
+#if !defined (XCLK_FREQ_HZ)
+    unsigned long xclkFreqHz = 16500000;
+#else
+    unsigned long xclkFreqHz = XCLK_FREQ_HZ;
+#endif
 
 // initial rotation
 // can be set in myconfig.h
@@ -495,9 +504,9 @@ void setup() {
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = 20000000;
+    config.xclk_freq_hz = xclkFreqHz;
     config.pixel_format = PIXFORMAT_JPEG;
-    //init with highest supported specs to pre-allocate large buffers
+    // Pre-allocate large buffers
     if(psramFound()){
         config.frame_size = FRAMESIZE_UXGA;
         config.jpeg_quality = 10;
@@ -611,6 +620,7 @@ void setup() {
         // check for saved preferences and apply them
 
         if (filesystem) {
+            delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
             loadPrefs(SPIFFS);
             loadFaceDB(SPIFFS);
@@ -662,6 +672,13 @@ void setup() {
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
+
+    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
+    if(!psramFound()){
+        Serial.printf("\r\nNo PSRAM found.\r\nPlease check the board config for your module.\r\n");
+        Serial.printf("High resolution/quality images & streams will show incomplete frames due to low memory.\r\n");
+    }
+
 }
 
 void loop() {

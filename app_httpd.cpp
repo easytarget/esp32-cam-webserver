@@ -64,6 +64,8 @@ extern int sketchSpace;
 extern String sketchMD5;
 extern char knownFaceText[];
 extern char unknownFaceText[];
+extern unsigned long xclkFreqHz;
+
 
 
 #include "fb_gfx.h"
@@ -260,11 +262,7 @@ static int run_face_recognition(dl_matrix3du_t *image_matrix, box_array_t *net_b
 }
 
 void serialDump() {
-    Serial.println("\r\nPreferences file: ");
-    dumpPrefs(SPIFFS);
-    if (critERR.length() > 0) {
-        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
-    }
+    Serial.println();
     // Module
     Serial.printf("Name: %s\r\n", myName);
     Serial.printf("Firmware: %s (base: %s)\r\n", myVer, baseVersion);
@@ -303,15 +301,33 @@ void serialDump() {
     int upHours = int64_t(floor(sec/3600)) % 24;
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
+    int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
+    int McuTf = temprature_sens_read(); // fahrenheit
+    float xclk = xclkFreqHz/1000000;
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
     Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
-    Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
+    Serial.printf("CPU Freq: %i MHz, Xclk Freq: %.1f MHz\r\n", ESP.getCpuFreqMHz(), xclk);
+    Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-    if (filesystem) {
+    if(psramFound()) {
+        Serial.printf("Psram: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    } else {
+        Serial.printf("Psram: Not found; please check your board configuration.\r\n");
+        Serial.printf("- High resolution/quality settings will show incomplete frames due to low memory.\r\n");
+    }
+    // Filesystems
+    if (filesystem && (SPIFFS.totalBytes() > 0)) {
         Serial.printf("Spiffs: %i, used: %i\r\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    } else {
+        Serial.printf("Spiffs: No filesystem found, please check your board configuration.\r\n");
+        Serial.printf("- Saving and restoring camera settings will not function without this.\r\n");
     }
     Serial.printf("Enrolled faces: %i (max %i)\r\n", id_list.count, id_list.size);
+    Serial.println("Preferences file: ");
+    dumpPrefs(SPIFFS);
+    if (critERR.length() > 0) {
+        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
+    }
     Serial.println();
     return;
 }
@@ -333,7 +349,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_err_t res = ESP_OK;
 
     Serial.println("Capture Requested");
-    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(lampVal);
+        delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+    }
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -392,7 +411,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
 
     s = fmt2rgb888(fb->buf, fb->len, fb->format, out_buf);
     esp_camera_fb_return(fb);
-    if(!s){
+    fb = NULL;
+if(!s){
         dl_matrix3du_free(image_matrix);
         Serial.println("CAPTURE: frame convert to rgb888 failed");
         httpd_resp_send_500(req);
@@ -429,7 +449,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     }
 
     imagesServed++;
-    if (autoLamp && (lampVal != -1)) setLamp(0);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(0);
+    }
     return res;
 }
 
@@ -609,6 +631,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     size_t buf_len;
     char variable[32] = {0,};
     char value[32] = {0,};
+
     flashLED(75);
 
     buf_len = httpd_req_get_url_query_len(req) + 1;
@@ -835,8 +858,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
     if (critERR.length() > 0) {
-        d+= sprintf(d,"Hardware Error Detected!\n(the serial log may give more information)\n");
-        d+= sprintf(d,"%s<hr>\n", critERR.c_str());
+        d+= sprintf(d,"<span style=\"color:red;\">%s<hr></span>\n", critERR.c_str());
+        d+= sprintf(d,"<h2 style=\"color:red;\">(the serial log may give more information)</h2><br>\n");
     }
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
     // Module
@@ -882,16 +905,25 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upSec = sec % 60;
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
+    float xclk = xclkFreqHz/1000000;
 
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
     d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
-    d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
+    d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %.1f MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
-    d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
-    if (filesystem) {
+    if (psramFound()) {
+        d+= sprintf(d,"Psram: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getPsramSize(), ESP.getFreePsram(), ESP.getMinFreePsram(), ESP.getMaxAllocPsram());
+    } else {
+        d+= sprintf(d,"Psram: <span style=\"color:red;\">Not found</span>, please check your board configuration.<br>\n");
+        d+= sprintf(d,"- High resolution/quality images & streams will show incomplete frames due to low memory.<br>\n");
+    }
+    if (filesystem && (SPIFFS.totalBytes() > 0)) {
         d+= sprintf(d,"Spiffs: %i, used: %i<br>\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
+    } else {
+        d+= sprintf(d,"Spiffs: <span style=\"color:red;\">No filesystem found</span>, please check your board configuration.<br>\n");
+        d+= sprintf(d,"- saving and restoring camera settings will not function without this.<br>\n");
     }
     d+= sprintf(d,"Enrolled faces: %i (max %i)<br>\n", id_list.count, id_list.size);
 
