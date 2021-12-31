@@ -63,6 +63,7 @@ extern int sketchSpace;
 extern String sketchMD5;
 extern bool otaEnabled;
 extern char otaPassword[];
+extern unsigned long xclkFreqHz;
 
 typedef struct {
         httpd_req_t *req;
@@ -140,9 +141,10 @@ void serialDump() {
     int upSec = sec % 60;
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
+    float xclk = xclkFreqHz/1000000;
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
     Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
-    Serial.printf("Freq: %i MHz\r\n", ESP.getCpuFreqMHz());
+    Serial.printf("CPU Freq: %i MHz, Xclk Freq: %.1f MHz\r\n", ESP.getCpuFreqMHz(), xclk);
     Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     if(psramFound()) {
@@ -172,7 +174,10 @@ static esp_err_t capture_handler(httpd_req_t *req){
     esp_err_t res = ESP_OK;
 
     Serial.println("Capture Requested");
-    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(lampVal);
+        delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+    }
     flashLED(75); // little flash of status LED
 
     int64_t fr_start = esp_timer_get_time();
@@ -198,12 +203,16 @@ static esp_err_t capture_handler(httpd_req_t *req){
         Serial.println("Capture Error: Non-JPEG image returned by camera module");
     }
     esp_camera_fb_return(fb);
+    fb = NULL;
+
     int64_t fr_end = esp_timer_get_time();
     if (debugData) {
         Serial.printf("JPG: %uB %ums\r\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
     }
     imagesServed++;
-    if (autoLamp && (lampVal != -1)) setLamp(0);
+    if (autoLamp && (lampVal != -1)) {
+        setLamp(0);
+    }
     return res;
 }
 
@@ -557,10 +566,11 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upSec = sec % 60;
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
+    float xclk = xclkFreqHz/1000000;
 
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
     d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
-    d+= sprintf(d,"Freq: %i MHz<br>\n", ESP.getCpuFreqMHz());
+    d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %.1f MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
