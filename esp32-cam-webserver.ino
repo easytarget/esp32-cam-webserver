@@ -137,7 +137,9 @@ char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 // Originally: config.xclk_freq_hz = 20000000, but this lead to visual artifacts on many modules.
 // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
 #if !defined (XCLK_FREQ_HZ)
-    #define XCLK_FREQ_HZ 16500000;
+    unsigned long xclkFreqHz = 16500000;
+#else
+    unsigned long xclkFreqHz = XCLK_FREQ_HZ;
 #endif
 
 // initial rotation
@@ -522,7 +524,7 @@ void setup() {
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = XCLK_FREQ_HZ;
+    config.xclk_freq_hz = xclkFreqHz;
     config.pixel_format = PIXFORMAT_JPEG;
     config.grab_mode = CAMERA_GRAB_LATEST;
     // Pre-allocate large buffers
@@ -639,6 +641,7 @@ void setup() {
         // check for saved preferences and apply them
 
         if (filesystem) {
+            delay(200); // a short delay to let spi bus settle after camera init
             filesystemStart();
             loadPrefs(SPIFFS);
         } else {
