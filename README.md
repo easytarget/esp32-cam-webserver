@@ -1,8 +1,10 @@
-# ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.org/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.org/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
+# ESP32-CAM example revisited.
 
 # V3.x - Legacy Branch
 ### This is the *old* 3.x branch of the project, with Face Recognition, but no Over The Air updates
 I will continue to fix bugs as needed on this branch for the forseeable future, but will not be adding any new features
+
+You need to **downgrade** the esp32 board definition in the Arduino IDE to use this, instructions are below but please understand that this is not really recommended, the only reason you should be using this branch is to investigate the (very limited!) Face Recognition features of the camera module.
 
 See the [master](https://github.com/easytarget/esp32-cam-webserver/tree/master/) branch for the current (v4+) version which has lost the basic Face Recognition features, but gained Over The Air updates and other new features.
 
@@ -55,6 +57,16 @@ The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/iss
 
 * For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
 * Make sure you are using the [latest version](https://www.arduino.cc/en/main/software#download) of the IDE and then follow [This Guide](https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md) to set up the Espressif Arduino core for the IDE.
+
+### Downgrade the ESP arduino core to v1.0.6
+
+* This (3.x) branch only compiles with, and is only supported on, the old [v1.0.6](https://github.com/espressif/arduino-esp32/releases/tag/1.0.6) version of the expressif arduino core.
+* Before compiling you must select this version in the Boards manager of the IDE:
+![Selecting the correct IDE core version](Docs/v3x-select-106-ide-core.png)
+* If you later upgrade back to the latest camera version or want to program other esp32 based boards do not forget to revert this when done programming.
+ 
+## Programming:
+
 * If you have a development board (anything that can be programmed via a standard USB cable/jack on the board itself) you are in luck. Just plug it in and skip ahead to the [config](#config) section. Remember to set your board model.
 * The AI-THINKER board requires use of an external **3.3v** serial adapter to program; I use a `FTDI Friend` adapter, for more about this read AdaFruits excellent [FTDI Friend guide](https://learn.adafruit.com/ftdi-friend).
 * Be careful not to use a 5v serial adapter since this will damage the ESP32.
@@ -127,18 +139,4 @@ I would also like to shoutout to @jmfloyd; who suggested rotating the image in t
 
 ## Contributing
 
-Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING.md).
-
-## Plans
-
-Time allowing; my Current plan is:
-
-V4 Remove face recognition entirely;
-* Dont try to make it optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
-* Investigate using SD card to capture images
-* implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
-* UI Skinning/Theming
-* OSD
-  * Temperature/humidity/pressure sensor suport (bme20,dht11)
-You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoghts you may have there.
-
+Contributions for the main branch are welcome; please see the [Contribution guidelines](CONTRIBUTING.md).
