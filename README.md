@@ -1,4 +1,3 @@
-**NOTE: Please visit the upstream branch of this project at https://github.com/easytarget/esp32-cam-webserver. This code will not be updated and is only present to add MDNS features.**
 # ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
 ## Taken from the ESP examples, and expanded
@@ -14,7 +13,7 @@ But expanded with:
 * Over The Air firmware updates
 * Lots of minor fixes and tweaks, documentation etc.
 
-And 'reduced' by removing the Face Recognition features 
+And 'reduced' by removing the Face Recognition features
 * **If you want to try the Face Recognition features** please use the [`3.x` maintenance branch](https://github.com/easytarget/esp32-cam-webserver/tree/3.x), which still recieves bugfixes, but is not receiving any further development.
 * They were a demo, only worked in low resolution modes, did not preserve the face database between power cycles, and were of little use in real-world applications.
 * There are other (specialised) sketches for the ESP-CAM that do use face recognitioni more effectively, if this is your thing :-)
@@ -34,7 +33,7 @@ I have four [AI-THINKER ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thi
 https://github.com/raphaelbs/esp32-cam-ai-thinker
 * The AI thinker wiki can be quite informative, when run through an online translator and read sensibly:
 https://wiki.ai-thinker.com/esp32-cam
-* Default pinouts are also included for WRover Kit, ESP Eye and M5Stack esp32 camera modules. 
+* Default pinouts are also included for WRover Kit, ESP Eye and M5Stack esp32 camera modules.
   I do not have any of these boards, so they are untested by me. Please [let me know](https://github.com/easytarget/esp32-cam-webserver/issues) if you find issues or have a board not [in the list](./camera_pins.h).
 
 ## Troubleshooting:
@@ -75,7 +74,7 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
 Download the latest release of the sketch from https://github.com/easytarget/esp32-cam-webserver/releases/latest
 - You can get the latest stable development release by cloning / downloading the `master` branch of the repo.
 
-This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-3.0.zip`. Tou need to unpack this into your Arduino sketch folder, and then you need to rename the folder you just extracted to remove the version number, eg.`esp32-cam-webserver-3.0` becomes `esp32-cam-webserver`. 
+This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-3.0.zip`. Tou need to unpack this into your Arduino sketch folder, and then you need to rename the folder you just extracted to remove the version number, eg.`esp32-cam-webserver-3.0` becomes `esp32-cam-webserver`.
 
 Once you have done that you can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and selecting `esp32-cam-webserver.ino`.
 
@@ -85,7 +84,7 @@ By default the sketch assumes you have an AI-THINKER board, it creates an Access
 
 To make a permanent config with your home wifi settings, different defaults or a different board; copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` and edit that, all the usable defaults are in that file. Because this is your private copy of the config it will not get overwritten if you update the main sketch!
 
-### Programming 
+### Programming
 
 Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board will appear in the ESP32 Arduino section of the boards list. Select this (do not use the `AI-THINKER` entry listed in the boiards menu, it is not OTA compatible, and will caus the module to crash and reboot rather than updating if you use it.
 ![IDE board config](Docs/ota-board-selection.png)
@@ -108,7 +107,7 @@ Go to the URL given in the serial output, the web UI should appear with the sett
 
 The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
 
-All of the face recognition code has been removed as of V4.0; this reduces the code size enough to allow OTA programming while improving compile and programming times. 
+All of the face recognition code has been removed as of V4.0; this reduces the code size enough to allow OTA programming while improving compile and programming times.
 
 The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
 
@@ -142,7 +141,7 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 Time allowing; my Current plan is:
 
-V4 
+V4
 * Remove face recognition entirely;
   * **Done**, see the `NoFace` branch :sunglasses:
   * Not optional, this is a code and maintenance nightmare. V3 can be maintained on a branch for those who need it.
@@ -150,9 +149,8 @@ V4
 * Implement OTA and a better network stack for remembering multiple AP's, auto-config etc.
   * **Basic OTA is Done**, see the `NoFace` branch.
   * Advanced (web upload) OTA might be nice to have if possible
-  * For the Network setup I want to implement https://github.com/Hieromon/AutoConnect 
+  * For the Network setup I want to implement https://github.com/Hieromon/AutoConnect
 * UI Skinning/Theming
 * OSD
   * Temperature/humidity/pressure sensor support (bme20,dht11)
 You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoughts you may have there.
-
