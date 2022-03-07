@@ -1,3 +1,4 @@
+**NOTE: Please visit the upstream branch of this project at https://github.com/easytarget/esp32-cam-webserver. This code will not be updated and is only present to add MDNS features.**
 # ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
 ## Taken from the ESP examples, and expanded
