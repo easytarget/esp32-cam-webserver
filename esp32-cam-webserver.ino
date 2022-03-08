@@ -478,8 +478,6 @@ void WifiSetup() {
 }
 
 void setup() {
-    // This might reduce boot loops caused by camera init failures when soft rebooting
-    // See, for instance, https://esp32.com/viewtopic.php?t=3152
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     Serial.println();
@@ -491,12 +489,21 @@ void setup() {
     Serial.print("Base Release: ");
     Serial.println(baseVersion);
 
+    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
+    if(!psramFound()){
+        Serial.println("\r\nFatal Error; Halting");
+        while (true) {
+            Serial.println("No PSRAM found; camera cannot be initialised: Please check the board config for your module.");
+            delay(5000);
+        }
+    }
+
     if (stationCount == 0) {
-      Serial.println("\r\nFatal Error; Halting");
-      while (true) {
-       Serial.println("No wifi details have been configured; we cannot connect to existing WiFi or start our own AccessPoint, there is no point in proceeding.");
-       delay(5000); 
-      }
+        Serial.println("\r\nFatal Error; Halting");
+        while (true) {
+            Serial.println("No wifi details have been configured; we cannot connect to existing WiFi or start our own AccessPoint, there is no point in proceeding.");
+            delay(5000);
+        }
     }
 
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
@@ -746,12 +753,6 @@ void setup() {
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
-
-    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
-    if(!psramFound()){
-        Serial.printf("\r\nNo PSRAM found.\r\nPlease check the board config for your module.\r\n");
-        Serial.printf("High resolution/quality images & streams will show incomplete frames due to low memory.\r\n");
-    }
 
     // While in Beta; Warn!
     Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
