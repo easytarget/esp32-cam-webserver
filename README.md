@@ -4,7 +4,7 @@
 ### This is the *old* 3.x branch of the project, with Face Recognition, but no Over The Air updates
 I will continue to fix bugs as needed on this branch for the forseeable future, but will not be adding any new features
 
-You need to **downgrade** the esp32 board definition in the Arduino IDE to use this, instructions are below but please understand that this is not really recommended, the only reason you should be using this branch is to investigate the (very limited!) Face Recognition features of the camera module.
+You need to **downgrade** the esp32 board definition in the Arduino IDE to an old version (v1.0.6) to use this, instructions are below but please understand that this is not really recommended, the only reason you should be using this branch is to investigate the (very limited!) Face Recognition features of the camera module.
 
 See the [master](https://github.com/easytarget/esp32-cam-webserver/tree/master/) branch for the current (v4+) version which has lost the basic Face Recognition features, but gained Over The Air updates and other new features.
 
@@ -60,7 +60,7 @@ The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/iss
 
 ### Downgrade the ESP arduino core to v1.0.6
 
-* This (3.x) branch only compiles with, and is only supported on, the old [v1.0.6](https://github.com/espressif/arduino-esp32/releases/tag/1.0.6) version of the expressif arduino core.
+* This (3.x) branch only compiles with, *and is only supported on*, the old [v1.0.6](https://github.com/espressif/arduino-esp32/releases/tag/1.0.6) version of the expressif arduino core.
 * Before compiling you must select this version in the Boards manager of the IDE:
 ![Selecting the correct IDE core version](Docs/v3x-select-106-ide-core.png)
 * If you later upgrade back to the latest camera version or want to program other esp32 based boards do not forget to revert this when done programming.
@@ -81,10 +81,9 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
 * You must supply 5v to the ESP32 in order to power it during programming, the FTDI board can supply this.
 
 ### Download the Sketch, Unpack and Rename
-Download the latest release of the sketch from https://github.com/easytarget/esp32-cam-webserver/releases/latest
-- You can get the latest stable development release by cloning / downloading the `master` branch of the repo.
+Download the latest 3.X release of the sketch from https://github.com/easytarget/esp32-cam-webserver/releases?q=v3.&expanded=true
 
-This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-3.0.zip`. Tou need to unpack this into your Arduino sketch folder, and then you need to rename the folder you just extracted to remove the version number, eg.`esp32-cam-webserver-3.0` becomes `esp32-cam-webserver`. 
+This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-3.5.zip`. Tou need to unpack this into your Arduino sketch folder, and then you need to rename the folder you just extracted to remove the version number, eg.`esp32-cam-webserver-3.0` becomes `esp32-cam-webserver`. 
 
 Once you have done that you can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and selecting `esp32-cam-webserver.ino`.
 
