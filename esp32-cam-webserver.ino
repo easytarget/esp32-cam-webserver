@@ -754,8 +754,8 @@ void setup() {
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
 
-    // While in Beta; Warn!
-    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
+    // Info line; use for Info messages; eg 'This is a Beta!' warnings, etc. as necesscary
+    // Serial.print("\r\nThis is the 4.1 beta\r\n");
 }
 
 void loop() {
