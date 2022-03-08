@@ -63,7 +63,7 @@ extern int sketchSpace;
 extern String sketchMD5;
 extern bool otaEnabled;
 extern char otaPassword[];
-extern unsigned long xclkFreqHz;
+extern unsigned long xclk;
 
 typedef struct {
         httpd_req_t *req;
@@ -77,6 +77,9 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
+
+// Flag that can be set to kill all active streams
+bool streamKill;
 
 #ifdef __cplusplus
 extern "C" {
@@ -141,10 +144,9 @@ void serialDump() {
     int upSec = sec % 60;
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
-    float xclk = xclkFreqHz/1000000;
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
     Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
-    Serial.printf("CPU Freq: %i MHz, Xclk Freq: %.1f MHz\r\n", ESP.getCpuFreqMHz(), xclk);
+    Serial.printf("CPU Freq: %i MHz, Xclk Freq: %i MHz\r\n", ESP.getCpuFreqMHz(), xclk);
     Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
     if(psramFound()) {
@@ -223,6 +225,8 @@ static esp_err_t stream_handler(httpd_req_t *req){
     uint8_t * _jpg_buf = NULL;
     char * part_buf[64];
 
+    streamKill = false;
+
     Serial.println("Stream requested");
     if (autoLamp && (lampVal != -1)) setLamp(lampVal);
     streamCount = 1;  // at present we only have one stream handler, so values are 0 or 1..
@@ -277,7 +281,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
             free(_jpg_buf);
             _jpg_buf = NULL;
         }
-        if(res != ESP_OK){
+        if((res != ESP_OK) || streamKill){
             // This is the only exit point from the stream loop.
             // We end the stream here only if a Hard failure has been encountered or the connection has been interrupted.
             break;
@@ -341,6 +345,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
     }
     else if(!strcmp(variable, "quality")) res = s->set_quality(s, val);
+    else if(!strcmp(variable, "xclk")) { xclk = val; res = s->set_xclk(s, LEDC_TIMER_0, val); }
     else if(!strcmp(variable, "contrast")) res = s->set_contrast(s, val);
     else if(!strcmp(variable, "brightness")) res = s->set_brightness(s, val);
     else if(!strcmp(variable, "saturation")) res = s->set_saturation(s, val);
@@ -421,6 +426,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
+    p+=sprintf(p, "\"xclk\":%u,", xclk);
     p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
     p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
     p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
@@ -495,7 +501,7 @@ static esp_err_t logo_svg_handler(httpd_req_t *req){
 
 static esp_err_t dump_handler(httpd_req_t *req){
     flashLED(75);
-    Serial.println("\r\nDump Requested via Web");
+    Serial.println("\r\nDump requested via Web");
     serialDump();
     static char dumpOut[2000] = "";
     char * d = dumpOut;
@@ -566,11 +572,10 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int upSec = sec % 60;
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
-    float xclk = xclkFreqHz/1000000;
 
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
     d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
-    d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %.1f MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
+    d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %i MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
     d+= sprintf(d,"Heap: %i, free: %i, min free: %i, max block: %i<br>\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
@@ -590,6 +595,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
     d+= sprintf(d,"<button title=\"Instant Refresh; the page reloads every minute anyway\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
+    d+= sprintf(d,"<button title=\"Stop any active streams\" onclick=\"let throwaway = fetch('stop');setTimeout(function(){\nlocation.replace(document.URL);\n}, 200);\">Stop Stream</button>\n");
     d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
     d+= sprintf(d,"</div>\n</body>\n");
     // A javascript timer to refresh the page every minute.
@@ -601,6 +607,15 @@ static esp_err_t dump_handler(httpd_req_t *req){
     return httpd_resp_send(req, dumpOut, strlen(dumpOut));
 }
 
+static esp_err_t stop_handler(httpd_req_t *req){
+    flashLED(75);
+    Serial.println("\r\nStream stop requested via Web");
+    streamKill = true;
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    return httpd_resp_send(req, NULL, 0);
+}
+
+
 static esp_err_t style_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/css");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
@@ -609,7 +624,7 @@ static esp_err_t style_handler(httpd_req_t *req){
 
 static esp_err_t streamviewer_handler(httpd_req_t *req){
     flashLED(75);
-    Serial.println("Stream Viewer requested");
+    Serial.println("Stream viewer requested");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
     return httpd_resp_send(req, (const char *)streamviewer_html, streamviewer_html_len);
@@ -617,7 +632,7 @@ static esp_err_t streamviewer_handler(httpd_req_t *req){
 
 static esp_err_t error_handler(httpd_req_t *req){
     flashLED(75);
-    Serial.println("Sending Error page");
+    Serial.println("Sending error page");
     std::string s(error_html);
     size_t index;
     while ((index = s.find("<APPURL>")) != std::string::npos)
@@ -705,7 +720,7 @@ static esp_err_t index_handler(httpd_req_t *req){
 
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 12; // we use more than the default 8 (on port 80)
+    config.max_uri_handlers = 16; // we use more than the default 8 (on port 80)
 
     httpd_uri_t index_uri = {
         .uri       = "/",
@@ -767,6 +782,12 @@ void startCameraServer(int hPort, int sPort){
         .handler   = dump_handler,
         .user_ctx  = NULL
     };
+    httpd_uri_t stop_uri = {
+        .uri       = "/stop",
+        .method    = HTTP_GET,
+        .handler   = stop_handler,
+        .user_ctx  = NULL
+    };
     httpd_uri_t stream_uri = {
         .uri       = "/",
         .method    = HTTP_GET,
@@ -817,6 +838,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &favicon_ico_uri);
         httpd_register_uri_handler(camera_httpd, &logo_svg_uri);
         httpd_register_uri_handler(camera_httpd, &dump_uri);
+        httpd_register_uri_handler(camera_httpd, &stop_uri);
     }
 
     config.server_port = sPort;

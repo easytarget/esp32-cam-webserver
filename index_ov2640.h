@@ -74,6 +74,13 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
                 <div class="range-max">High<br><span style="font-size: 80%;">(slow)</span></div>
               </div>
+              <div class="input-group" id="set-xclk-group">
+                 <label for="set-xclk">XCLK</label>
+                 <div class="text">
+                    <input id="xclk" type="number" min="2" max="32" size="4" step="1" class="default-action">
+                    <div class="range-max">MHz</div>
+                  </div>
+              </div>
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
                 <div class="range-min">-2</div>
@@ -292,6 +299,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const closeButton = document.getElementById('close-stream')
     const streamLink = document.getElementById('stream_link')
     const framesize = document.getElementById('framesize')
+    const xclk = document.getElementById('xclk')
     const swapButton = document.getElementById('swap-viewer')
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
@@ -395,6 +403,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           value = el.checked ? 1 : 0
           break
         case 'range':
+        case 'number':
         case 'select-one':
           value = el.value
           break
@@ -560,6 +569,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
 
     framesize.onchange = () => {
       updateConfig(framesize)
+    }
+
+    xclk.onchange = () => {
+      console.log("xclk:" , xclk);
+      updateConfig(xclk)
     }
 
     swapButton.onclick = () => {

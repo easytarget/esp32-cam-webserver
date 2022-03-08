@@ -7,6 +7,7 @@ extern void flashLED(int flashtime);
 extern int myRotation;              // Rotation
 extern int lampVal;                 // The current Lamp value
 extern int autoLamp;                // Automatic lamp mode
+extern int xclk;                    // Camera module clock speed
 
 /*
  * Useful utility when debugging... 
@@ -90,8 +91,11 @@ void loadPrefs(fs::FS &fs){
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
     autoLamp = jsonExtract(prefs, "autolamp").toInt();
+    int xclkPref = jsonExtract(prefs, "xclk").toInt();
+    if (xclkPref != 0) xclk = xclkPref;
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
+    s->set_xclk(s, LEDC_TIMER_0, xclk);
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
     s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
     s->set_saturation(s, jsonExtract(prefs, "saturation").toInt());
@@ -138,6 +142,7 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"autolamp\":%u,", autoLamp);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
+  p+=sprintf(p, "\"xclk\":%u,", xclk);
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
   p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
   p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);

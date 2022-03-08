@@ -134,12 +134,12 @@ unsigned long imagesServed = 0;  // Total image requests
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
 // Camera module bus communications frequency.
-// Originally: config.xclk_freq_hz = 20000000, but this lead to visual artifacts on many modules.
+// Originally: config.xclk_freq_mhz = 20000000, but this lead to visual artifacts on many modules.
 // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
-#if !defined (XCLK_FREQ_HZ)
-    unsigned long xclkFreqHz = 16500000;
+#if !defined (XCLK_FREQ_MHZ)
+    unsigned long xclk = 16;
 #else
-    unsigned long xclkFreqHz = XCLK_FREQ_HZ;
+    unsigned long xclk = XCLK_FREQ_MHZ;
 #endif
 
 // initial rotation
@@ -524,7 +524,7 @@ void setup() {
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = xclkFreqHz;
+    config.xclk_freq_hz = xclk * 1000000;
     config.pixel_format = PIXFORMAT_JPEG;
     config.grab_mode = CAMERA_GRAB_LATEST;
     // Pre-allocate large buffers
