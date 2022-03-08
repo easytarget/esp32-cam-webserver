@@ -488,6 +488,7 @@ void setup() {
     Serial.println(myVer);
     Serial.print("Base Release: ");
     Serial.println(baseVersion);
+    Serial.println();
 
     // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
     if(!psramFound()){
@@ -510,6 +511,12 @@ void setup() {
         pinMode(LED_PIN, OUTPUT);
         digitalWrite(LED_PIN, LED_ON);
     #endif
+
+    // Start the SPIFFS filesystem before we initialise the camera
+    if (filesystem) {
+        filesystemStart();
+        delay(200); // a short delay to let spi bus settle after SPIFFS init
+    }
 
     // Create camera config structure; and populate with hardware and other defaults 
     camera_config_t config;
@@ -649,7 +656,6 @@ void setup() {
 
         if (filesystem) {
             delay(200); // a short delay to let spi bus settle after camera init
-            filesystemStart();
             loadPrefs(SPIFFS);
         } else {
             Serial.println("No Internal Filesystem, cannot load or save preferences");

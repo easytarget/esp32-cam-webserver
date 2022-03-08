@@ -185,10 +185,11 @@ void removePrefs(fs::FS &fs) {
 }
 
 void filesystemStart(){
+  Serial.println("Starting internal SPIFFS filesystem");
   while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
     // if we sit in this loop something is wrong; 
     // if no existing spiffs partition exists one should be automagically created.
-    Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation.");
+    Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation");
     Serial.println("If it happens repeatedly check if a SPIFFS partition is present for your board?");
     for (int i=0; i<10; i++) {
       flashLED(100); // Show SPIFFS failure
@@ -197,6 +198,5 @@ void filesystemStart(){
     delay(1000);
     Serial.println("Retrying..");
   }
-  Serial.println("Internal filesystem contents");
   listDir(SPIFFS, "/", 0);
 }
