@@ -35,16 +35,16 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
-              <div class="input-group hidden" id="lamp-group">
+              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full</div>
+                <div class="range-max">Full&#9888;</div>
               </div>
-              <div class="input-group hidden" id="autolamp-group">
+              <div class="input-group hidden" id="autolamp-group" title="Lamp only on when camera active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
-                  <input id="autolamp" type="checkbox" class="default-action" title="Lamp only on when camera active">
+                  <input id="autolamp" type="checkbox" class="default-action">
                   <label class="slider" for="autolamp"></label>
                 </div>
               </div>
@@ -73,6 +73,13 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                      As a result the 'min' and 'max' values are reversed here too -->
                 <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
                 <div class="range-max">High<br><span style="font-size: 80%;">(slow)</span></div>
+              </div>
+              <div class="input-group" id="set-xclk-group">
+                 <label for="set-xclk">XCLK</label>
+                 <div class="text">
+                    <input id="xclk" type="number" min="2" max="32" size="4" step="1" class="default-action">
+                    <div class="range-max">MHz</div>
+                  </div>
               </div>
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
@@ -252,7 +259,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </select>
               </div>
               <div class="input-group" id="preferences-group">
-                <label for="reboot" style="line-height: 2em;">Preferences</label>
+                <label for="prefs" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
                 <button id="save_prefs" title="Save Preferences on camera module">Save</button>
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
@@ -306,6 +313,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const closeButton = document.getElementById('close-stream')
     const streamLink = document.getElementById('stream_link')
     const framesize = document.getElementById('framesize')
+    const xclk = document.getElementById('xclk')
     const swapButton = document.getElementById('swap-viewer')
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
@@ -357,7 +365,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
         } else if(el.id === "lamp"){
-          if (value == -1) { 
+          if (value == -1) {
             hide(lampGroup)
             hide(autolampGroup)
           } else {
@@ -387,7 +395,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
-        } 
+        }
       }
     }
 
@@ -412,6 +420,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           value = el.checked ? 1 : 0
           break
         case 'range':
+        case 'number':
         case 'select-one':
           value = el.value
           break
@@ -496,7 +505,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     }
 
     // Attach actions to controls
-    
+
     streamLink.onclick = () => {
       stopStream();
       window.open(viewerURL, "_blank");
@@ -581,12 +590,16 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
 
     minFrameTime.onchange = () => {
       updateConfig(minFrameTime)
+
+    xclk.onchange = () => {
+      console.log("xclk:" , xclk);
+      updateConfig(xclk)
     }
 
     swapButton.onclick = () => {
       window.open('/?view=simple','_self');
     }
- 
+
     savePrefsButton.onclick = () => {
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);

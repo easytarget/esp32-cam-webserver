@@ -6,6 +6,7 @@
 #include <ArduinoOTA.h>
 #include "src/parsebytes.h"
 #include "time.h"
+#include <ESPmDNS.h>
 
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
@@ -16,7 +17,7 @@
  *  greater feedback via a status LED, and the HTML contents are present in plain text
  *  for easy modification.
  *
- *  A camera name can now be configured, and wifi details can be stored in an optional 
+ *  A camera name can now be configured, and wifi details can be stored in an optional
  *  header file to allow easier updated of the repo.
  *
  *  The web UI has had changes to add the lamp control, rotation, a standalone viewer,
@@ -26,7 +27,7 @@
  */
 
 
-/* 
+/*
  *  FOR NETWORK AND HARDWARE SETTINGS COPY OR RENAME 'myconfig.sample.h' TO 'myconfig.h' AND EDIT THAT.
  *
  * By default this sketch will assume an AI-THINKER ESP-CAM and create
@@ -42,7 +43,7 @@
     #warning "Using Defaults: Copy myconfig.sample.h to myconfig.h and edit that to use your own settings"
     #define WIFI_AP_ENABLE
     #define CAMERA_MODEL_AI_THINKER
-    struct station { const char ssid[65]; const char password[65]; const bool dhcp;} 
+    struct station { const char ssid[65]; const char password[65]; const bool dhcp;}
     stationList[] = {{"ESP32-CAM-CONNECT","InsecurePassword", true}};
 #endif
 
@@ -95,7 +96,7 @@ extern void serialDump();
 #endif
 
 #if !defined(WIFI_WATCHDOG)
-    #define WIFI_WATCHDOG 8000
+    #define WIFI_WATCHDOG 15000
 #endif
 
 // Number of known networks in stationList[]
@@ -103,7 +104,7 @@ int stationCount = sizeof(stationList)/sizeof(stationList[0]);
 
 // If we have AP mode enabled, ignore first entry in the stationList[]
 #if defined(WIFI_AP_ENABLE)
-    int firstStation = 1; 
+    int firstStation = 1;
 #else
     int firstStation = 0;
 #endif
@@ -134,10 +135,12 @@ unsigned long imagesServed = 0;  // Total image requests
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
 // Camera module bus communications frequency.
-// Originally: config.xclk_freq_hz = 20000000, but this lead to visual artifacts on many modules.
+// Originally: config.xclk_freq_mhz = 20000000, but this lead to visual artifacts on many modules.
 // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
-#if !defined (XCLK_FREQ_HZ)
-    #define XCLK_FREQ_HZ 16500000;
+#if !defined (XCLK_FREQ_MHZ)
+    unsigned long xclk = 16;
+#else
+    unsigned long xclk = XCLK_FREQ_MHZ;
 #endif
 
 // initial rotation
@@ -162,7 +165,7 @@ int minFrameTime = MIN_FRAME_TIME;
     #else
         int lampVal = 0; //default to off
     #endif
-#else 
+#else
     int lampVal = -1; // no lamp pin assigned
 #endif
 
@@ -238,7 +241,7 @@ void handleSerial() {
     while (Serial.available()) Serial.read();  // chomp the buffer
 }
 
-// Notification LED 
+// Notification LED
 void flashLED(int flashtime) {
 #ifdef LED_PIN                    // If we have it; flash it.
     digitalWrite(LED_PIN, LED_ON);  // On at full power.
@@ -301,7 +304,7 @@ void WifiSetup() {
     flashLED(300);
     Serial.println("Starting WiFi");
 
-    // Disable power saving on WiFi to improve responsiveness 
+    // Disable power saving on WiFi to improve responsiveness
     // (https://github.com/espressif/arduino-esp32/issues/1484)
     WiFi.setSleep(false);
 
@@ -315,13 +318,13 @@ void WifiSetup() {
     byte mac[6] = {0,0,0,0,0,0};
     WiFi.macAddress(mac);
     Serial.printf("MAC address: %02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    
+
     int bestStation = -1;
     long bestRSSI = -1024;
     char bestSSID[65] = "";
     uint8_t bestBSSID[6];
     if (stationCount > firstStation) {
-        // We have a list to scan 
+        // We have a list to scan
         Serial.printf("Scanning local Wifi Networks\r\n");
         int stationsFound = WiFi.scanNetworks();
         Serial.printf("%i networks found\r\n", stationsFound);
@@ -334,7 +337,7 @@ void WifiSetup() {
                 Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
                 // Scan our list of known external stations
                 for (int sta = firstStation; sta < stationCount; sta++) {
-                    if ((strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) || 
+                    if ((strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) ||
                     (strcmp(stationList[sta].ssid, thisBSSID.c_str()) == 0)) {
                         Serial.print("  -  Known!");
                         // Chose the strongest RSSI seen
@@ -342,7 +345,7 @@ void WifiSetup() {
                             bestStation = sta;
                             strncpy(bestSSID, thisSSID.c_str(), 64);
                             // Convert char bssid[] to a byte array
-                            parseBytes(thisBSSID.c_str(), ':', bestBSSID, 6, 16);        
+                            parseBytes(thisBSSID.c_str(), ':', bestBSSID, 6, 16);
                             bestRSSI = thisRSSI;
                         }
                     }
@@ -352,11 +355,11 @@ void WifiSetup() {
         }
     } else {
         // No list to scan, therefore we are an accesspoint
-        accesspoint = true; 
+        accesspoint = true;
     }
 
     if (bestStation == -1) {
-        if (!accesspoint) { 
+        if (!accesspoint) {
             #if defined(WIFI_AP_ENABLE)
                 Serial.println("No known networks found, entering AccessPoint fallback mode");
                 accesspoint = true;
@@ -367,14 +370,14 @@ void WifiSetup() {
             Serial.println("AccessPoint mode selected in config");
         }
     } else {
-        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \r\n", 
-                       bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3], 
+        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \r\n",
+                       bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3],
                        bestBSSID[4], bestBSSID[5], bestSSID);
         // Apply static settings if necesscary
         if (stationList[bestStation].dhcp == false) {
             #if defined(ST_IP)
                 Serial.println("Applying static IP settings");
-                #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK) 
+                #if !defined (ST_GATEWAY)  || !defined (ST_NETMASK)
                     #error "You must supply both Gateway and NetMask when specifying a static IP address"
                 #endif
                 IPAddress staticIP(ST_IP);
@@ -404,7 +407,7 @@ void WifiSetup() {
         WiFi.begin(bestSSID, stationList[bestStation].password, 0, bestBSSID);
 
         // Wait to connect, or timeout
-        unsigned long start = millis(); 
+        unsigned long start = millis();
         while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
             delay(500);
             Serial.print('.');
@@ -482,8 +485,6 @@ void WifiSetup() {
 }
 
 void setup() {
-    // This might reduce boot loops caused by camera init failures when soft rebooting
-    // See, for instance, https://esp32.com/viewtopic.php?t=3152
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     Serial.println();
@@ -494,13 +495,23 @@ void setup() {
     Serial.println(myVer);
     Serial.print("Base Release: ");
     Serial.println(baseVersion);
+    Serial.println();
+
+    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
+    if(!psramFound()){
+        Serial.println("\r\nFatal Error; Halting");
+        while (true) {
+            Serial.println("No PSRAM found; camera cannot be initialised: Please check the board config for your module.");
+            delay(5000);
+        }
+    }
 
     if (stationCount == 0) {
-      Serial.println("\r\nFatal Error; Halting");
-      while (true) {
-       Serial.println("No wifi details have been configured; we cannot connect to existing WiFi or start our own AccessPoint, there is no point in proceeding.");
-       delay(5000); 
-      }
+        Serial.println("\r\nFatal Error; Halting");
+        while (true) {
+            Serial.println("No wifi details have been configured; we cannot connect to existing WiFi or start our own AccessPoint, there is no point in proceeding.");
+            delay(5000);
+        }
     }
 
     #if defined(LED_PIN)  // If we have a notification LED, set it to output
@@ -508,7 +519,13 @@ void setup() {
         digitalWrite(LED_PIN, LED_ON);
     #endif
 
-    // Create camera config structure; and populate with hardware and other defaults 
+    // Start the SPIFFS filesystem before we initialise the camera
+    if (filesystem) {
+        filesystemStart();
+        delay(200); // a short delay to let spi bus settle after SPIFFS init
+    }
+
+    // Create camera config structure; and populate with hardware and other defaults
     camera_config_t config;
     config.ledc_channel = LEDC_CHANNEL_0;
     config.ledc_timer = LEDC_TIMER_0;
@@ -528,13 +545,14 @@ void setup() {
     config.pin_sscb_scl = SIOC_GPIO_NUM;
     config.pin_pwdn = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
-    config.xclk_freq_hz = XCLK_FREQ_HZ;
+    config.xclk_freq_hz = xclk * 1000000;
     config.pixel_format = PIXFORMAT_JPEG;
+    config.grab_mode = CAMERA_GRAB_LATEST;
     // Pre-allocate large buffers
     if(psramFound()){
         config.frame_size = FRAMESIZE_UXGA;
         config.jpeg_quality = 10;
-        config.fb_count = 6;  // We can be generous since we are not using facedetect anymore, allows for bigger jpeg frame size (data)
+        config.fb_count = 2;
     } else {
         config.frame_size = FRAMESIZE_SVGA;
         config.jpeg_quality = 12;
@@ -563,7 +581,7 @@ void setup() {
         critERR += "<p>We will continue to reboot once per minute since this error sometimes clears automatically.</p>";
         // Start a 60 second watchdog timer
         esp_task_wdt_init(60,true);
-        esp_task_wdt_add(NULL);        
+        esp_task_wdt_add(NULL);
     } else {
         Serial.println("Camera init succeeded");
 
@@ -610,7 +628,7 @@ void setup() {
         /*
         * Add any other defaults you want to apply at startup here:
         * uncomment the line and set the value as desired (see the comments)
-        * 
+        *
         * these are defined in the esp headers here:
         * https://github.com/espressif/esp32-camera/blob/master/driver/include/sensor.h#L149
         */
@@ -644,7 +662,7 @@ void setup() {
         // check for saved preferences and apply them
 
         if (filesystem) {
-            filesystemStart();
+            delay(200); // a short delay to let spi bus settle after camera init
             loadPrefs(SPIFFS);
         } else {
             Serial.println("No Internal Filesystem, cannot load or save preferences");
@@ -655,29 +673,18 @@ void setup() {
     * Camera setup complete; initialise the rest of the hardware.
     */
 
-    // Initialise and set the lamp
-    if (lampVal != -1) {
-        ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-        if (autoLamp) setLamp(0);                        // set default value
-        else setLamp(lampVal);
-        #if defined(LAMP_PIN)
-            ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
-        #endif
-    } else {
-        Serial.println("No lamp, or lamp disabled in config");
-    }
-
-    // Having got this far; start Wifi and loop until we are connected or have started an AccessPoint
+    // Start Wifi and loop until we are connected or have started an AccessPoint
     while ((WiFi.status() != WL_CONNECTED) && !accesspoint)  {
         WifiSetup();
         delay(1000);
     }
 
+    // Set up OTA
     if (otaEnabled) {
         // Start OTA once connected
         Serial.println("Setting up OTA");
         // Port defaults to 3232
-        // ArduinoOTA.setPort(3232); 
+        // ArduinoOTA.setPort(3232);
         // Hostname defaults to esp3232-[MAC]
         ArduinoOTA.setHostname(myName);
         // No authentication by default
@@ -714,7 +721,16 @@ void setup() {
         ArduinoOTA.begin();
     } else {
         Serial.println("OTA is disabled");
+
+        if (!MDNS.begin(myName)) {
+          Serial.println("Error setting up MDNS responder!");
+        }
+        Serial.println("mDNS responder started");
     }
+
+    //MDNS Config -- note that if OTA is NOT enabled this needs prior steps!
+    MDNS.addService("http", "tcp", 80);
+    Serial.println("Added HTTP service to MDNS server");
 
     // Set time via NTP server when enabled
     if (haveTime) {
@@ -725,7 +741,22 @@ void setup() {
         Serial.println("Time functions disabled");
     }
 
-    // Now we have a network we can start the two http handlers for the UI and Stream.
+    // Gather static values used when dumping status; these are slow functions, so just do them once during startup
+    sketchSize = ESP.getSketchSize();
+    sketchSpace = ESP.getFreeSketchSpace();
+    sketchMD5 = ESP.getSketchMD5();
+
+    // Initialise and set the lamp
+    if (lampVal != -1) {
+        ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
+        ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+        if (autoLamp) setLamp(0);                        // set default value
+        else setLamp(lampVal);
+    } else {
+        Serial.println("No lamp, or lamp disabled in config");
+    }
+
+    // Start the camera server
     startCameraServer(httpPort, streamPort);
 
     if (critERR.length() == 0) {
@@ -741,26 +772,15 @@ void setup() {
         Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
 
-    // Used when dumping status; these are slow functions, so just do them once during startup
-    sketchSize = ESP.getSketchSize();
-    sketchSpace = ESP.getFreeSketchSpace();
-    sketchMD5 = ESP.getSketchMD5();
+    // Info line; use for Info messages; eg 'This is a Beta!' warnings, etc. as necesscary
+    // Serial.print("\r\nThis is the 4.1 beta\r\n");
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
-
-    // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
-    if(!psramFound()){
-        Serial.printf("\r\nNo PSRAM found.\r\nPlease check the board config for your module.\r\n");
-        Serial.printf("High resolution/quality images & streams will show incomplete frames due to low memory.\r\n");
-    }
-
-    // While in Beta; Warn!
-    Serial.print("\r\nThis is the 4.0 alpha\r\n - Face detection has been removed!\r\n");
 }
 
 void loop() {
-    /* 
+    /*
      *  Just loop forever, reconnecting Wifi As necesscary in client mode
      * The stream and URI handler processes initiated by the startCameraServer() call at the
      * end of setup() will handle the camera and UI processing from now on.
@@ -776,12 +796,12 @@ void loop() {
             if (captivePortal) dnsServer.processNextRequest();
         }
     } else {
-        // client mode can fail; so reconnect as appropriate 
+        // client mode can fail; so reconnect as appropriate
         static bool warned = false;
         if (WiFi.status() == WL_CONNECTED) {
             // We are connected, wait a bit and re-check
             if (warned) {
-                // Tell the user if we have just reconnected 
+                // Tell the user if we have just reconnected
                 Serial.println("WiFi reconnected");
                 warned = false;
             }

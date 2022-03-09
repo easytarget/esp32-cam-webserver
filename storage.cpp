@@ -4,13 +4,13 @@
 
 // These are defined in the main .ino file
 extern void flashLED(int flashtime);
-extern int myRotation;              // Rotation
-extern int lampVal;                 // The current Lamp value
-extern int autoLamp;                // Automatic lamp mode
-extern int minFrameTime;            // Minimal frame duration
+extern int myRotation;    // Rotation
+extern int lampVal;       // The current Lamp value
+extern bool autoLamp;     // Automatic lamp mode
+extern int xclk;          // Camera module clock speed
 
 /*
- * Useful utility when debugging... 
+ * Useful utility when debugging...
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -90,10 +90,13 @@ void loadPrefs(fs::FS &fs){
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
-    autoLamp = jsonExtract(prefs, "autolamp").toInt();
+   if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
     minFrameTime = jsonExtract(prefs, "min_frame_time").toInt();
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
+    int xclkPref = jsonExtract(prefs, "xclk").toInt();
+    if (xclkPref != 0) xclk = xclkPref;
+    s->set_xclk(s, LEDC_TIMER_0, xclk);
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
     s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
     s->set_saturation(s, jsonExtract(prefs, "saturation").toInt());
@@ -141,6 +144,7 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
+  p+=sprintf(p, "\"xclk\":%u,", xclk);
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
   p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
   p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
@@ -183,10 +187,11 @@ void removePrefs(fs::FS &fs) {
 }
 
 void filesystemStart(){
+  Serial.println("Starting internal SPIFFS filesystem");
   while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
-    // if we sit in this loop something is wrong; 
+    // if we sit in this loop something is wrong;
     // if no existing spiffs partition exists one should be automagically created.
-    Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation.");
+    Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation");
     Serial.println("If it happens repeatedly check if a SPIFFS partition is present for your board?");
     for (int i=0; i<10; i++) {
       flashLED(100); // Show SPIFFS failure
@@ -195,6 +200,5 @@ void filesystemStart(){
     delay(1000);
     Serial.println("Retrying..");
   }
-  Serial.println("Internal filesystem contents");
   listDir(SPIFFS, "/", 0);
 }
