@@ -5,7 +5,10 @@
  */
 
 
-/* Give the camera a name for the web interface */
+/* Give the camera a name for the web interface
+ * A word of warning: This name is also used for OTA updates and MDNS addressing.
+ * Pick something convenient!
+ */
 #define CAM_NAME "ESP32 camera server"
 
 
@@ -191,3 +194,4 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // For clone modules that have camera module and SPIFFS startup issues try setting
 // this very low (start at 2MHZ and increase):
 // #define XCLK_FREQ_MHZ 2
+

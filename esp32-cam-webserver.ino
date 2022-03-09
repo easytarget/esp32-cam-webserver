@@ -6,6 +6,7 @@
 #include <ArduinoOTA.h>
 #include "src/parsebytes.h"
 #include "time.h"
+#include <ESPmDNS.h>
 
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
@@ -714,7 +715,16 @@ void setup() {
         ArduinoOTA.begin();
     } else {
         Serial.println("OTA is disabled");
+
+        if (!MDNS.begin(myName)) {
+          Serial.println("Error setting up MDNS responder!");
+        }
+        Serial.println("mDNS responder started");
     }
+
+    //MDNS Config -- note that if OTA is NOT enabled this needs prior steps!
+    MDNS.addService("http", "tcp", 80);
+    Serial.println("Added HTTP service to MDNS server");
 
     // Set time via NTP server when enabled
     if (haveTime) {

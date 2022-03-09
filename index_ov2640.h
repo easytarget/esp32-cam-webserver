@@ -35,16 +35,16 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
-              <div class="input-group hidden" id="lamp-group">
+              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full</div>
+                <div class="range-max">Full&#9888;</div>
               </div>
-              <div class="input-group hidden" id="autolamp-group">
+              <div class="input-group hidden" id="autolamp-group" title="Lamp only on when camera active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
-                  <input id="autolamp" type="checkbox" class="default-action" title="Lamp only on when camera active">
+                  <input id="autolamp" type="checkbox" class="default-action">
                   <label class="slider" for="autolamp"></label>
                 </div>
               </div>
@@ -245,7 +245,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </div>
               </div>
               <div class="input-group" id="preferences-group">
-                <label for="reboot" style="line-height: 2em;">Preferences</label>
+                <label for="prefs" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
                 <button id="save_prefs" title="Save Preferences on camera module">Save</button>
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
