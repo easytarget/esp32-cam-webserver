@@ -155,7 +155,7 @@ unsigned char favicon_32x32_png[] = {
 };
 unsigned int favicon_32x32_png_len = 1051;
 
-/*  32x32 .ico format  */ 
+/*  32x32 .ico format  */
 
 unsigned char favicon_ico[] = {
   0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20, 0x20, 0x00, 0x00, 0x01, 0x00,

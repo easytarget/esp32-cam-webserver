@@ -125,7 +125,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
         updateConfig(el);
       } else if(!updateRemote){
         if(el.id === "lamp"){
-          if (value == -1) { 
+          if (value == -1) {
             hide(lampGroup)
           } else {
             show(lampGroup)
@@ -142,7 +142,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
           streamURL = value;
           streamButton.setAttribute("title", `Start the stream :: {streamURL}`);
           console.log('Stream URL set to:' + value);
-        } 
+        }
       }
     }
 
@@ -408,7 +408,7 @@ const uint8_t streamviewer_html[] = R"=====(<!doctype html>
         } else if(el.id === "stream_url"){
           streamURL = value;
           console.log('Stream URL set to:' + value);
-        } 
+        }
       }
     }
 
@@ -460,7 +460,7 @@ const uint8_t streamviewer_html[] = R"=====(<!doctype html>
 
 size_t streamviewer_html_len = sizeof(streamviewer_html)-1;
 
-/* Captive Portal page 
+/* Captive Portal page
    we replace the <> delimited strings with correct values as it is served */
 
 const std::string portal_html = R"=====(<!doctype html>
@@ -489,7 +489,7 @@ const std::string portal_html = R"=====(<!doctype html>
   </body>
 </html>)=====";
 
-/* Error page 
+/* Error page
    we replace the <> delimited strings with correct values as it is served */
 
 const std::string error_html = R"=====(<!doctype html>

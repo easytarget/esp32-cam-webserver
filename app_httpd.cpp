@@ -514,7 +514,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<link rel=\"stylesheet\" type=\"text/css\" href=\"/style.css\">\n");
     d+= sprintf(d,"</head>\n");
     d+= sprintf(d,"<body>\n");
-    d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n"); 
+    d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n");
     if (critERR.length() > 0) {
         d+= sprintf(d,"<span style=\"color:red;\">%s<hr></span>\n", critERR.c_str());
         d+= sprintf(d,"<h2 style=\"color:red;\">(the serial log may give more information)</h2><br>\n");

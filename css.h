@@ -2,7 +2,7 @@
  * Master CSS file for the camera pages
  */
 
-const uint8_t style_css[] = R"=====(/* 
+const uint8_t style_css[] = R"=====(/*
  * CSS for the esp32 cam webserver
  */
 

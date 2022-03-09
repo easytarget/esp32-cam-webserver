@@ -362,7 +362,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
         } else if(el.id === "lamp"){
-          if (value == -1) { 
+          if (value == -1) {
             hide(lampGroup)
             hide(autolampGroup)
           } else {
@@ -390,7 +390,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
-        } 
+        }
       }
     }
 
@@ -500,7 +500,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     }
 
     // Attach actions to controls
-    
+
     streamLink.onclick = () => {
       stopStream();
       window.open(viewerURL, "_blank");
@@ -588,7 +588,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     swapButton.onclick = () => {
       window.open('/?view=simple','_self');
     }
- 
+
     savePrefsButton.onclick = () => {
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);

@@ -10,7 +10,7 @@ extern int autoLamp;                // Automatic lamp mode
 extern int xclk;                    // Camera module clock speed
 
 /*
- * Useful utility when debugging... 
+ * Useful utility when debugging...
  */
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
@@ -187,7 +187,7 @@ void removePrefs(fs::FS &fs) {
 void filesystemStart(){
   Serial.println("Starting internal SPIFFS filesystem");
   while ( !SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED) ) {
-    // if we sit in this loop something is wrong; 
+    // if we sit in this loop something is wrong;
     // if no existing spiffs partition exists one should be automagically created.
     Serial.println("SPIFFS Mount failed, this can happen on first-run initialisation");
     Serial.println("If it happens repeatedly check if a SPIFFS partition is present for your board?");
