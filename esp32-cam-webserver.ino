@@ -666,24 +666,13 @@ void setup() {
     * Camera setup complete; initialise the rest of the hardware.
     */
 
-    // Initialise and set the lamp
-    if (lampVal != -1) {
-        ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-        if (autoLamp) setLamp(0);                        // set default value
-        else setLamp(lampVal);
-        #if defined(LAMP_PIN)
-            ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
-        #endif
-    } else {
-        Serial.println("No lamp, or lamp disabled in config");
-    }
-
-    // Having got this far; start Wifi and loop until we are connected or have started an AccessPoint
+    // Start Wifi and loop until we are connected or have started an AccessPoint
     while ((WiFi.status() != WL_CONNECTED) && !accesspoint)  {
         WifiSetup();
         delay(1000);
     }
 
+    // Set up OTA
     if (otaEnabled) {
         // Start OTA once connected
         Serial.println("Setting up OTA");
@@ -736,7 +725,22 @@ void setup() {
         Serial.println("Time functions disabled");
     }
 
-    // Now we have a network we can start the two http handlers for the UI and Stream.
+    // Gather static values used when dumping status; these are slow functions, so just do them once during startup
+    sketchSize = ESP.getSketchSize();
+    sketchSpace = ESP.getFreeSketchSpace();
+    sketchMD5 = ESP.getSketchMD5();
+
+    // Initialise and set the lamp
+    if (lampVal != -1) {
+        ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
+        ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+        if (autoLamp) setLamp(0);                        // set default value
+        else setLamp(lampVal);
+    } else {
+        Serial.println("No lamp, or lamp disabled in config");
+    }
+
+    // Start the camera server
     startCameraServer(httpPort, streamPort);
 
     if (critERR.length() == 0) {
@@ -752,16 +756,11 @@ void setup() {
         Serial.printf("\r\nCamera unavailable due to initialisation errors.\r\n\r\n");
     }
 
-    // Used when dumping status; these are slow functions, so just do them once during startup
-    sketchSize = ESP.getSketchSize();
-    sketchSpace = ESP.getFreeSketchSpace();
-    sketchMD5 = ESP.getSketchMD5();
+    // Info line; use for Info messages; eg 'This is a Beta!' warnings, etc. as necesscary
+    // Serial.print("\r\nThis is the 4.1 beta\r\n");
 
     // As a final init step chomp out the serial buffer in case we have recieved mis-keys or garbage during startup
     while (Serial.available()) Serial.read();
-
-    // Info line; use for Info messages; eg 'This is a Beta!' warnings, etc. as necesscary
-    // Serial.print("\r\nThis is the 4.1 beta\r\n");
 }
 
 void loop() {

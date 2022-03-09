@@ -158,6 +158,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define LAMP_DISABLE
 
 // Define the startup lamp power setting (as a percentage, defaults to 0%)
+// Saved (SPIFFS) user settings will override this
 // #define LAMP_DEFAULT 0
 
 // Assume the module used has a SPIFFS/LittleFS partition, and use that for persistent setting storage
@@ -190,4 +191,3 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // For clone modules that have camera module and SPIFFS startup issues try setting
 // this very low (start at 2MHZ and increase):
 // #define XCLK_FREQ_MHZ 2
-
