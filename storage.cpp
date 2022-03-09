@@ -4,10 +4,10 @@
 
 // These are defined in the main .ino file
 extern void flashLED(int flashtime);
-extern int myRotation;              // Rotation
-extern int lampVal;                 // The current Lamp value
-extern int autoLamp;                // Automatic lamp mode
-extern int xclk;                    // Camera module clock speed
+extern int myRotation;    // Rotation
+extern int lampVal;       // The current Lamp value
+extern bool autoLamp;     // Automatic lamp mode
+extern int xclk;          // Camera module clock speed
 
 /*
  * Useful utility when debugging...
@@ -90,11 +90,11 @@ void loadPrefs(fs::FS &fs){
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
-    autoLamp = jsonExtract(prefs, "autolamp").toInt();
-    int xclkPref = jsonExtract(prefs, "xclk").toInt();
-    if (xclkPref != 0) xclk = xclkPref;
+    if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
+    int xclkPref = jsonExtract(prefs, "xclk").toInt();
+    if (xclkPref != 0) xclk = xclkPref;
     s->set_xclk(s, LEDC_TIMER_0, xclk);
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
     s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
