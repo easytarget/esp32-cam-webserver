@@ -252,7 +252,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 </div>
               </div>
               <div class="input-group" id="preferences-group">
-                <label for="reboot" style="line-height: 2em;">Preferences</label>
+                <label for="prefs" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
                 <button id="save_prefs" title="Save Preferences on camera module">Save</button>
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
