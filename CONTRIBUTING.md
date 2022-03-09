@@ -16,7 +16,7 @@ Pull requests are the best way to propose changes to the codebase (I use [Github
 1. Fork the repo and create your branch from `master`.
 2. Give your branch a clear descriptive name and do your changes there.
 3. If you've changed the HTTP APIs, update the documentation.
-4. Issue a pull request against a branch *of the same name* in the main repo.
+4. Issue a pull request against the master branch in the main repo.
 5. Clearly describe your changes and the reason for them in the pull request.
 
 ## Any contributions you make will be under the GNU Lesser General Public License v2.1
