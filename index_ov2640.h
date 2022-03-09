@@ -41,10 +41,10 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
                 <div class="range-max">Full</div>
               </div>
-              <div class="input-group hidden" id="autolamp-group">
+              <div class="input-group hidden" id="autolamp-group" title="Lamp only on when camera active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
-                  <input id="autolamp" type="checkbox" class="default-action" title="Lamp only on when camera active">
+                  <input id="autolamp" type="checkbox" class="default-action">
                   <label class="slider" for="autolamp"></label>
                 </div>
               </div>
