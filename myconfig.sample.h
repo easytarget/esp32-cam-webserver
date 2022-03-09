@@ -1,17 +1,20 @@
-/* 
+/*
  *  Rename this example to 'myconfig.h' and fill in your details.
- * 
+ *
  *  The local config is in the '.gitignore' file, which helps to keep details secret.
  */
 
 
-/* Give the camera a name for the web interface */
+/* Give the camera a name for the web interface
+ * A word of warning: This name is also used for OTA updates and MDNS addressing.
+ * Pick something convenient!
+ */
 #define CAM_NAME "ESP32 camera server"
 
 
 /*
  *    WiFi Settings
- *    
+ *
  *    For the simplest connection to an existing network
  *    just replace your ssid and password in the line below.
  */
@@ -31,18 +34,18 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  * it will be used for the AccessPoint ssid and password. See the comments there for more.
  *
  * The 'dhcp' setting controls whether the station uses DHCP or static IP settings; if in doubt leave 'true'
-  * 
+  *
  * You can also use a BSSID (eg: "2F:67:94:F5:BB:6A", a colon separated mac address string) in place of
  * the ssid to force connections to specific networks even when the ssid's collide,
  */
 
 /* Extended WiFi Settings */
 
-/* 
+/*
  * Hostname. Optional, uncomment and set if desired
  * - used in DHCP request when connecting to networks, not used in AP mode
  * - Most useful when used with a static netwrk config, not all routers respect this setting
- * 
+ *
  * The URL_HOSTNAME will be used in place of the IP address in internal URL's
  */
 
@@ -51,22 +54,22 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 
 /*
  * Static network settings for client mode
- * 
+ *
  * Note: The same settings will be applied to all client connections where the dhcp setting is 'false'
  * You must define all three: IP, Gateway and NetMask
  */
 // warning - IP addresses must be separated with commas (,) and not decimals (.)
 // #define ST_IP      192,168,0,123
-// #define ST_GATEWAY 192,168,0,2 
+// #define ST_GATEWAY 192,168,0,2
 // #define ST_NETMASK 255,255,255,0
 // One or two DNS servers can be supplied, only the NTP code currently uses them
 // #define ST_DNS1 192,168,0,2
 // #define ST_DNS2 8,8,8,8
 
-/* 
- *  AccessPoint; 
+/*
+ *  AccessPoint;
  *
- *  Uncomment to enable AP mode; 
+ *  Uncomment to enable AP mode;
  *
  */
 // #define WIFI_AP_ENABLE
@@ -79,7 +82,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  *  if they are found. AP then works as a fallback mode for when there are no 'real' networks available.
  *
  *  Setting the 'dhcp' field to true for the AP enables a captive portal and attempts to send
- *  all visitors to the webcam page, with varying degrees of success depending on the visitors 
+ *  all visitors to the webcam page, with varying degrees of success depending on the visitors
  *  browser and other settings.
  */
 // Optionally change the AccessPoint ip address (default = 192.168.4.1)
@@ -185,7 +188,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define CAMERA_MODEL_ARDUCAM_ESP32S_UNO
 
 // Camera module bus communications frequency, setting too high can cause visual artifacts.
-// Currently defaults to 16.5MHz, but some (non-clone) modules may be able to use the 
+// Currently defaults to 16.5MHz, but some (non-clone) modules may be able to use the
 // original frequency of 20MHz for to allow higher framerates etc.
 // #define XCLK_FREQ_HZ 20000000;
 // For clone modules that have camera module artifacts and SPIFFS issues; try setting this very low:
