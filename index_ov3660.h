@@ -258,6 +258,20 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
+              <div class="input-group" id="min_frame_time-group">
+                <label for="min_frame_time">Frame Duration Limit</label>
+                <select id="min_frame_time" class="default-action">
+                  <option value="3333">3333ms (0.3fps)</option>
+                  <option value="2000">2000ms (0.5fps)</option>
+                  <option value="1000">1000ms (1fps)</option>
+                  <option value="500">500ms (2fps)</option>
+                  <option value="333">333ms (3fps)</option>
+                  <option value="200">200ms (5fps)</option>
+                  <option value="100">100ms (10fps)</option>
+                  <option value="50">50ms (20fps)</option>
+                  <option value="0" selected="selected">Disabled</option>
+                </select>
+              </div>
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
@@ -318,6 +332,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
+    const minFrameTime = document.getElementById('min_frame_time')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -379,6 +394,8 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
+        } else if(el.id === "min_frame_time"){
+          min_frame_time.value = value;
         } else if(el.id === "stream_url"){
           streamURL = value;
           viewerURL = value + 'view';
@@ -579,6 +596,9 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     framesize.onchange = () => {
       updateConfig(framesize)
     }
+
+    minFrameTime.onchange = () => {
+      updateConfig(minFrameTime)
 
     xclk.onchange = () => {
       console.log("xclk:" , xclk);

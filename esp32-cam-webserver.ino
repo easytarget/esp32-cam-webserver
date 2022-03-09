@@ -150,6 +150,12 @@ char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 #endif
 int myRotation = CAM_ROTATION;
 
+// minimal frame duration in ms, effectively 1/maxFPS
+#if !defined(MIN_FRAME_TIME)
+    #define MIN_FRAME_TIME 0
+#endif
+int minFrameTime = MIN_FRAME_TIME;
+
 // Illumination LAMP and status LED
 #if defined(LAMP_DISABLE)
     int lampVal = -1; // lamp is disabled in config

@@ -90,7 +90,8 @@ void loadPrefs(fs::FS &fs){
     sensor_t * s = esp_camera_sensor_get();
     // process all the settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
-    if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
+   if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
+    minFrameTime = jsonExtract(prefs, "min_frame_time").toInt();
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
     int xclkPref = jsonExtract(prefs, "xclk").toInt();
@@ -140,6 +141,7 @@ void savePrefs(fs::FS &fs){
   *p++ = '{';
   p+=sprintf(p, "\"lamp\":%i,", lampVal);
   p+=sprintf(p, "\"autolamp\":%u,", autoLamp);
+  p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
   p+=sprintf(p, "\"xclk\":%u,", xclk);

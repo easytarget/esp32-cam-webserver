@@ -52,6 +52,7 @@ extern int8_t streamCount;
 extern unsigned long streamsServed;
 extern unsigned long imagesServed;
 extern int myRotation;
+extern int minFrameTime;
 extern int lampVal;
 extern bool autoLamp;
 extern bool filesystem;
@@ -249,6 +250,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
 
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
+    if(res == ESP_OK){
+        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+    }
+
     while(true){
         fb = esp_camera_fb_get();
         if (!fb) {
@@ -264,14 +269,14 @@ static esp_err_t stream_handler(httpd_req_t *req){
             }
         }
         if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-        }
-        if(res == ESP_OK){
             size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
             res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
         }
         if(res == ESP_OK){
             res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
+        }
+        if(res == ESP_OK){
+            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
         }
         if(fb){
             esp_camera_fb_return(fb);
@@ -287,13 +292,16 @@ static esp_err_t stream_handler(httpd_req_t *req){
             break;
         }
         int64_t frame_time = esp_timer_get_time() - last_frame;
-        last_frame = esp_timer_get_time();;
         frame_time /= 1000;
+        int32_t frame_delay = (minFrameTime > frame_time) ? minFrameTime - frame_time : 0;
+        delay(frame_delay);
+
         if (debugData) {
-            Serial.printf("MJPG: %uB %ums (%.1ffps)\r\n",
+            Serial.printf("MJPG: %uB %ums, delay: %ums, framerate (%.1ffps)\r\n",
                 (uint32_t)(_jpg_buf_len),
-                (uint32_t)frame_time, 1000.0 / (uint32_t)frame_time);
+                (uint32_t)frame_time, frame_delay, 1000.0 / (uint32_t)(frame_time + frame_delay));
         }
+        last_frame = esp_timer_get_time();
     }
 
     streamsServed++;
@@ -369,6 +377,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(variable, "ae_level")) res = s->set_ae_level(s, val);
     else if(!strcmp(variable, "rotate")) myRotation = val;
+    else if(!strcmp(variable, "min_frame_time")) minFrameTime = val;
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {
@@ -425,6 +434,7 @@ static esp_err_t status_handler(httpd_req_t *req){
     *p++ = '{';
     p+=sprintf(p, "\"lamp\":%d,", lampVal);
     p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
+    p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
     p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
     p+=sprintf(p, "\"quality\":%u,", s->status.quality);
     p+=sprintf(p, "\"xclk\":%u,", xclk);
