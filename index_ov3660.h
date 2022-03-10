@@ -35,13 +35,13 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
-              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!">
+              <div class="input-group hidden" id="lamp-group" title="Flashlight LED.&#013;&#013;Warning:&#013;Built-In lamps can be Very Bright! Avoid looking directly at LED&#013;Can draw a lot of power and may cause visual artifacts, affect WiFi or even brownout the camera on high settings">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full&#9888;</div>
+                <div class="range-max"><span style="font-size: 125%;">&#9888;</span>Full</div>
               </div>
-              <div class="input-group hidden" id="autolamp-group" title="Lamp only on when camera active">
+              <div class="input-group hidden" id="autolamp-group" title="When enabled the lamp will only turn on while the camera is active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
                   <input id="autolamp" type="checkbox" class="default-action">
@@ -49,7 +49,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 </div>
               </div>
 
-              <div class="input-group" id="framesize-group">
+              <div class="input-group" id="framesize-group" title="Camera resolution&#013;Higher resolutions will result in lower framerates">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
                   <option value="17">QXGA (2048x1536)</option>
@@ -68,18 +68,18 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <option value="0">THUMB (96x96)</option>
                 </select>
               </div>
-              <div class="input-group" id="quality-group">
+              <div class="input-group" id="quality-group" title="Camera Image and Stream quality factor&#013;Higher settings will result in lower framerates">
                 <label for="quality">Quality</label>
-                <div class="range-min">Low<br><span style="font-size: 80%;">(fast)</span></div>
+                <div class="range-min">Low</div>
                 <!-- Note; the following element is 'flipped' in CSS so that it slides from High to Low
                      As a result the 'min' and 'max' values are reversed here too -->
                 <input type="range" id="quality" min="4" max="63" value="10" class="default-action">
-                <div class="range-max">High<br><span style="font-size: 80%;">(slow)</span></div>
+                <div class="range-max">High</div>
               </div>
-              <div class="input-group" id="set-xclk-group">
+              <div class="input-group" id="set-xclk-group" title="Camera Bus Clock Frequency&#013;Increasing this will raise the camera framerate and capture speed&#013;&#013;Raising too far will result in visual artifacts and/or incomplete frames&#013;This setting can vary a lot between boards, budget boards typically need lower values">
                  <label for="set-xclk">XCLK</label>
                  <div class="text">
-                    <input id="xclk" type="number" min="2" max="32" size="4" step="1" class="default-action">
+                    <input id="xclk" type="number" min="2" max="32" size="3" step="1" class="default-action">
                     <div class="range-max">MHz</div>
                   </div>
               </div>
@@ -152,14 +152,14 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 </div>
               </div>
               <div class="input-group" id="awb_gain-group">
-                <label for="awb_gain">Manual AWB</label>
+                <label for="awb_gain">Manual AWB Gain</label>
                 <div class="switch">
                   <input id="awb_gain" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="awb_gain"></label>
                 </div>
               </div>
               <div class="input-group" id="wb_mode-group">
-                <label for="wb_mode">AWB Mode</label>
+                <label for="wb_mode">WB Mode</label>
                 <select id="wb_mode" class="default-action">
                   <option value="0" selected="selected">Auto</option>
                   <option value="1">Sunny</option>
@@ -169,7 +169,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 </select>
               </div>
               <div class="input-group" id="aec-group">
-                <label for="aec">AEC Enable</label>
+                <label for="aec">AEC Sensor Enable</label>
                 <div class="switch">
                   <input id="aec" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="aec"></label>
@@ -202,7 +202,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 <div class="range-max">64x</div>
               </div>
               <div class="input-group" id="raw_gma-group">
-                <label for="raw_gma">GMA Enable</label>
+                <label for="raw_gma">Raw GMA Enable</label>
                 <div class="switch">
                   <input id="raw_gma" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="raw_gma"></label>
@@ -258,12 +258,12 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
-              <div class="input-group" id="min_frame_time-group">
+              <div class="input-group" id="min_frame_time-group" title="Minimum frame time&#013;Higher settings reduce the frame rate&#013;Use this for a smoother stream and to reduce load on the WiFi and browser">
                 <label for="min_frame_time">Frame Duration Limit</label>
                 <select id="min_frame_time" class="default-action">
-                  <option value="3333">3333ms (0.3fps)</option>
-                  <option value="2000">2000ms (0.5fps)</option>
-                  <option value="1000">1000ms (1fps)</option>
+                  <option value="3333">3.3s  (0.3fps)</option>
+                  <option value="2000">2s    (0.5fps)</option>
+                  <option value="1000">1s    (1fps)</option>
                   <option value="500">500ms (2fps)</option>
                   <option value="333">333ms (3fps)</option>
                   <option value="200">200ms (5fps)</option>
@@ -599,6 +599,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 
     minFrameTime.onchange = () => {
       updateConfig(minFrameTime)
+    }
 
     xclk.onchange = () => {
       console.log("xclk:" , xclk);

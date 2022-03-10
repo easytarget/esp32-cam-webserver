@@ -75,11 +75,17 @@ IPAddress gw;
 extern void startCameraServer(int hPort, int sPort);
 extern void serialDump();
 
-// A Name for the Camera. (set in myconfig.h)
+// Names for the Camera. (set these in myconfig.h)
 #if defined(CAM_NAME)
     char myName[] = CAM_NAME;
 #else
     char myName[] = "ESP32 camera server";
+#endif
+
+#if defined(MDNS_NAME)
+    char mdnsName[] = MDNS_NAME;
+#else
+    char mdnsName[] = "esp32-cam";
 #endif
 
 // Ports for http and stream (override in myconfig.h)
@@ -138,7 +144,7 @@ char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 // Originally: config.xclk_freq_mhz = 20000000, but this lead to visual artifacts on many modules.
 // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
 #if !defined (XCLK_FREQ_MHZ)
-    unsigned long xclk = 16;
+    unsigned long xclk = 8;
 #else
     unsigned long xclk = XCLK_FREQ_MHZ;
 #endif
@@ -399,9 +405,7 @@ void WifiSetup() {
             #endif
         }
 
-        #if defined(HOSTNAME)
-            WiFi.setHostname(HOSTNAME);
-        #endif
+        WiFi.setHostname(mdnsName);
 
         // Initiate network connection request (3rd argument, channel = 0 is 'auto')
         WiFi.begin(bestSSID, stationList[bestStation].password, 0, bestBSSID);
@@ -686,7 +690,7 @@ void setup() {
         // Port defaults to 3232
         // ArduinoOTA.setPort(3232);
         // Hostname defaults to esp3232-[MAC]
-        ArduinoOTA.setHostname(myName);
+        ArduinoOTA.setHostname(mdnsName);
         // No authentication by default
         if (strlen(otaPassword) != 0) {
             ArduinoOTA.setPassword(otaPassword);
@@ -722,7 +726,7 @@ void setup() {
     } else {
         Serial.println("OTA is disabled");
 
-        if (!MDNS.begin(myName)) {
+        if (!MDNS.begin(mdnsName)) {
           Serial.println("Error setting up MDNS responder!");
         }
         Serial.println("mDNS responder started");

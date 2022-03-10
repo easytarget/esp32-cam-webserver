@@ -5,12 +5,14 @@
  */
 
 
-/* Give the camera a name for the web interface
- * A word of warning: This name is also used for OTA updates and MDNS addressing.
- * Pick something convenient!
- */
+/* Give the camera a name for the web interface */
 #define CAM_NAME "ESP32 camera server"
 
+/*
+ * Give the mdns network name
+ * This is the name the camera will advertise on the network
+ */
+#define MDNS_NAME "esp32-cam"
 
 /*
  *    WiFi Settings
@@ -42,15 +44,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 /* Extended WiFi Settings */
 
 /*
- * Hostname. Optional, uncomment and set if desired
- * - used in DHCP request when connecting to networks, not used in AP mode
- * - Most useful when used with a static netwrk config, not all routers respect this setting
- *
- * The URL_HOSTNAME will be used in place of the IP address in internal URL's
+ * If defined: URL_HOSTNAME will be used in place of the IP address in internal URL's
  */
-
-// #define HOSTNAME "esp-cam"
-// #define URL_HOSTNAME "esp-cam"
+// #define URL_HOSTNAME "esp32-cam"
 
 /*
  * Static network settings for client mode
@@ -108,6 +104,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 
 /*
  * Over The Air firmware updates can be disabled by uncommenting the folowing line
+ * When enabled the device will advertise itself using the MDNS_NAME defined above
  */
 // #define NO_OTA
 
@@ -197,4 +194,3 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // For clone modules that have camera module and SPIFFS startup issues try setting
 // this very low (start at 2MHZ and increase):
 // #define XCLK_FREQ_MHZ 2
-

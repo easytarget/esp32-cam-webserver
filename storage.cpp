@@ -89,14 +89,18 @@ void loadPrefs(fs::FS &fs){
     }
     // get sensor reference
     sensor_t * s = esp_camera_sensor_get();
-    // process all the settings
+
+    // process local settings
     lampVal = jsonExtract(prefs, "lamp").toInt();
-   if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
     minFrameTime = jsonExtract(prefs, "min_frame_time").toInt();
-    s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
-    s->set_quality(s, jsonExtract(prefs, "quality").toInt());
+    if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
     int xclkPref = jsonExtract(prefs, "xclk").toInt();
     if (xclkPref != 0) xclk = xclkPref;
+    myRotation = jsonExtract(prefs, "rotate").toInt();
+
+    // process camera settings
+    s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
+    s->set_quality(s, jsonExtract(prefs, "quality").toInt());
     s->set_xclk(s, LEDC_TIMER_0, xclk);
     s->set_brightness(s, jsonExtract(prefs, "brightness").toInt());
     s->set_contrast(s, jsonExtract(prefs, "contrast").toInt());
@@ -120,7 +124,6 @@ void loadPrefs(fs::FS &fs){
     s->set_hmirror(s, jsonExtract(prefs, "hmirror").toInt());
     s->set_dcw(s, jsonExtract(prefs, "dcw").toInt());
     s->set_colorbar(s, jsonExtract(prefs, "colorbar").toInt());
-    myRotation = jsonExtract(prefs, "rotate").toInt();
     // close the file
     file.close();
     dumpPrefs(SPIFFS);
@@ -142,10 +145,10 @@ void savePrefs(fs::FS &fs){
   *p++ = '{';
   p+=sprintf(p, "\"lamp\":%i,", lampVal);
   p+=sprintf(p, "\"autolamp\":%u,", autoLamp);
-  p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
   p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
   p+=sprintf(p, "\"quality\":%u,", s->status.quality);
   p+=sprintf(p, "\"xclk\":%u,", xclk);
+  p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
   p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
   p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
   p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);

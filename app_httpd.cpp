@@ -606,7 +606,8 @@ static esp_err_t dump_handler(httpd_req_t *req){
     // Footer
     d+= sprintf(d,"<br><div class=\"input-group\">\n");
     d+= sprintf(d,"<button title=\"Instant Refresh; the page reloads every minute anyway\" onclick=\"location.replace(document.URL)\">Refresh</button>\n");
-    d+= sprintf(d,"<button title=\"Stop any active streams\" onclick=\"let throwaway = fetch('stop');setTimeout(function(){\nlocation.replace(document.URL);\n}, 200);\">Stop Stream</button>\n");
+    d+= sprintf(d,"<button title=\"Force-stop all active streams on the camera module\" ");
+    d+= sprintf(d,"onclick=\"let throwaway = fetch('stop');setTimeout(function(){\nlocation.replace(document.URL);\n}, 200);\">Kill Stream</button>\n");
     d+= sprintf(d,"<button title=\"Close this page\" onclick=\"javascript:window.close()\">Close</button>\n");
     d+= sprintf(d,"</div>\n</body>\n");
     // A javascript timer to refresh the page every minute.

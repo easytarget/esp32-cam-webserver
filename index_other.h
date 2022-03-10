@@ -36,7 +36,7 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb">
             <nav id="menu" style="width:24em;">
-              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!>
+              <div class="input-group hidden" id="lamp-group" title="Flashlight LED.&#013;&#013;Warning:&#013;Built-In lamps can be Very Bright! Avoid looking directly at LED&#013;Can draw a lot of power and may cause visual artifacts, affect WiFi or even brownout the camera on high settings">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="action-setting">
