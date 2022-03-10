@@ -9,8 +9,9 @@
 #define CAM_NAME "ESP32 camera server"
 
 /*
- * Give the mdns network name
- * This is the name the camera will advertise on the network
+ * Give the network name
+ * It will be used as the hostname in ST modes
+ * This is the name the camera will advertise on the network (mdns) for services and OTA
  */
 #define MDNS_NAME "esp32-cam"
 
