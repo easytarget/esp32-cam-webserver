@@ -27,7 +27,7 @@ Call `/control?var=<key>&val=<val>` with a settings key and value to set camera 
 ```
 lamp            - Lamp value in percent; integer, 0 - 100 (-1 = disabled)
 framesize       - See below
-min_frame_time  - Minimal frame duration in ms, used to limit max FPS. Must be positive integer
+min_frame_time  - Minimal frame duration in ms; used to limit max FPS. Must be positive integer
 quality         - 10 to 63 (ov3660: 4 to 10)
 contrast        - -2 to 2 (ov3660: -3 to 3)
 brightness      - -2 to 2 (ov3660: -3 to 3)
@@ -103,7 +103,7 @@ reboot          - Reboots the camera
   * All settings are returned via single `status` call in [JSON](https://www.json.org/) format.
   * `http://<IP-ADDRESS>/status`
   * Returns:
-    ```  {"lamp":0,"autolamp":0,"framesize":10,"quality":10,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":168,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":0,"hmirror":0,"dcw":1,"colorbar":0,"face_detect":0,"face_enroll":0,"face_recognize":0,"cam_name":"General","code_ver":"Mar  6 2021 @ 17:54:00","rotate":"0","stream_url":"http://10.0.0.190:81/"}```
+    ```  {"lamp":0,"autolamp":0,"min_frame_time":0,"framesize":9,"quality":10,"xclk":8,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":204,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":1,"hmirror":1,"dcw":1,"colorbar":0,"cam_name":"ESP32 test camera","code_ver":"Mar 10 2022 @ 14:00:45","rotate":"0","stream_url":"http://10.0.0.181:81/"}```
 * Reboot the camera
   * `http://<IP-ADDRESS>/control?var=reboot&val=0`
 
