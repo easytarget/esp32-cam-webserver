@@ -11,6 +11,7 @@ The WebUI and camera server communicate entirely via HTTP requests and responses
 * `/status` - Returns a JSON string with all camera status <key>/<value> pairs listed
 * `/control?var=<key>&val=<val>` - Set `<key>` to `<val>`
 * `/dump` - Status page
+* `/stop` - End all active streams
 
 ### Stream Port
 * `/` - Raw stream
