@@ -38,21 +38,21 @@ https://wiki.ai-thinker.com/esp32-cam
 
 ## Troubleshooting:
 
-Please read this excellent guide for help with some common issues seen with the camera modules:
-https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
-
-### Known Issues
-
-The ESP itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptible to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
-
-A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
-* You can check the `/dump` page of the cam to see if it currently reports the camera as streaming or not.
-
 A lot of common issues with this sketch are discussed and covered in the discussion forums:
 
 https://github.com/easytarget/esp32-cam-webserver/discussions/categories/common-issues
 
 The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above or in the forums.
+
+There is also this excellent guide for help with some common issues seen with the camera modules:
+https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
+
+### Known Issues
+
+The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptible to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
+
+A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
+* If you cannot start the stream you can check the `/dump` page of the cam to see if it currently reports the camera as streaming or not.
 
 Note that I do not respond to any Private Messages (via github, hackaday, or wherever) for support.
 
