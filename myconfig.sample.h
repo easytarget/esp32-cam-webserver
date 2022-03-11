@@ -5,12 +5,15 @@
  */
 
 
-/* Give the camera a name for the web interface
- * A word of warning: This name is also used for OTA updates and MDNS addressing.
- * Pick something convenient!
- */
+/* Give the camera a name for the web interface */
 #define CAM_NAME "ESP32 camera server"
 
+/*
+ * Give the network name
+ * It will be used as the hostname in ST modes
+ * This is the name the camera will advertise on the network (mdns) for services and OTA
+ */
+#define MDNS_NAME "esp32-cam"
 
 /*
  *    WiFi Settings
@@ -34,7 +37,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
  * it will be used for the AccessPoint ssid and password. See the comments there for more.
  *
  * The 'dhcp' setting controls whether the station uses DHCP or static IP settings; if in doubt leave 'true'
-  *
+ *
  * You can also use a BSSID (eg: "2F:67:94:F5:BB:6A", a colon separated mac address string) in place of
  * the ssid to force connections to specific networks even when the ssid's collide,
  */
@@ -42,15 +45,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 /* Extended WiFi Settings */
 
 /*
- * Hostname. Optional, uncomment and set if desired
- * - used in DHCP request when connecting to networks, not used in AP mode
- * - Most useful when used with a static netwrk config, not all routers respect this setting
- *
- * The URL_HOSTNAME will be used in place of the IP address in internal URL's
+ * If defined: URL_HOSTNAME will be used in place of the IP address in internal URL's
  */
-
-// #define HOSTNAME "esp-cam"
-// #define URL_HOSTNAME "esp-cam"
+// #define URL_HOSTNAME "esp32-cam"
 
 /*
  * Static network settings for client mode
@@ -108,6 +105,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 
 /*
  * Over The Air firmware updates can be disabled by uncommenting the folowing line
+ * When enabled the device will advertise itself using the MDNS_NAME defined above
  */
 // #define NO_OTA
 
@@ -146,6 +144,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Browser Rotation (one of: -90,0,90, default 0)
 // #define CAM_ROTATION 0
 
+// Minimal frame duration in ms, used to limit max FPS
+// max_fps = 1000/min_frame_time
+// #define MIN_FRAME_TIME 500
 
 /*
  * Additional Features
@@ -161,6 +162,7 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define LAMP_DISABLE
 
 // Define the startup lamp power setting (as a percentage, defaults to 0%)
+// Saved (SPIFFS) user settings will override this
 // #define LAMP_DEFAULT 0
 
 // Assume the module used has a SPIFFS/LittleFS partition, and use that for persistent setting storage
@@ -187,9 +189,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // #define CAMERA_MODEL_TTGO_T_JOURNAL
 // #define CAMERA_MODEL_ARDUCAM_ESP32S_UNO
 
-// Camera module bus communications frequency, setting too high can cause visual artifacts.
-// Currently defaults to 16.5MHz, but some (non-clone) modules may be able to use the
-// original frequency of 20MHz for to allow higher framerates etc.
-// #define XCLK_FREQ_HZ 20000000;
-// For clone modules that have camera module artifacts and SPIFFS issues; try setting this very low:
-// #define XCLK_FREQ_HZ 3000000;
+// Initial Camera module bus communications frequency
+// Currently defaults to 8MHz
+// The post-initialisation (runtime) value can be set and edited by the user in the UI
+// For clone modules that have camera module and SPIFFS startup issues try setting
+// this very low (start at 2MHZ and increase):
+// #define XCLK_FREQ_MHZ 2

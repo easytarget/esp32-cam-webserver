@@ -1,9 +1,9 @@
-/*  
+/*
  *   Pin definitions for some common ESP-CAM modules
- *   
+ *
  *   Select the module to use in myconfig.h
  *   Defaults to AI-THINKER CAM module
- *   
+ *
  */
 #if defined(CAMERA_MODEL_AI_THINKER)
   //
@@ -33,7 +33,7 @@
 
 #elif defined(CAMERA_MODEL_WROVER_KIT)
   //
-  // ESP WROVER 
+  // ESP WROVER
   // https://dl.espressif.com/dl/schematics/ESP-WROVER-KIT_SCH-2.pdf
   //
   #define PWDN_GPIO_NUM    -1
@@ -189,7 +189,7 @@
 
 #elif defined(CAMERA_MODEL_TTGO_T_JOURNAL)
   //
-  // LilyGO TTGO T-Journal ESP32; with OLED! but not used here.. :-( 
+  // LilyGO TTGO T-Journal ESP32; with OLED! but not used here.. :-(
   #define PWDN_GPIO_NUM      0
   #define RESET_GPIO_NUM    15
   #define XCLK_GPIO_NUM     27

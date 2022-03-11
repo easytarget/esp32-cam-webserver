@@ -35,13 +35,13 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
-              <div class="input-group hidden" id="lamp-group" title="Brightness of flashlight LED. Warning: Very bright! Be careful when increasing. Avoid looking directly at LED!">
+              <div class="input-group hidden" id="lamp-group" title="Flashlight LED.&#013;&#013;Warning:&#013;Built-In lamps can be Very Bright! Avoid looking directly at LED&#013;Can draw a lot of power and may cause visual artifacts, affect WiFi or even brownout the camera on high settings">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
-                <div class="range-max">Full&#9888;</div>
+                <div class="range-max"><span style="font-size: 125%;">&#9888;</span>Full</div>
               </div>
-              <div class="input-group hidden" id="autolamp-group" title="Lamp only on when camera active">
+              <div class="input-group hidden" id="autolamp-group" title="When enabled the lamp will only turn on while the camera is active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
                   <input id="autolamp" type="checkbox" class="default-action">
@@ -49,7 +49,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </div>
               </div>
 
-              <div class="input-group" id="framesize-group">
+              <div class="input-group" id="framesize-group" title="Camera resolution&#013;Higher resolutions will result in lower framerates">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
                   <option value="13">UXGA (1600x1200)</option>
@@ -66,13 +66,20 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="0">THUMB (96x96)</option>
                 </select>
               </div>
-              <div class="input-group" id="quality-group">
+              <div class="input-group" id="quality-group" title="Camera Image and Stream quality factor&#013;Higher settings will result in lower framerates">
                 <label for="quality">Quality</label>
-                <div class="range-min">Low<br><span style="font-size: 80%;">(fast)</span></div>
+                <div class="range-min">Low</div>
                 <!-- Note; the following element is 'flipped' in CSS so that it slides from High to Low
                      As a result the 'min' and 'max' values are reversed here too -->
                 <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
-                <div class="range-max">High<br><span style="font-size: 80%;">(slow)</span></div>
+                <div class="range-max">High</div>
+              </div>
+              <div class="input-group" id="set-xclk-group" title="Camera Bus Clock Frequency&#013;Increasing this will raise the camera framerate and capture speed&#013;&#013;Raising too far will result in visual artifacts and/or incomplete frames&#013;This setting can vary a lot between boards, budget boards typically need lower values">
+                 <label for="set-xclk">XCLK</label>
+                 <div class="text">
+                    <input id="xclk" type="number" min="2" max="32" size="3" step="1" class="default-action">
+                    <div class="range-max">MHz</div>
+                  </div>
               </div>
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
@@ -105,14 +112,14 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </select>
               </div>
               <div class="input-group" id="awb-group">
-                <label for="awb">AWB</label>
+                <label for="awb">AWB Enable</label>
                 <div class="switch">
                   <input id="awb" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="awb"></label>
                 </div>
               </div>
               <div class="input-group" id="awb_gain-group">
-                <label for="awb_gain">AWB Gain</label>
+                <label for="awb_gain">Manual AWB Gain</label>
                 <div class="switch">
                   <input id="awb_gain" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="awb_gain"></label>
@@ -129,7 +136,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </select>
               </div>
               <div class="input-group" id="aec-group">
-                <label for="aec">AEC SENSOR</label>
+                <label for="aec">AEC Sensor Enable</label>
                 <div class="switch">
                   <input id="aec" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="aec"></label>
@@ -188,7 +195,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 </div>
               </div>
               <div class="input-group" id="raw_gma-group">
-                <label for="raw_gma">Raw GMA</label>
+                <label for="raw_gma">Raw GMA Enable</label>
                 <div class="switch">
                   <input id="raw_gma" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="raw_gma"></label>
@@ -236,6 +243,20 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <input id="colorbar" type="checkbox" class="default-action">
                   <label class="slider" for="colorbar"></label>
                 </div>
+              </div>
+              <div class="input-group" id="min_frame_time-group" title="Minimum frame time&#013;Higher settings reduce the frame rate&#013;Use this for a smoother stream and to reduce load on the WiFi and browser">
+                <label for="min_frame_time">Frame Duration Limit</label>
+                <select id="min_frame_time" class="default-action">
+                  <option value="3333">3.3s  (0.3fps)</option>
+                  <option value="2000">2s    (0.5fps)</option>
+                  <option value="1000">1s    (1fps)</option>
+                  <option value="500">500ms (2fps)</option>
+                  <option value="333">333ms (3fps)</option>
+                  <option value="200">200ms (5fps)</option>
+                  <option value="100">100ms (10fps)</option>
+                  <option value="50">50ms (20fps)</option>
+                  <option value="0" selected="selected">Disabled</option>
+                </select>
               </div>
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
@@ -292,10 +313,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const closeButton = document.getElementById('close-stream')
     const streamLink = document.getElementById('stream_link')
     const framesize = document.getElementById('framesize')
+    const xclk = document.getElementById('xclk')
     const swapButton = document.getElementById('swap-viewer')
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
+    const minFrameTime = document.getElementById('min_frame_time')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -342,7 +365,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "awb_gain"){
           value ? show(wb) : hide(wb)
         } else if(el.id === "lamp"){
-          if (value == -1) { 
+          if (value == -1) {
             hide(lampGroup)
             hide(autolampGroup)
           } else {
@@ -359,6 +382,8 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
+        } else if(el.id === "min_frame_time"){
+          min_frame_time.value = value;
         } else if(el.id === "stream_url"){
           streamURL = value;
           viewerURL = value + 'view';
@@ -370,7 +395,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           show(streamGroup)
           console.log('Stream URL set to: ' + streamURL);
           console.log('Stream Viewer URL set to: ' + viewerURL);
-        } 
+        }
       }
     }
 
@@ -395,6 +420,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
           value = el.checked ? 1 : 0
           break
         case 'range':
+        case 'number':
         case 'select-one':
           value = el.value
           break
@@ -479,7 +505,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     }
 
     // Attach actions to controls
-    
+
     streamLink.onclick = () => {
       stopStream();
       window.open(viewerURL, "_blank");
@@ -562,10 +588,19 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       updateConfig(framesize)
     }
 
+    minFrameTime.onchange = () => {
+      updateConfig(minFrameTime)
+    }
+
+    xclk.onchange = () => {
+      console.log("xclk:" , xclk);
+      updateConfig(xclk)
+    }
+
     swapButton.onclick = () => {
       window.open('/?view=simple','_self');
     }
- 
+
     savePrefsButton.onclick = () => {
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);
