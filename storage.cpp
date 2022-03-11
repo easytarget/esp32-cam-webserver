@@ -91,11 +91,14 @@ void loadPrefs(fs::FS &fs){
     sensor_t * s = esp_camera_sensor_get();
 
     // process local settings
-    lampVal = jsonExtract(prefs, "lamp").toInt();
+    if (lampVal >= 0) {
+        int lampValPref = jsonExtract(prefs, "lamp").toInt();
+        if (lampValPref >= 0) lampVal = lampValPref;
+    }
     minFrameTime = jsonExtract(prefs, "min_frame_time").toInt();
     if (jsonExtract(prefs, "autolamp").toInt() == 0) autoLamp = false; else autoLamp = true;
     int xclkPref = jsonExtract(prefs, "xclk").toInt();
-    if (xclkPref != 0) xclk = xclkPref;
+    if (xclkPref >= 2) xclk = xclkPref;
     myRotation = jsonExtract(prefs, "rotate").toInt();
 
     // process camera settings

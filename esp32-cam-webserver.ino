@@ -253,7 +253,7 @@ void handleSerial() {
 
 // Notification LED
 void flashLED(int flashtime) {
-#ifdef LED_PIN                    // If we have it; flash it.
+#if defined(LED_PIN)                // If we have it; flash it.
     digitalWrite(LED_PIN, LED_ON);  // On at full power.
     delay(flashtime);               // delay
     digitalWrite(LED_PIN, LED_OFF); // turn Off
@@ -264,6 +264,7 @@ void flashLED(int flashtime) {
 
 // Lamp Control
 void setLamp(int newVal) {
+#if defined(LAMP_PIN)
     if (newVal != -1) {
         // Apply a logarithmic function to the scale.
         int brightness = round((pow(2,(1+(newVal*0.02)))-2)/6*pwmMax);
@@ -273,6 +274,7 @@ void setLamp(int newVal) {
         Serial.print("%, pwm = ");
         Serial.println(brightness);
     }
+#endif
 }
 
 void printLocalTime(bool extraData=false) {
@@ -763,10 +765,12 @@ void setup() {
 
     // Initialise and set the lamp
     if (lampVal != -1) {
-        ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-        ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
-        if (autoLamp) setLamp(0);                        // set default value
-        else setLamp(lampVal);
+        #if defined(LAMP_PIN)
+            ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
+            ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
+            if (autoLamp) setLamp(0);                        // set default value
+            else setLamp(lampVal);
+         #endif
     } else {
         Serial.println("No lamp, or lamp disabled in config");
     }
