@@ -65,6 +65,7 @@ extern String sketchMD5;
 extern bool otaEnabled;
 extern char otaPassword[];
 extern unsigned long xclk;
+extern int sensorPID;
 
 typedef struct {
         httpd_req_t *req;
@@ -166,7 +167,8 @@ void serialDump() {
     Serial.println("Preferences file: ");
     dumpPrefs(SPIFFS);
     if (critERR.length() > 0) {
-        Serial.printf("\r\n\r\nA critical error has occurred when initialising Camera Hardware, see startup megssages\r\n");
+        Serial.printf("\r\n\r\nAn error or halt has occurred with Camera Hardware, see previous messages.\r\n");
+        Serial.printf("A reboot is required to recover from this.\r\nError message: (html)\r\n %s\r\n\r\n", critERR.c_str());
     }
     Serial.println();
     return;
@@ -286,9 +288,15 @@ static esp_err_t stream_handler(httpd_req_t *req){
             free(_jpg_buf);
             _jpg_buf = NULL;
         }
-        if((res != ESP_OK) || streamKill){
-            // This is the only exit point from the stream loop.
+        if(res != ESP_OK){
+            // This is the error exit point from the stream loop.
             // We end the stream here only if a Hard failure has been encountered or the connection has been interrupted.
+            Serial.printf("Stream failed, code = %i : %s\r\n", res, esp_err_to_name(res));
+            break;
+        }
+        if((res != ESP_OK) || streamKill){
+            // We end the stream here when a kill is signalled.
+            Serial.printf("Stream killed\r\n");
             break;
         }
         int64_t frame_time = esp_timer_get_time() - last_frame;
@@ -345,6 +353,8 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         httpd_resp_send_404(req);
         return ESP_FAIL;
     }
+
+    if (critERR.length() > 0) return httpd_resp_send_500(req);
 
     int val = atoi(value);
     sensor_t * s = esp_camera_sensor_get();
@@ -429,42 +439,45 @@ static esp_err_t cmd_handler(httpd_req_t *req){
 
 static esp_err_t status_handler(httpd_req_t *req){
     static char json_response[1024];
-    sensor_t * s = esp_camera_sensor_get();
     char * p = json_response;
     *p++ = '{';
-    p+=sprintf(p, "\"lamp\":%d,", lampVal);
-    p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
-    p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
-    p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
-    p+=sprintf(p, "\"quality\":%u,", s->status.quality);
-    p+=sprintf(p, "\"xclk\":%u,", xclk);
-    p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
-    p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
-    p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
-    p+=sprintf(p, "\"sharpness\":%d,", s->status.sharpness);
-    p+=sprintf(p, "\"special_effect\":%u,", s->status.special_effect);
-    p+=sprintf(p, "\"wb_mode\":%u,", s->status.wb_mode);
-    p+=sprintf(p, "\"awb\":%u,", s->status.awb);
-    p+=sprintf(p, "\"awb_gain\":%u,", s->status.awb_gain);
-    p+=sprintf(p, "\"aec\":%u,", s->status.aec);
-    p+=sprintf(p, "\"aec2\":%u,", s->status.aec2);
-    p+=sprintf(p, "\"ae_level\":%d,", s->status.ae_level);
-    p+=sprintf(p, "\"aec_value\":%u,", s->status.aec_value);
-    p+=sprintf(p, "\"agc\":%u,", s->status.agc);
-    p+=sprintf(p, "\"agc_gain\":%u,", s->status.agc_gain);
-    p+=sprintf(p, "\"gainceiling\":%u,", s->status.gainceiling);
-    p+=sprintf(p, "\"bpc\":%u,", s->status.bpc);
-    p+=sprintf(p, "\"wpc\":%u,", s->status.wpc);
-    p+=sprintf(p, "\"raw_gma\":%u,", s->status.raw_gma);
-    p+=sprintf(p, "\"lenc\":%u,", s->status.lenc);
-    p+=sprintf(p, "\"vflip\":%u,", s->status.vflip);
-    p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
-    p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
-    p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
-    p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
-    p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
-    p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
-    p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
+    // Do not get attempt to get sensor when in error; causes a panic..
+    if (critERR.length() == 0) {
+        sensor_t * s = esp_camera_sensor_get();
+        p+=sprintf(p, "\"lamp\":%d,", lampVal);
+        p+=sprintf(p, "\"autolamp\":%d,", autoLamp);
+        p+=sprintf(p, "\"min_frame_time\":%d,", minFrameTime);
+        p+=sprintf(p, "\"framesize\":%u,", s->status.framesize);
+        p+=sprintf(p, "\"quality\":%u,", s->status.quality);
+        p+=sprintf(p, "\"xclk\":%u,", xclk);
+        p+=sprintf(p, "\"brightness\":%d,", s->status.brightness);
+        p+=sprintf(p, "\"contrast\":%d,", s->status.contrast);
+        p+=sprintf(p, "\"saturation\":%d,", s->status.saturation);
+        p+=sprintf(p, "\"sharpness\":%d,", s->status.sharpness);
+        p+=sprintf(p, "\"special_effect\":%u,", s->status.special_effect);
+        p+=sprintf(p, "\"wb_mode\":%u,", s->status.wb_mode);
+        p+=sprintf(p, "\"awb\":%u,", s->status.awb);
+        p+=sprintf(p, "\"awb_gain\":%u,", s->status.awb_gain);
+        p+=sprintf(p, "\"aec\":%u,", s->status.aec);
+        p+=sprintf(p, "\"aec2\":%u,", s->status.aec2);
+        p+=sprintf(p, "\"ae_level\":%d,", s->status.ae_level);
+        p+=sprintf(p, "\"aec_value\":%u,", s->status.aec_value);
+        p+=sprintf(p, "\"agc\":%u,", s->status.agc);
+        p+=sprintf(p, "\"agc_gain\":%u,", s->status.agc_gain);
+        p+=sprintf(p, "\"gainceiling\":%u,", s->status.gainceiling);
+        p+=sprintf(p, "\"bpc\":%u,", s->status.bpc);
+        p+=sprintf(p, "\"wpc\":%u,", s->status.wpc);
+        p+=sprintf(p, "\"raw_gma\":%u,", s->status.raw_gma);
+        p+=sprintf(p, "\"lenc\":%u,", s->status.lenc);
+        p+=sprintf(p, "\"vflip\":%u,", s->status.vflip);
+        p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
+        p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
+        p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
+        p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
+        p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
+        p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
+        p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
+    }
     *p++ = '}';
     *p++ = 0;
     httpd_resp_set_type(req, "application/json");
@@ -527,8 +540,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     d+= sprintf(d,"<body>\n");
     d+= sprintf(d,"<img src=\"/logo.svg\" style=\"position: relative; float: right;\">\n");
     if (critERR.length() > 0) {
-        d+= sprintf(d,"<span style=\"color:red;\">%s<hr></span>\n", critERR.c_str());
-        d+= sprintf(d,"<h2 style=\"color:red;\">(the serial log may give more information)</h2><br>\n");
+        d+= sprintf(d,"%s<hr>\n", critERR.c_str());
     }
     d+= sprintf(d,"<h1>ESP32 Cam Webserver</h1>\n");
     // Module
@@ -696,15 +708,16 @@ static esp_err_t index_handler(httpd_req_t *req){
 
     if  (strncmp(view,"simple", sizeof(view)) == 0) {
         Serial.println("Simple index page requested");
+        if (critERR.length() > 0) return error_handler(req);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         return httpd_resp_send(req, (const char *)index_simple_html, index_simple_html_len);
     } else if(strncmp(view,"full", sizeof(view)) == 0) {
         Serial.println("Full index page requested");
+        if (critERR.length() > 0) return error_handler(req);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        sensor_t * s = esp_camera_sensor_get();
-        if (s->id.PID == OV3660_PID) {
+        if (sensorPID == OV3660_PID) {
             return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
         }
         return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);

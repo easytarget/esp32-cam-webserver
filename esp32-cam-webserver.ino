@@ -144,6 +144,10 @@ unsigned long imagesServed = 0;  // Total image requests
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
 
+// This will be set to the sensors PID (identifier) during initialisation
+//camera_pid_t sensorPID;
+int sensorPID;
+
 // Camera module bus communications frequency.
 // Originally: config.xclk_freq_mhz = 20000000, but this lead to visual artifacts on many modules.
 // See https://github.com/espressif/esp32-camera/issues/150#issuecomment-726473652 et al.
@@ -373,7 +377,8 @@ void StartCamera() {
         sensor_t * s = esp_camera_sensor_get();
 
         // Dump camera module, warn for unsupported modules.
-        switch (s->id.PID) {
+        sensorPID = s->id.PID;
+        switch (sensorPID) {
             case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
             case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
             case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
@@ -382,7 +387,7 @@ void StartCamera() {
         }
 
         // OV3660 initial sensors are flipped vertically and colors are a bit saturated
-        if (s->id.PID == OV3660_PID) {
+        if (sensorPID == OV3660_PID) {
             s->set_vflip(s, 1);  //flip it back
             s->set_brightness(s, 1);  //up the blightness just a bit
             s->set_saturation(s, -2);  //lower the saturation
@@ -720,6 +725,8 @@ void setup() {
                 // the unit will need rebooting to restart it, either by OTA on success, or manually by the user
                 Serial.println("Stopping Camera");
                 esp_err_t err = esp_camera_deinit();
+                critERR = "<h1>OTA Has been started</h1><hr><p>Camera has Halted!</p>";
+                critERR += "<p>Wait for OTA to finish and reboot, or <a href=\"control?var=reboot&val=0\" title=\"Reboot Now (may interrupt OTA)\">reboot manually</a> to recover</p>";
             })
             .onEnd([]() {
                 Serial.println("\r\nEnd");
