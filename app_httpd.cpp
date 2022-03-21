@@ -51,7 +51,6 @@ extern int streamPort;
 extern char httpURL[];
 extern char streamURL[];
 extern char default_index[];
-extern int8_t streamCount;
 extern unsigned long streamsServed;
 extern unsigned long imagesServed;
 extern int myRotation;
@@ -84,9 +83,6 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
-
-// Flag that can be set to kill all active streams
-bool streamKill;
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,7 +148,7 @@ void serialDump() {
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
+    Serial.printf("Active streams: %lu, Previous streams: %lu, Images captured: %lu\r\n", cam_streamer_get_num_clients(cam_streamer), streamsServed, imagesServed);
     Serial.printf("CPU Freq: %i MHz, Xclk Freq: %i MHz\r\n", ESP.getCpuFreqMHz(), xclk);
     Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
@@ -232,7 +228,10 @@ static esp_err_t stream_handler(httpd_req_t *req){
 		printf("[stream_handler] could not get socket fd!\n");
 		return ESP_FAIL;
 	}
-	cam_streamer_enqueue_client(cam_streamer, fd);
+	
+	if(cam_streamer_enqueue_client(cam_streamer, fd))
+			++streamsServed;
+
 	return ESP_OK;
 }
 
@@ -307,7 +306,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {
-           if (streamCount > 0) setLamp(lampVal);
+           if (cam_streamer_get_num_clients(cam_streamer) > 0) setLamp(lampVal);
            else setLamp(0);
         } else {
             setLamp(lampVal);
@@ -316,7 +315,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "lamp") && (lampVal != -1)) {
         lampVal = constrain(val,0,100);
         if (autoLamp) {
-           if (streamCount > 0) setLamp(lampVal);
+           if (cam_streamer_get_num_clients(cam_streamer) > 0) setLamp(lampVal);
            else setLamp(0);
         } else {
             setLamp(lampVal);
@@ -513,7 +512,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int McuTf = temprature_sens_read(); // fahrenheit
 
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
-    d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
+    d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", cam_streamer_get_num_clients(cam_streamer), streamsServed, imagesServed);
     d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %i MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
@@ -550,7 +549,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
 static esp_err_t stop_handler(httpd_req_t *req){
     flashLED(75);
     Serial.println("\r\nStream stop requested via Web");
-    streamKill = true;
+    cam_streamer_dequeue_all_clients(cam_streamer);
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     return httpd_resp_send(req, NULL, 0);
 }
@@ -794,7 +793,10 @@ void startCameraServer(int hPort, int sPort){
             httpd_register_uri_handler(stream_httpd, &info_uri);
             httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
         	cam_streamer=(cam_streamer_t *) malloc(sizeof(cam_streamer_t));
-			cam_streamer_init(cam_streamer, stream_httpd, 3);
+#ifndef CAM_STREAMER_DESIRED_FPS
+#define CAM_STREAMER_DESIRED_FPS 2
+#endif
+			cam_streamer_init(cam_streamer, stream_httpd, CAM_STREAMER_DESIRED_FPS);
 			cam_streamer_start(cam_streamer);
 		}
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);

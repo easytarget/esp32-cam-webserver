@@ -78,10 +78,17 @@ static void cam_streamer_update_frame(cam_streamer_t *s) {
 #endif
 }
 
+static void cam_streamer_decrement_num_clients(cam_streamer_t *s) {
+    size_t num_clients=s->num_clients;
+    while(num_clients>0 && !__atomic_compare_exchange_n(&s->num_clients, &num_clients, num_clients-1, 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
+#ifdef DEBUG_DEFAULT_ON
+    printf("[cam_streamer] num_clients decremented\n");
+#endif
+}
+
 void cam_streamer_task(void *p) {
     cam_streamer_t *s=(cam_streamer_t *) p;
 
-    uint8_t res;
     uint64_t last_time=0, current_time;
     int fd;
     unsigned int n_entries;
@@ -108,21 +115,26 @@ void cam_streamer_task(void *p) {
             printf("[cam_streamer] dequeued fd %d\n", fd);
             printf("[cam_streamer] sending part: \"%.*s\"\n", (int) s->part_len, s->part_buf);
 #endif
-            if((res=is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))))
-                continue;
 
-            if((res|=is_send_error(httpd_socket_send(s->server, fd, s->buf->buf, s->buf->len, 0))))
+            if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
+                cam_streamer_decrement_num_clients(s);
                 continue;
-
-            if((res|=is_send_error(httpd_socket_send(s->server, fd, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY), 0))))
-                continue;
-
-            if(!res) {
-#ifdef DEBUG_DEFAULT_ON
-                printf("[cam_streamer] fd %d requeued\n", fd);
-#endif
-                xQueueSend(s->clients, (void *) &fd, 10/portTICK_PERIOD_MS);
             }
+
+            if(is_send_error(httpd_socket_send(s->server, fd, s->buf->buf, s->buf->len, 0))) {
+                cam_streamer_decrement_num_clients(s);
+                continue;
+            }
+
+            if(is_send_error(httpd_socket_send(s->server, fd, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY), 0))) {
+                cam_streamer_decrement_num_clients(s);
+                continue;
+            }
+
+            xQueueSend(s->clients, (void *) &fd, 10/portTICK_PERIOD_MS);
+#ifdef DEBUG_DEFAULT_ON
+            printf("[cam_streamer] fd %d requeued\n", fd);
+#endif
         }
     }
 }
@@ -138,6 +150,15 @@ void cam_streamer_start(cam_streamer_t *s) {
 
 void cam_streamer_stop(cam_streamer_t *s) {
     vTaskDelete(s->task);
+}
+
+size_t cam_streamer_get_num_clients(cam_streamer_t *s) {
+    return s->num_clients;
+}
+
+void cam_streamer_dequeue_all_clients(cam_streamer_t *s) {
+    xQueueReset(s->clients);
+    __atomic_exchange_n(&s->num_clients, 0, __ATOMIC_RELAXED);
 }
 
 bool cam_streamer_enqueue_client(cam_streamer_t *s, int fd) {
@@ -170,6 +191,7 @@ bool cam_streamer_enqueue_client(cam_streamer_t *s, int fd) {
 #ifdef DEBUG_DEFAULT_ON
         printf("[cam_streamer] socket %d enqueued\n", fd);
 #endif
+        __atomic_fetch_add(&s->num_clients, 1, __ATOMIC_RELAXED);
         vTaskResume(s->task);
     }
 

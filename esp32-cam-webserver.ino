@@ -136,7 +136,6 @@ char httpURL[64] = {"Undefined"};
 char streamURL[64] = {"Undefined"};
 
 // Counters for info screens and debug
-int8_t streamCount = 0;          // Number of currently active streams
 unsigned long streamsServed = 0; // Total completed streams
 unsigned long imagesServed = 0;  // Total image requests
 
