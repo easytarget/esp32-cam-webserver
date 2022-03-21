@@ -28,6 +28,9 @@
 #include "src/logo.h"
 #include "storage.h"
 
+extern "C"{
+#include "cam_streamer.h"
+}
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
@@ -66,6 +69,8 @@ extern bool otaEnabled;
 extern char otaPassword[];
 extern unsigned long xclk;
 extern int sensorPID;
+
+cam_streamer_t *cam_streamer;
 
 typedef struct {
         httpd_req_t *req;
@@ -222,102 +227,13 @@ static esp_err_t capture_handler(httpd_req_t *req){
 }
 
 static esp_err_t stream_handler(httpd_req_t *req){
-    camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
-    size_t _jpg_buf_len = 0;
-    uint8_t * _jpg_buf = NULL;
-    char * part_buf[64];
-
-    streamKill = false;
-
-    Serial.println("Stream requested");
-    if (autoLamp && (lampVal != -1)) setLamp(lampVal);
-    streamCount = 1;  // at present we only have one stream handler, so values are 0 or 1..
-    flashLED(75);     // double flash of status LED
-    delay(75);
-    flashLED(75);
-
-    static int64_t last_frame = 0;
-    if(!last_frame) {
-        last_frame = esp_timer_get_time();
-    }
-
-    res = httpd_resp_set_type(req, _STREAM_CONTENT_TYPE);
-    if(res != ESP_OK){
-        streamCount = 0;
-        if (autoLamp && (lampVal != -1)) setLamp(0);
-        Serial.println("STREAM: failed to set HTTP response type");
-        return res;
-    }
-
-    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-
-    if(res == ESP_OK){
-        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-    }
-
-    while(true){
-        fb = esp_camera_fb_get();
-        if (!fb) {
-            Serial.println("STREAM: failed to acquire frame");
-            res = ESP_FAIL;
-        } else {
-            if(fb->format != PIXFORMAT_JPEG){
-                Serial.println("STREAM: Non-JPEG frame returned by camera module");
-                res = ESP_FAIL;
-            } else {
-                _jpg_buf_len = fb->len;
-                _jpg_buf = fb->buf;
-            }
-        }
-        if(res == ESP_OK){
-            size_t hlen = snprintf((char *)part_buf, 64, _STREAM_PART, _jpg_buf_len);
-            res = httpd_resp_send_chunk(req, (const char *)part_buf, hlen);
-        }
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
-        }
-        if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
-        }
-        if(fb){
-            esp_camera_fb_return(fb);
-            fb = NULL;
-            _jpg_buf = NULL;
-        } else if(_jpg_buf){
-            free(_jpg_buf);
-            _jpg_buf = NULL;
-        }
-        if(res != ESP_OK){
-            // This is the error exit point from the stream loop.
-            // We end the stream here only if a Hard failure has been encountered or the connection has been interrupted.
-            Serial.printf("Stream failed, code = %i : %s\r\n", res, esp_err_to_name(res));
-            break;
-        }
-        if((res != ESP_OK) || streamKill){
-            // We end the stream here when a kill is signalled.
-            Serial.printf("Stream killed\r\n");
-            break;
-        }
-        int64_t frame_time = esp_timer_get_time() - last_frame;
-        frame_time /= 1000;
-        int32_t frame_delay = (minFrameTime > frame_time) ? minFrameTime - frame_time : 0;
-        delay(frame_delay);
-
-        if (debugData) {
-            Serial.printf("MJPG: %uB %ums, delay: %ums, framerate (%.1ffps)\r\n",
-                (uint32_t)(_jpg_buf_len),
-                (uint32_t)frame_time, frame_delay, 1000.0 / (uint32_t)(frame_time + frame_delay));
-        }
-        last_frame = esp_timer_get_time();
-    }
-
-    streamsServed++;
-    streamCount = 0;
-    if (autoLamp && (lampVal != -1)) setLamp(0);
-    Serial.println("Stream ended");
-    last_frame = 0;
-    return res;
+    int fd=httpd_req_to_sockfd(req);
+	if(fd==-1){
+		printf("[stream_handler] could not get socket fd!\n");
+		return ESP_FAIL;
+	}
+	cam_streamer_enqueue_client(cam_streamer, fd);
+	return ESP_OK;
 }
 
 static esp_err_t cmd_handler(httpd_req_t *req){
@@ -877,7 +793,10 @@ void startCameraServer(int hPort, int sPort){
             httpd_register_uri_handler(stream_httpd, &stream_uri);
             httpd_register_uri_handler(stream_httpd, &info_uri);
             httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
-        }
+        	cam_streamer=(cam_streamer_t *) malloc(sizeof(cam_streamer_t));
+			cam_streamer_init(cam_streamer, stream_httpd, 3);
+			cam_streamer_start(cam_streamer);
+		}
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_32x32_uri);
         httpd_register_uri_handler(stream_httpd, &favicon_ico_uri);
