@@ -33,9 +33,7 @@
 	#define MIN_FRAME_TIME 500
 #endif
 
-extern "C"{
 #include "cam_streamer.h"
-}
 
 // Functions from the main .ino
 extern void flashLED(int flashtime);
@@ -308,7 +306,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(variable, "ae_level")) res = s->set_ae_level(s, val);
     else if(!strcmp(variable, "rotate")) myRotation = val;
-    else if(!strcmp(variable, "min_frame_time")) minFrameTime = val;
+    else if(!strcmp(variable, "min_frame_time")) cam_streamer_set_frame_delay(cam_streamer, val);
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {

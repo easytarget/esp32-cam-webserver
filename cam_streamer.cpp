@@ -12,6 +12,7 @@
 #include "cam_streamer.h"
 
 #ifndef CAM_STREAMER_MAX_CLIENTS
+#warning "CAM_STREAMER_MAX_CLIENTS not defined, using default value of 10"
 #define CAM_STREAMER_MAX_CLIENTS 10
 #endif
 
@@ -29,6 +30,9 @@
 				"Content-Type: text/plain\r\n\r\n"
 
 extern bool debugData;
+extern int lampVal;
+extern bool autoLamp;
+extern void setLamp(int);
 
 static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
@@ -70,7 +74,7 @@ void cam_streamer_init(cam_streamer_t *s, httpd_handle_t server, uint16_t frame_
 }
 
 // frame_delay must be in ms (not us)
-void cam_streamer_set_frame_delays(cam_streamer_t *s, uint16_t frame_delay) {
+void cam_streamer_set_frame_delay(cam_streamer_t *s, uint16_t frame_delay) {
     s->frame_delay=1000*frame_delay;
 }
 
@@ -105,15 +109,20 @@ void cam_streamer_task(void *p) {
     int fd;
     unsigned int n_entries;
     for(;;) {
-        while(!(n_entries=uxQueueMessagesWaiting(s->clients)))
+        while(!(n_entries=uxQueueMessagesWaiting(s->clients))) {
+            if(autoLamp && lampVal!=-1) setLamp(0);
             vTaskSuspend(NULL);
+            if(autoLamp && lampVal!=-1) setLamp(lampVal);
+        }
 
         current_time=esp_timer_get_time();
         if((current_time-last_time)<s->frame_delay)
             vTaskDelay((s->frame_delay-(current_time-last_time))/(1000*portTICK_PERIOD_MS));
-        last_time=current_time;
 
         cam_streamer_update_frame(s);
+
+        print_debug("[cam_streamer] frame_size: %luB %lums\n", s->buf->len, (current_time-last_time)/1000);
+        last_time=current_time;
 
         for(unsigned int i=0; i<n_entries; ++i) {
             if(xQueueReceive(s->clients, &fd, 10/portTICK_PERIOD_MS)==pdFALSE) {
@@ -121,15 +130,14 @@ void cam_streamer_task(void *p) {
                 continue;
             }
 
-            print_debug("[cam_streamer] dequeued fd %d\n", fd);
-            print_debug("[cam_streamer] sending part: \"%.*s\"\n", (int) s->part_len, s->part_buf);
-
-            if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
+            print_debug("[cam_streamer] fd %d dequeued\n", fd);
+            
+			if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
                 cam_streamer_decrement_num_clients(s);
                 continue;
             }
 
-            if(is_send_error(httpd_socket_send(s->server, fd, s->buf->buf, s->buf->len, 0))) {
+            if(is_send_error(httpd_socket_send(s->server, fd, (const char *) s->buf->buf, s->buf->len, 0))) {
                 cam_streamer_decrement_num_clients(s);
                 continue;
             }
