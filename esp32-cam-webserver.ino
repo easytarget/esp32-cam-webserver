@@ -8,7 +8,6 @@
 #include "src/parsebytes.h"
 #include "time.h"
 #include <ESPmDNS.h>
-#include "types.h"
 
 /* This sketch is a extension/expansion/reork of the 'official' ESP32 Camera example
  *  sketch from Expressif:
@@ -38,6 +37,7 @@
 
 // Primary config, or defaults.
 #if __has_include("myconfig.h")
+	struct station { const char ssid[65]; const char password[65]; const bool dhcp;};  // do no edit
     #include "myconfig.h"
 #else
     #warning "Using Defaults: Copy myconfig.sample.h to myconfig.h and edit that to use your own settings"

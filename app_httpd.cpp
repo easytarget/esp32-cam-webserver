@@ -27,9 +27,9 @@
 #include "src/favicons.h"
 #include "src/logo.h"
 #include "storage.h"
-#include "types.h"
 
 #ifndef MIN_FRAME_TIME
+	#warning "MIN_FRAME_TIME undefined, setting to default value of 500"
 	#define MIN_FRAME_TIME 500
 #endif
 
