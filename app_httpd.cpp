@@ -27,10 +27,16 @@
 #include "src/favicons.h"
 #include "src/logo.h"
 #include "storage.h"
+#include "types.h"
+
+#ifndef MIN_FRAME_TIME
+	#define MIN_FRAME_TIME 500
+#endif
 
 extern "C"{
 #include "cam_streamer.h"
 }
+
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
@@ -793,10 +799,7 @@ void startCameraServer(int hPort, int sPort){
             httpd_register_uri_handler(stream_httpd, &info_uri);
             httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
         	cam_streamer=(cam_streamer_t *) malloc(sizeof(cam_streamer_t));
-#ifndef CAM_STREAMER_DESIRED_FPS
-#define CAM_STREAMER_DESIRED_FPS 2
-#endif
-			cam_streamer_init(cam_streamer, stream_httpd, CAM_STREAMER_DESIRED_FPS);
+			cam_streamer_init(cam_streamer, stream_httpd, MIN_FRAME_TIME);
 			cam_streamer_start(cam_streamer);
 		}
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);

@@ -11,7 +11,6 @@
 #include <freertos/queue.h>
 #include <freertos/task.h>
 
-#define CAM_STREAMER_MAX_CLIENTS 10
 typedef struct {
     QueueHandle_t clients;
     TaskHandle_t task;

@@ -7,8 +7,13 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#include <sys/socket.h>
 
 #include "cam_streamer.h"
+
+#ifndef CAM_STREAMER_MAX_CLIENTS
+#define CAM_STREAMER_MAX_CLIENTS 10
+#endif
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 
@@ -18,44 +23,55 @@
 				"Keep-Alive: timeout=15\r\n"\
 				"Content-Type: multipart/x-mixed-replace;boundary=" PART_BOUNDARY "\r\n"
 
+#define _TEXT_HEADERS "HTTP/1.1 200 OK\r\n"\
+				"Access-Control-Allow-Origin: *\r\n"\
+				"Connection: Close\r\n"\
+				"Content-Type: text/plain\r\n\r\n"
+
+extern bool debugData;
+
 static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
+
+static inline void print_debug(const char *fmt, ...) {
+    if(debugData) {
+        va_list l;
+        va_start(l, fmt);
+        vprintf(fmt, l);
+        va_end(l);
+    }
+}
 
 static uint8_t is_send_error(int r) {
     switch(r) {
     case HTTPD_SOCK_ERR_INVALID:
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] invalid argument occured!\n");
-#endif
+        print_debug("[cam_streamer] invalid argument occured!\n");
         return 1;
     case HTTPD_SOCK_ERR_TIMEOUT:
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] timeout/interrupt occured!\n");
-#endif
+        print_debug("[cam_streamer] timeout/interrupt occured!\n");
         return 1;
     case HTTPD_SOCK_ERR_FAIL:
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] unrecoverable error while send()!\n");
-#endif
+        print_debug("[cam_streamer] unrecoverable error while send()!\n");
         return 1;
     case ESP_ERR_INVALID_ARG:
-#ifdef DEBUG_DEFAULT_ON
-        printf("[text-streamer] session closed!\n");
-#endif
+        print_debug("[text-streamer] session closed!\n");
         return 1;
     default:
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] sent %d bytes!\n", r);
-#endif
+        print_debug("[cam_streamer] sent %d bytes!\n", r);
         return 0;
     }
 }
 
-void cam_streamer_init(cam_streamer_t *s, httpd_handle_t server, uint16_t fps) {
+void cam_streamer_init(cam_streamer_t *s, httpd_handle_t server, uint16_t frame_delay) {
     memset(s, 0, sizeof(cam_streamer_t));
-    s->frame_delay=1000000/fps;
+    s->frame_delay=1000*frame_delay;
     s->clients=xQueueCreate(CAM_STREAMER_MAX_CLIENTS*2, sizeof(int));
     s->server=server;
+}
+
+// frame_delay must be in ms (not us)
+void cam_streamer_set_frame_delays(cam_streamer_t *s, uint16_t frame_delay) {
+    s->frame_delay=1000*frame_delay;
 }
 
 static void cam_streamer_update_frame(cam_streamer_t *s) {
@@ -73,17 +89,13 @@ static void cam_streamer_update_frame(cam_streamer_t *s) {
     s->last_updated=esp_timer_get_time();
     s->part_len=snprintf(s->part_buf, 64, _STREAM_PART, s->buf->len);
     __atomic_store_n(&s->buf_lock, 0, __ATOMIC_RELAXED);
-#ifdef DEBUG_DEFAULT_ON
-    printf("[cam_streamer] fetched new frame\n");
-#endif
+    print_debug("[cam_streamer] fetched new frame\n");
 }
 
 static void cam_streamer_decrement_num_clients(cam_streamer_t *s) {
     size_t num_clients=s->num_clients;
     while(num_clients>0 && !__atomic_compare_exchange_n(&s->num_clients, &num_clients, num_clients-1, 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED));
-#ifdef DEBUG_DEFAULT_ON
-    printf("[cam_streamer] num_clients decremented\n");
-#endif
+    print_debug("[cam_streamer] num_clients decremented\n");
 }
 
 void cam_streamer_task(void *p) {
@@ -105,16 +117,12 @@ void cam_streamer_task(void *p) {
 
         for(unsigned int i=0; i<n_entries; ++i) {
             if(xQueueReceive(s->clients, &fd, 10/portTICK_PERIOD_MS)==pdFALSE) {
-#ifdef DEBUG_DEFAULT_ON
-                printf("[cam_streamer] failed to dequeue fd!\n");
-#endif
+                print_debug("[cam_streamer] failed to dequeue fd!\n");
                 continue;
             }
 
-#ifdef DEBUG_DEFAULT_ON
-            printf("[cam_streamer] dequeued fd %d\n", fd);
-            printf("[cam_streamer] sending part: \"%.*s\"\n", (int) s->part_len, s->part_buf);
-#endif
+            print_debug("[cam_streamer] dequeued fd %d\n", fd);
+            print_debug("[cam_streamer] sending part: \"%.*s\"\n", (int) s->part_len, s->part_buf);
 
             if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
                 cam_streamer_decrement_num_clients(s);
@@ -132,9 +140,7 @@ void cam_streamer_task(void *p) {
             }
 
             xQueueSend(s->clients, (void *) &fd, 10/portTICK_PERIOD_MS);
-#ifdef DEBUG_DEFAULT_ON
-            printf("[cam_streamer] fd %d requeued\n", fd);
-#endif
+            print_debug("[cam_streamer] fd %d requeued\n", fd);
         }
     }
 }
@@ -142,10 +148,8 @@ void cam_streamer_task(void *p) {
 void cam_streamer_start(cam_streamer_t *s) {
     BaseType_t r=xTaskCreate(cam_streamer_task, "cam_streamer", 10*1024, (void *) s, tskIDLE_PRIORITY+3, &s->task);
 
-#ifdef DEBUG_DEFAULT_ON
     if(r!=pdPASS)
-        printf("[cam_streamer] failed to create task!\n");
-#endif
+        print_debug("[cam_streamer] failed to create task!\n");
 }
 
 void cam_streamer_stop(cam_streamer_t *s) {
@@ -162,35 +166,41 @@ void cam_streamer_dequeue_all_clients(cam_streamer_t *s) {
 }
 
 bool cam_streamer_enqueue_client(cam_streamer_t *s, int fd) {
-#ifdef DEBUG_DEFAULT_ON
-    printf("sending stream headers:\n%s\nLength: %d\n", _STREAM_HEADERS, strlen(_STREAM_HEADERS));
-#endif
+    if(s->num_clients>=CAM_STREAMER_MAX_CLIENTS) {
+        if(httpd_socket_send(s->server, fd, _TEXT_HEADERS, strlen(_TEXT_HEADERS), 0)) {
+            print_debug("failed sending text headers!\n");
+            return false;
+        }
+
+#define EMSG "too many clients"
+        if(httpd_socket_send(s->server, fd, EMSG, strlen(EMSG), 0)) {
+            print_debug("failed sending message\n");
+            return false;
+        }
+#undef EMSG
+        close(fd);
+        return false;
+    }
+
+    print_debug("sending stream headers:\n%s\nLength: %d\n", _STREAM_HEADERS, strlen(_STREAM_HEADERS));
     if(is_send_error(httpd_socket_send(s->server, fd, _STREAM_HEADERS, strlen(_STREAM_HEADERS), 0))) {
-#ifdef DEBUG_DEFAULT_ON
-        printf("failed sending headers!\n");
-#endif
+        print_debug("failed sending headers!\n");
         return false;
     }
 
     if(is_send_error(httpd_socket_send(s->server, fd, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY), 0))) {
-#ifdef DEBUG_DEFAULT_ON
-        printf("failed sending boundary!\n");
-#endif
+        print_debug("failed sending boundary!\n");
         return false;
     }
 
     const BaseType_t r=xQueueSend(s->clients, (void *) &fd, 10*portTICK_PERIOD_MS);
     if(r!=pdTRUE) {
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] failed to enqueue fd %d\n", fd);
-#endif
+        print_debug("[cam_streamer] failed to enqueue fd %d\n", fd);
 #define EMSG "failed to enqueue"
         httpd_socket_send(s->server, fd, EMSG, strlen(EMSG), 0);
 #undef EMSG
     } else {
-#ifdef DEBUG_DEFAULT_ON
-        printf("[cam_streamer] socket %d enqueued\n", fd);
-#endif
+        print_debug("[cam_streamer] socket %d enqueued\n", fd);
         __atomic_fetch_add(&s->num_clients, 1, __ATOMIC_RELAXED);
         vTaskResume(s->task);
     }
