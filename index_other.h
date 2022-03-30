@@ -32,6 +32,9 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
         <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
       </div>
+      <div class="card">
+        Sensor Hum: <span id="HUMValue">0</span>, Temp: <span id="TempValue">0</span>, Pres: <span id="PresValue">0</span>
+      </div>
       <div id="content">
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb">
@@ -303,6 +306,31 @@ const uint8_t index_simple_html[] = R"=====(<!doctype html>
     }
 
   })
+
+
+
+setInterval(function() {
+  getData();
+}, 2000); 
+
+function getData() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+
+      const sensorValues = this.responseText.split('#',3);
+      document.getElementById("HUMValue").innerHTML =
+      sensorValues[0];
+       document.getElementById("TempValue").innerHTML =
+       sensorValues[1];
+       document.getElementById("PresValue").innerHTML =
+       sensorValues[2];
+    }
+  };
+  xhttp.open("GET", "readSensor", true);
+  xhttp.send();
+}
+
   </script>
 </html>)=====";
 
