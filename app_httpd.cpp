@@ -91,6 +91,14 @@ uint8_t temprature_sens_read();
 }
 #endif
 
+
+// external function to get the values from sensor
+extern float getBME280_hum();
+extern float getBME280_temp();
+extern float getBME280_pres();
+
+
+
 void serialDump() {
     Serial.println();
     // Module
@@ -743,6 +751,22 @@ static esp_err_t index_handler(httpd_req_t *req){
     }
 }
 
+
+static esp_err_t readSensor_handler(httpd_req_t *req){
+    flashLED(75);
+    httpd_resp_set_type(req, "text/plane");
+    float hum_result = getBME280_hum();
+    float temp_result = getBME280_temp();
+    float pres_result = getBME280_pres();
+    
+    String valuesStrg =  String(hum_result) + '#'+ String(temp_result) + '#' + String(pres_result) + '#';
+    int strgLength = valuesStrg.length();
+    char values_as_char[strgLength];
+    valuesStrg.toCharArray(values_as_char, strgLength);
+    
+    return httpd_resp_send(req,  (const char *)values_as_char, HTTPD_RESP_USE_STRLEN);
+}
+
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers = 16; // we use more than the default 8 (on port 80)
@@ -843,6 +867,13 @@ void startCameraServer(int hPort, int sPort){
         .handler   = error_handler,
         .user_ctx  = NULL
     };
+    httpd_uri_t readSensor_uri = {
+        .uri       = "/readSensor",
+        .method    = HTTP_GET,
+        .handler   = readSensor_handler,
+        .user_ctx  = NULL
+    };
+
 
     // Request Handlers; config.max_uri_handlers (above) must be >= the number of handlers
     config.server_port = hPort;
@@ -864,6 +895,7 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &logo_svg_uri);
         httpd_register_uri_handler(camera_httpd, &dump_uri);
         httpd_register_uri_handler(camera_httpd, &stop_uri);
+        httpd_register_uri_handler(camera_httpd, &readSensor_uri);
     }
 
     config.server_port = sPort;
