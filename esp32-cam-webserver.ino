@@ -36,6 +36,8 @@
  *
  */
 
+
+
 // Primary config, or defaults.
 #if __has_include("myconfig.h")
     struct station { const char ssid[65]; const char password[65]; const bool dhcp;};  // do no edit
@@ -228,6 +230,41 @@ const int pwmMax = pow(2,pwmresolution)-1;
 // will be returned for all http requests
 String critERR = "";
 
+
+// (set these in myconfig.h)
+
+// https://github.com/finitespace/BME280
+
+/*
+ *     ESP32    ---   BME280 
+ *     GPIO 14 ->  SDA
+ *     GPIO 15 ->  SCL
+ *     GND     ->  GND
+ *     5V      ->  VIN     (3.3V was not working ???
+ * */
+
+#include <BME280I2C.h>
+#include <Wire.h>        
+
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define I2C_Freq 400000
+
+BME280I2C::Settings settings(
+   BME280::OSR_X1,
+   BME280::OSR_X1,
+   BME280::OSR_X1,
+   BME280::Mode_Forced,
+   BME280::StandbyTime_1000ms,
+   BME280::Filter_Off,
+   BME280::SpiEnable_False,
+   BME280I2C::I2CAddr_0x76 // I2C address. I2C specific.
+);
+
+BME280I2C bme(settings);
+
+
+
 // Debug flag for stream and capture data
 bool debugData;
 
@@ -240,6 +277,7 @@ void debugOff() {
     debugData = false;
     Serial.println("Camera debug data is disabled (send 'd' for status dump, or any other char to enable debug)");
 }
+
 
 // Serial input (debugging controls)
 void handleSerial() {
@@ -335,7 +373,7 @@ void StartCamera() {
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = xclk * 1000000;
     config.pixel_format = PIXFORMAT_JPEG;
-    config.grab_mode = CAMERA_GRAB_LATEST;
+//    config.grab_mode = CAMERA_GRAB_LATEST;    // not sure, I got an error, maby I have an old driver hansju
     // Pre-allocate large buffers
     if(psramFound()){
         config.frame_size = FRAMESIZE_UXGA;
@@ -635,6 +673,23 @@ void WifiSetup() {
     }
 }
 
+
+
+float getBME280_hum() { 
+      return bme.hum();
+      }
+
+float getBME280_temp() {
+      BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
+      return bme.temp(tempUnit);
+      }
+
+
+float getBME280_pres(){ 
+      BME280::PresUnit presUnit(BME280::PresUnit_hPa);
+      return bme.pres(presUnit);
+} 
+
 void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(true);
@@ -647,6 +702,31 @@ void setup() {
     Serial.print("Base Release: ");
     Serial.println(baseVersion);
     Serial.println();
+
+
+// setup sensor on i2c
+  Wire.begin(I2C_SDA , I2C_SCL);
+    while(!bme.begin())
+    {
+        Serial.println("Could not find BME280I2C sensor!");
+        delay(1000);
+    }
+
+    switch(bme.chipModel())
+     {
+     case BME280::ChipModel_BME280:
+       Serial.println("Found BME280 sensor! Success.");
+       break;
+     case BME280::ChipModel_BMP280:
+       Serial.println("Found BMP280 sensor! No Humidity available.");
+       break;
+     default:
+       Serial.println("Found UNKNOWN sensor! Error!");
+      }
+   // Change some settings before using.
+   settings.tempOSR = BME280::OSR_X4;
+   bme.setSettings(settings);
+
 
     // Warn if no PSRAM is detected (typically user error with board selection in the IDE)
     if(!psramFound()){
