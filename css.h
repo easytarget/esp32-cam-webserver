@@ -362,6 +362,10 @@ select {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+.card {
+     width: 500px;
+     background: grey #424949;
+     box-sizing: border-box;
 })=====";
 
-size_t style_css_len = sizeof(style_css)-1;
