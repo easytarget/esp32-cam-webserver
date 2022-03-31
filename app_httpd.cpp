@@ -28,6 +28,10 @@
 #include "src/logo.h"
 #include "storage.h"
 
+// #define HAS_BME280     here and in esp32-cam-webserver.ino  to include the function
+// #define HAS_BME280
+
+
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
@@ -89,6 +93,14 @@ extern "C" {
 uint8_t temprature_sens_read();
 #ifdef __cplusplus
 }
+#endif
+
+#if defined (HAS_BME280)
+// external function to get the values from sensor
+extern float getBME280_hum();
+extern float getBME280_temp();
+extern float getBME280_pres();
+
 #endif
 
 void serialDump() {
@@ -253,7 +265,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     if(res == ESP_OK){
-        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+        res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, HTTPD_RESP_USE_STRLEN);
     }
 
     while(true){
@@ -278,7 +290,7 @@ static esp_err_t stream_handler(httpd_req_t *req){
             res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
         }
         if(res == ESP_OK){
-            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, strlen(_STREAM_BOUNDARY));
+            res = httpd_resp_send_chunk(req, _STREAM_BOUNDARY, HTTPD_RESP_USE_STRLEN);
         }
         if(fb){
             esp_camera_fb_return(fb);
@@ -651,7 +663,7 @@ static esp_err_t streamviewer_handler(httpd_req_t *req){
     Serial.println("Stream viewer requested");
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)streamviewer_html, streamviewer_html_len);
+    return httpd_resp_send(req, (const char *)streamviewer_html, HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t error_handler(httpd_req_t *req){
@@ -667,7 +679,7 @@ static esp_err_t error_handler(httpd_req_t *req){
         s.replace(index, strlen("<ERRORTEXT>"), critERR.c_str());
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)s.c_str(), s.length());
+    return httpd_resp_send(req, (const char *)s.c_str(), HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t index_handler(httpd_req_t *req){
@@ -711,16 +723,20 @@ static esp_err_t index_handler(httpd_req_t *req){
         if (critERR.length() > 0) return error_handler(req);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)index_simple_html, index_simple_html_len);
+#if defined(HAS_BME280)        
+        return httpd_resp_send(req, (const char *)index_simple_sensor_html, HTTPD_RESP_USE_STRLEN);
+#else
+        return httpd_resp_send(req, (const char *)index_simple_html, HTTPD_RESP_USE_STRLEN);   
+#endif        
     } else if(strncmp(view,"full", sizeof(view)) == 0) {
         Serial.println("Full index page requested");
         if (critERR.length() > 0) return error_handler(req);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
         if (sensorPID == OV3660_PID) {
-            return httpd_resp_send(req, (const char *)index_ov3660_html, index_ov3660_html_len);
+            return httpd_resp_send(req, (const char *)index_ov3660_html, HTTPD_RESP_USE_STRLEN);
         }
-        return httpd_resp_send(req, (const char *)index_ov2640_html, index_ov2640_html_len);
+        return httpd_resp_send(req, (const char *)index_ov2640_html, HTTPD_RESP_USE_STRLEN);
     } else if(strncmp(view,"portal", sizeof(view)) == 0) {
         //Prototype captive portal landing page.
         Serial.println("Portal page requested");
@@ -734,7 +750,7 @@ static esp_err_t index_handler(httpd_req_t *req){
             s.replace(index, strlen("<CAMNAME>"), myName);
         httpd_resp_set_type(req, "text/html");
         httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-        return httpd_resp_send(req, (const char *)s.c_str(), s.length());
+        return httpd_resp_send(req, (const char *)s.c_str(), HTTPD_RESP_USE_STRLEN);
     } else  {
         Serial.print("Unknown page requested: ");
         Serial.println(view);
@@ -742,6 +758,23 @@ static esp_err_t index_handler(httpd_req_t *req){
         return ESP_FAIL;
     }
 }
+
+#if defined(HAS_BME280) 
+static esp_err_t readSensor_handler(httpd_req_t *req){
+    flashLED(75);
+    httpd_resp_set_type(req, "text/plane");
+    float hum_result = getBME280_hum();
+    float temp_result = getBME280_temp();
+    float pres_result = getBME280_pres();
+    
+    String valuesStrg =  String(hum_result) + '#'+ String(temp_result) + '#' + String(pres_result) + '#';
+    int strgLength = valuesStrg.length();
+    char values_as_char[strgLength];
+    valuesStrg.toCharArray(values_as_char, strgLength);
+    
+    return httpd_resp_send(req,  (const char *)values_as_char, HTTPD_RESP_USE_STRLEN);
+}
+#endif
 
 void startCameraServer(int hPort, int sPort){
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -843,6 +876,14 @@ void startCameraServer(int hPort, int sPort){
         .handler   = error_handler,
         .user_ctx  = NULL
     };
+#if defined(HAS_BME280)    
+    httpd_uri_t readSensor_uri = {
+        .uri       = "/readSensor",
+        .method    = HTTP_GET,
+        .handler   = readSensor_handler,
+        .user_ctx  = NULL
+    };
+#endif
 
     // Request Handlers; config.max_uri_handlers (above) must be >= the number of handlers
     config.server_port = hPort;
@@ -864,6 +905,9 @@ void startCameraServer(int hPort, int sPort){
         httpd_register_uri_handler(camera_httpd, &logo_svg_uri);
         httpd_register_uri_handler(camera_httpd, &dump_uri);
         httpd_register_uri_handler(camera_httpd, &stop_uri);
+#if defined(HAS_BME280)
+        httpd_register_uri_handler(camera_httpd, &readSensor_uri);
+#endif        
     }
 
     config.server_port = sPort;
