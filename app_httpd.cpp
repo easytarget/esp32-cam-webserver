@@ -655,7 +655,7 @@ static esp_err_t stop_handler(httpd_req_t *req){
 static esp_err_t style_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "text/css");
     httpd_resp_set_hdr(req, "Content-Encoding", "identity");
-    return httpd_resp_send(req, (const char *)style_css, style_css_len);
+    return httpd_resp_send(req, (const char *)style_css, HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t streamviewer_handler(httpd_req_t *req){
