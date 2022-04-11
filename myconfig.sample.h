@@ -22,7 +22,7 @@
  *    just replace your ssid and password in the line below.
  */
 
-struct station stationList[] = {{"my_ssid","my_password", true}};
+const struct station stationList[] = {{"my_ssid","my_password", true}};
 
 /*
  * You can extend the stationList[] above with additional SSID+Password pairs
@@ -147,6 +147,9 @@ struct station stationList[] = {{"ssid1", "pass1", true},
 // Minimal frame duration in ms, used to limit max FPS
 // max_fps = 1000/min_frame_time
 // #define MIN_FRAME_TIME 500
+
+// Maximum number of clients of the stream
+// #define CAM_STREAMER_MAX_CLIENTS 10
 
 /*
  * Additional Features

@@ -11,8 +11,17 @@
 
 #include "cam_streamer.h"
 
+#if __has_include("myconfig.h")
+struct station {
+    const char ssid[65];
+    const char password[65];
+    const bool dhcp;
+};
+#include "myconfig.h"
+#endif
+
 #ifndef CAM_STREAMER_MAX_CLIENTS
-#warning "CAM_STREAMER_MAX_CLIENTS not defined, using default value of 10"
+#warning "CAM_STREAMER_MAX_CLIENTS undefined, using default value of 10"
 #define CAM_STREAMER_MAX_CLIENTS 10
 #endif
 
@@ -131,8 +140,8 @@ void cam_streamer_task(void *p) {
             }
 
             print_debug("[cam_streamer] fd %d dequeued\n", fd);
-            
-			if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
+
+            if(is_send_error(httpd_socket_send(s->server, fd, s->part_buf, s->part_len, 0))) {
                 cam_streamer_decrement_num_clients(s);
                 continue;
             }
