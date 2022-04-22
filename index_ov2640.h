@@ -35,12 +35,14 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
         <div class="hidden" id="sidebar">
           <input type="checkbox" id="nav-toggle-cb" checked="checked">
             <nav id="menu">
+              
               <div class="input-group hidden" id="lamp-group" title="Flashlight LED.&#013;&#013;Warning:&#013;Built-In lamps can be Very Bright! Avoid looking directly at LED&#013;Can draw a lot of power and may cause visual artifacts, affect WiFi or even brownout the camera on high settings">
                 <label for="lamp">Light</label>
                 <div class="range-min">Off</div>
                 <input type="range" id="lamp" min="0" max="100" value="0" class="default-action">
                 <div class="range-max"><span style="font-size: 125%;">&#9888;</span>Full</div>
               </div>
+              
               <div class="input-group hidden" id="autolamp-group" title="When enabled the lamp will only turn on while the camera is active">
                 <label for="autolamp">Auto Lamp</label>
                 <div class="switch">
@@ -52,20 +54,21 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
               <div class="input-group" id="framesize-group" title="Camera resolution&#013;Higher resolutions will result in lower framerates">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
-                  <option value="13">UXGA (1600x1200)</option>
-                  <option value="12">SXGA (1280x1024)</option>
-                  <option value="11">HD (1280x720)</option>
-                  <option value="10">XGA (1024x768)</option>
-                  <option value="9">SVGA (800x600)</option>
-                  <option value="8">VGA (640x480)</option>
-                  <option value="7">HVGA (480x320)</option>
-                  <option value="6">CIF (400x296)</option>
-                  <option value="5">QVGA (320x240)</option>
-                  <option value="3">HQVGA (240x176)</option>
-                  <option value="1">QQVGA (160x120)</option>
-                  <option value="0">THUMB (96x96)</option>
+                  <option value="13">UXGA 4:3 (1600x1200)</option>
+                  <option value="12">SXGA 4:3 (1280x1024)</option>
+                  <option value="11">HD 16:9 (1280x720)</option>
+                  <option value="10">XGA 4:3 (1024x768)</option>
+                  <option value="9">SVGA 4:3 (800x600)</option>
+                  <option value="8">VGA 4:3 (640x480)</option>
+                  <option value="7">HVGA 4:3 (480x320)</option>
+                  <option value="6">CIF 4:3 (400x296)</option>
+                  <option value="5">QVGA 4:3 (320x240)</option>
+                  <option value="3">HQVGA 4:3 (240x176)</option>
+                  <option value="1">QQVGA 4:3 (160x120)</option>
+                  <option value="0">THUMB 1:1 (96x96)</option>
                 </select>
               </div>
+             
               <div class="input-group" id="quality-group" title="Camera Image and Stream quality factor&#013;Higher settings will result in lower framerates">
                 <label for="quality">Quality</label>
                 <div class="range-min">Low</div>
@@ -74,6 +77,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
                 <div class="range-max">High</div>
               </div>
+              
               <div class="input-group" id="set-xclk-group" title="Camera Bus Clock Frequency&#013;Increasing this will raise the camera framerate and capture speed&#013;&#013;Raising too far will result in visual artifacts and/or incomplete frames&#013;This setting can vary a lot between boards, budget boards typically need lower values">
                  <label for="set-xclk">XCLK</label>
                  <div class="text">
@@ -81,24 +85,28 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                     <div class="range-max">MHz</div>
                   </div>
               </div>
+              
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
                 <div class="range-min">-2</div>
                 <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
                 <div class="range-max">2</div>
               </div>
+              
               <div class="input-group" id="contrast-group">
                 <label for="contrast">Contrast</label>
                 <div class="range-min">-2</div>
                 <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
                 <div class="range-max">2</div>
               </div>
+              
               <div class="input-group" id="saturation-group">
                 <label for="saturation">Saturation</label>
                 <div class="range-min">-2</div>
                 <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
                 <div class="range-max">2</div>
               </div>
+              
               <div class="input-group" id="special_effect-group">
                 <label for="special_effect">Special Effect</label>
                 <select id="special_effect" class="default-action">
@@ -111,13 +119,15 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="6">Sepia</option>
                 </select>
               </div>
-              <div class="input-group" id="awb-group">
+              
+              <div class="input-group" id="awb-group" title="Automatic White Balance">
                 <label for="awb">AWB Enable</label>
                 <div class="switch">
                   <input id="awb" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="awb"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="awb_gain-group">
                 <label for="awb_gain">Manual AWB Gain</label>
                 <div class="switch">
@@ -125,6 +135,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="awb_gain"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="wb_mode-group">
                 <label for="wb_mode">WB Mode</label>
                 <select id="wb_mode" class="default-action">
@@ -135,65 +146,75 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="4">Home</option>
                 </select>
               </div>
-              <div class="input-group" id="aec-group">
+              
+              <div class="input-group" id="aec-group" title="Automatic Exposure If you are shooting in daylight, leave the AEC Sensor on.&#013;It works in tandem with the AE Level, which has a -2 to +2 range. Unlike Brightness, this doesn't just apply a lightening or darkening to the image, &#013;it instead controls the exposure. With -2, the exposure is made a little shorter so the image will appear darker. With +2, the exposure is made a little longer so the image will appear brighter. &#013;The purpose of this is usually to help to bring out details in the darker parts of images. Or if taking pictures with a bright background.">
                 <label for="aec">AEC Sensor Enable</label>
                 <div class="switch">
                   <input id="aec" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="aec"></label>
                 </div>
               </div>
-              <div class="input-group" id="aec2-group">
+              
+              <div class="input-group" id="aec2-group" title="Applies Digital Signal Processing to the Automatic Exposure Control">
                 <label for="aec2">AEC DSP</label>
                 <div class="switch">
                   <input id="aec2" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="aec2"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="ae_level-group">
                 <label for="ae_level">AE Level</label>
                 <div class="range-min">-2</div>
                 <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
                 <div class="range-max">2</div>
               </div>
-              <div class="input-group" id="aec_value-group">
+              
+              <div class="input-group" id="aec_value-group" title="Do not use this in daylight. This option is only visible if the AEC is turned off. &#013;In this case, you have direct control over the exposure. Which is an ISO-like option from 0 to 1200. &#013;In daylight, anything above about 50 will result in a mostly white image. The drag-button is far too small for the sort of level of control necessary to set the exposure correctly. &#013;Your best option is to set AEC and use the AE Level to push it a little as necessary. ">
                 <label for="aec_value">Exposure</label>
                 <div class="range-min">0</div>
                 <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
                 <div class="range-max">1200</div>
               </div>
-              <div class="input-group" id="agc-group">
+              
+              <div class="input-group" id="agc-group" title="This sets the Automatic Gain Control, how the camera responds to the overall level of light in the image. This is best left on.">
                 <label for="agc">AGC</label>
                 <div class="switch">
                   <input id="agc" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="agc"></label>
                 </div>
               </div>
-              <div class="input-group hidden" id="agc_gain-group">
+              
+              <div class="input-group hidden" id="agc_gain-group" title="This is visible when AGC is off, and it goes from 1× to 31×. &#013;Gain is an amplification of the values read from the image sensor. ">
                 <label for="agc_gain">Gain</label>
                 <div class="range-min">1x</div>
                 <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
                 <div class="range-max">31x</div>
               </div>
-              <div class="input-group" id="gainceiling-group">
+              
+              <div class="input-group" id="gainceiling-group" title="This is visible when AGC is on, and it goes from 2× to 128×. &#013;This might have some effect in the dark, perhaps? In daylight it doesn't seem to do anything. ">
                 <label for="gainceiling">Gain Ceiling</label>
                 <div class="range-min">2x</div>
                 <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
                 <div class="range-max">128x</div>
               </div>
-              <div class="input-group" id="bpc-group">
+              
+              <div class="input-group" id="bpc-group" title="Black Pixel Correction">
                 <label for="bpc">BPC</label>
                 <div class="switch">
                   <input id="bpc" type="checkbox" class="default-action">
                   <label class="slider" for="bpc"></label>
                 </div>
               </div>
-              <div class="input-group" id="wpc-group">
+              
+              <div class="input-group" id="wpc-group" title="White Pixel Correction">
                 <label for="wpc">WPC</label>
                 <div class="switch">
                   <input id="wpc" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="wpc"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="raw_gma-group">
                 <label for="raw_gma">Raw GMA Enable</label>
                 <div class="switch">
@@ -201,13 +222,15 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="raw_gma"></label>
                 </div>
               </div>
-              <div class="input-group" id="lenc-group">
+              
+              <div class="input-group" id="lenc-group" title="">
                 <label for="lenc">Lens Correction</label>
                 <div class="switch">
                   <input id="lenc" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="lenc"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="hmirror-group">
                 <label for="hmirror">H-Mirror Stream</label>
                 <div class="switch">
@@ -215,6 +238,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="hmirror"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="vflip-group">
                 <label for="vflip">V-Flip Stream</label>
                 <div class="switch">
@@ -222,6 +246,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="vflip"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="rotate-group">
                 <label for="rotate">Rotate in Browser</label>
                 <select id="rotate" class="default-action">
@@ -230,13 +255,15 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="-90">-90&deg; (Left)</option>
                 </select>
               </div>
-              <div class="input-group" id="dcw-group">
+              
+              <div class="input-group" id="dcw-group" title="When DCW is on, the image that you receive will be the size that you requested (VGA, QQVGA, etc). &#013;When DCW is off, the image that you receive will be one of UXGA, SVGA, or CIF. In other words, literally the actual image size as read from the sensor without any scaling. &#013;Note that if DCW is off, and you pick a different image size, this implicitly turns DCW back on again (although this isn't reflected in the options).">
                 <label for="dcw">DCW (Downsize EN)</label>
                 <div class="switch">
                   <input id="dcw" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="dcw"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="colorbar-group">
                 <label for="colorbar">Test Pattern</label>
                 <div class="switch">
@@ -244,6 +271,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="colorbar"></label>
                 </div>
               </div>
+              
               <div class="input-group" id="min_frame_time-group" title="Minimum frame time&#013;Higher settings reduce the frame rate&#013;Use this for a smoother stream and to reduce load on the WiFi and browser">
                 <label for="min_frame_time">Frame Duration Limit</label>
                 <select id="min_frame_time" class="default-action">
@@ -258,6 +286,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="0" selected="selected">Disabled</option>
                 </select>
               </div>
+              
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
                 <button id="reboot" title="Reboot the camera module">Reboot</button>
