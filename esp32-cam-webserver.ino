@@ -335,17 +335,12 @@ void StartCamera() {
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = xclk * 1000000;
     config.pixel_format = PIXFORMAT_JPEG;
+    // Low(ish) default framesize and quality
+    config.frame_size = FRAMESIZE_SVGA;
+    config.jpeg_quality = 12;
+    config.fb_location = CAMERA_FB_IN_PSRAM;
+    config.fb_count = 2;
     config.grab_mode = CAMERA_GRAB_LATEST;
-    // Pre-allocate large buffers
-    if(psramFound()){
-        config.frame_size = FRAMESIZE_UXGA;
-        config.jpeg_quality = 10;
-        config.fb_count = 2;
-    } else {
-        config.frame_size = FRAMESIZE_SVGA;
-        config.jpeg_quality = 12;
-        config.fb_count = 1;
-    }
 
     #if defined(CAMERA_MODEL_ESP_EYE)
         pinMode(13, INPUT_PULLUP);
@@ -410,8 +405,6 @@ void StartCamera() {
         // set initial frame rate
         #if defined(DEFAULT_RESOLUTION)
             s->set_framesize(s, DEFAULT_RESOLUTION);
-        #else
-            s->set_framesize(s, FRAMESIZE_SVGA);
         #endif
 
         /*
