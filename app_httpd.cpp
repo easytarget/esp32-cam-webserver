@@ -28,9 +28,18 @@
 #include "src/logo.h"
 #include "storage.h"
 
-extern "C"{
+#if __has_include("myconfig.h")
+	struct station { const char ssid[65]; const char password[65]; const bool dhcp;};
+	#include "myconfig.h"
+#endif
+
+#ifndef MIN_FRAME_TIME
+	#warning "MIN_FRAME_TIME undefined, using default value of 500"
+	#define MIN_FRAME_TIME 500
+#endif
+
 #include "cam_streamer.h"
-}
+
 // Functions from the main .ino
 extern void flashLED(int flashtime);
 extern void setLamp(int newVal);
@@ -302,7 +311,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "wb_mode")) res = s->set_wb_mode(s, val);
     else if(!strcmp(variable, "ae_level")) res = s->set_ae_level(s, val);
     else if(!strcmp(variable, "rotate")) myRotation = val;
-    else if(!strcmp(variable, "min_frame_time")) minFrameTime = val;
+    else if(!strcmp(variable, "min_frame_time")) cam_streamer_set_frame_delay(cam_streamer, val);
     else if(!strcmp(variable, "autolamp") && (lampVal != -1)) {
         autoLamp = val;
         if (autoLamp) {
@@ -793,10 +802,7 @@ void startCameraServer(int hPort, int sPort){
             httpd_register_uri_handler(stream_httpd, &info_uri);
             httpd_register_uri_handler(stream_httpd, &streamviewer_uri);
         	cam_streamer=(cam_streamer_t *) malloc(sizeof(cam_streamer_t));
-#ifndef CAM_STREAMER_DESIRED_FPS
-#define CAM_STREAMER_DESIRED_FPS 2
-#endif
-			cam_streamer_init(cam_streamer, stream_httpd, CAM_STREAMER_DESIRED_FPS);
+			cam_streamer_init(cam_streamer, stream_httpd, MIN_FRAME_TIME);
 			cam_streamer_start(cam_streamer);
 		}
         httpd_register_uri_handler(stream_httpd, &favicon_16x16_uri);
