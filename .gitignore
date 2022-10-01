@@ -1,7 +1,12 @@
-myconfig.h
 .pioenvs
 .piolibdeps
 .clang_complete
 .gcc-flags.json
 .pio
 .vscode
+.DS_Store
+.idea
+*.code-workspace
+/data/conn.json
+/data/cam.json
+/data/httpd.json

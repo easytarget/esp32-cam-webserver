@@ -1,13 +1,9 @@
-/*
- * primary HTML for the OV3660 camera module
- */
-
-const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ESP32 OV3660</title>
+    <title>ESP32 OV2640</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/style.css">
@@ -49,11 +45,9 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 </div>
               </div>
 
-              <div class="input-group" id="framesize-group" title="Camera resolution&#013;Higher resolutions will result in lower framerates">
+              <div class="input-group" id="framesize-group" title="Camera resolution">
                 <label for="framesize">Resolution</label>
                 <select id="framesize" class="default-action">
-                  <option value="17">QXGA (2048x1536)</option>
-                  <option value="14">FHD (1920x1080)</option>
                   <option value="13">UXGA (1600x1200)</option>
                   <option value="12">SXGA (1280x1024)</option>
                   <option value="11">HD (1280x720)</option>
@@ -68,12 +62,24 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <option value="0">THUMB (96x96)</option>
                 </select>
               </div>
+              <div class="input-group" id="frame_rate-group" title="Frame rate&#013;Use this for a smoother stream and to reduce load on the WiFi and browser">
+                <label for="frame_rate">Frame Rate</label>
+                <select id="frame_rate" class="default-action">
+                  <option value="60">60fps</option>
+                  <option value="50">50fps</option>
+                  <option value="30">30fps</option>
+                  <option value="25" selected="selected">25fps</option>
+                  <option value="24">24fps</option>
+                  <option value="20">20fps</option>
+                  <option value="12">12fps</option>
+                </select>
+              </div>
               <div class="input-group" id="quality-group" title="Camera Image and Stream quality factor&#013;Higher settings will result in lower framerates">
                 <label for="quality">Quality</label>
                 <div class="range-min">Low</div>
                 <!-- Note; the following element is 'flipped' in CSS so that it slides from High to Low
                      As a result the 'min' and 'max' values are reversed here too -->
-                <input type="range" id="quality" min="4" max="63" value="10" class="default-action">
+                <input type="range" id="quality" min="6" max="63" value="10" class="default-action">
                 <div class="range-max">High</div>
               </div>
               <div class="input-group" id="set-xclk-group" title="Camera Bus Clock Frequency&#013;Increasing this will raise the camera framerate and capture speed&#013;&#013;Raising too far will result in visual artifacts and/or incomplete frames&#013;This setting can vary a lot between boards, budget boards typically need lower values">
@@ -85,45 +91,21 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
               </div>
               <div class="input-group" id="brightness-group">
                 <label for="brightness">Brightness</label>
-                <div class="range-min">-3</div>
-                <input type="range" id="brightness" min="-3" max="3" value="0" class="default-action">
-                <div class="range-max">3</div>
+                <div class="range-min">-2</div>
+                <input type="range" id="brightness" min="-2" max="2" value="0" class="default-action">
+                <div class="range-max">2</div>
               </div>
               <div class="input-group" id="contrast-group">
                 <label for="contrast">Contrast</label>
-                <div class="range-min">-3</div>
-                <input type="range" id="contrast" min="-3" max="3" value="0" class="default-action">
-                <div class="range-max">3</div>
+                <div class="range-min">-2</div>
+                <input type="range" id="contrast" min="-2" max="2" value="0" class="default-action">
+                <div class="range-max">2</div>
               </div>
               <div class="input-group" id="saturation-group">
                 <label for="saturation">Saturation</label>
-                <div class="range-min">-4</div>
-                <input type="range" id="saturation" min="-4" max="4" value="0" class="default-action">
-                <div class="range-max">4</div>
-              </div>
-              <div class="input-group" id="sharpness-group">
-                <label for="sharpness">Sharpness</label>
-                <div class="range-min">-3</div>
-                <input type="range" id="sharpness" min="-3" max="3" value="0" class="default-action">
-                <div class="range-max">3</div>
-              </div>
-              <div class="input-group" id="denoise-group">
-                <label for="denoise">De-Noise</label>
-                <div class="range-min">Auto</div>
-                <input type="range" id="denoise" min="0" max="8" value="0" class="default-action">
-                <div class="range-max">8</div>
-              </div>
-              <div class="input-group" id="ae_level-group">
-                <label for="ae_level">Exposure Level</label>
-                <div class="range-min">-5</div>
-                <input type="range" id="ae_level" min="-5" max="5" value="0" class="default-action">
-                <div class="range-max">5</div>
-              </div>
-              <div class="input-group" id="gainceiling-group">
-                <label for="gainceiling">Gainceiling</label>
-                <div class="range-min">0</div>
-                <input type="range" id="gainceiling" min="0" max="511" value="0" class="default-action">
-                <div class="range-max">511</div>
+                <div class="range-min">-2</div>
+                <input type="range" id="saturation" min="-2" max="2" value="0" class="default-action">
+                <div class="range-max">2</div>
               </div>
               <div class="input-group" id="special_effect-group">
                 <label for="special_effect">Special Effect</label>
@@ -142,13 +124,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                 <div class="switch">
                   <input id="awb" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="awb"></label>
-                </div>
-              </div>
-              <div class="input-group" id="dcw-group">
-                <label for="dcw">Advanced AWB</label>
-                <div class="switch">
-                  <input id="dcw" type="checkbox" class="default-action" checked="checked">
-                  <label class="slider" for="dcw"></label>
                 </div>
               </div>
               <div class="input-group" id="awb_gain-group">
@@ -175,18 +150,24 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <label class="slider" for="aec"></label>
                 </div>
               </div>
-              <div class="input-group" id="aec_value-group">
-                <label for="aec_value">Manual Exposure</label>
-                <div class="range-min">0</div>
-                <input type="range" id="aec_value" min="0" max="1536" value="320" class="default-action">
-                <div class="range-max">1536</div>
-              </div>
               <div class="input-group" id="aec2-group">
-                <label for="aec2">Night Mode</label>
+                <label for="aec2">AEC DSP</label>
                 <div class="switch">
                   <input id="aec2" type="checkbox" class="default-action" checked="checked">
                   <label class="slider" for="aec2"></label>
                 </div>
+              </div>
+              <div class="input-group" id="ae_level-group">
+                <label for="ae_level">AE Level</label>
+                <div class="range-min">-2</div>
+                <input type="range" id="ae_level" min="-2" max="2" value="0" class="default-action">
+                <div class="range-max">2</div>
+              </div>
+              <div class="input-group" id="aec_value-group">
+                <label for="aec_value">Exposure</label>
+                <div class="range-min">0</div>
+                <input type="range" id="aec_value" min="0" max="1200" value="204" class="default-action">
+                <div class="range-max">1200</div>
               </div>
               <div class="input-group" id="agc-group">
                 <label for="agc">AGC</label>
@@ -198,8 +179,28 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
               <div class="input-group hidden" id="agc_gain-group">
                 <label for="agc_gain">Gain</label>
                 <div class="range-min">1x</div>
-                <input type="range" id="agc_gain" min="0" max="64" value="5" class="default-action">
-                <div class="range-max">64x</div>
+                <input type="range" id="agc_gain" min="0" max="30" value="5" class="default-action">
+                <div class="range-max">31x</div>
+              </div>
+              <div class="input-group" id="gainceiling-group">
+                <label for="gainceiling">Gain Ceiling</label>
+                <div class="range-min">2x</div>
+                <input type="range" id="gainceiling" min="0" max="6" value="0" class="default-action">
+                <div class="range-max">128x</div>
+              </div>
+              <div class="input-group" id="bpc-group">
+                <label for="bpc">BPC</label>
+                <div class="switch">
+                  <input id="bpc" type="checkbox" class="default-action">
+                  <label class="slider" for="bpc"></label>
+                </div>
+              </div>
+              <div class="input-group" id="wpc-group">
+                <label for="wpc">WPC</label>
+                <div class="switch">
+                  <input id="wpc" type="checkbox" class="default-action" checked="checked">
+                  <label class="slider" for="wpc"></label>
+                </div>
               </div>
               <div class="input-group" id="raw_gma-group">
                 <label for="raw_gma">Raw GMA Enable</label>
@@ -237,18 +238,11 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <option value="-90">-90&deg; (Left)</option>
                 </select>
               </div>
-              <div class="input-group" id="bpc-group">
-                <label for="bpc">BPC</label>
+              <div class="input-group" id="dcw-group">
+                <label for="dcw">DCW (Downsize EN)</label>
                 <div class="switch">
-                  <input id="bpc" type="checkbox" class="default-action">
-                  <label class="slider" for="bpc"></label>
-                </div>
-              </div>
-              <div class="input-group" id="wpc-group">
-                <label for="wpc">WPC</label>
-                <div class="switch">
-                  <input id="wpc" type="checkbox" class="default-action" checked="checked">
-                  <label class="slider" for="wpc"></label>
+                  <input id="dcw" type="checkbox" class="default-action" checked="checked">
+                  <label class="slider" for="dcw"></label>
                 </div>
               </div>
               <div class="input-group" id="colorbar-group">
@@ -257,20 +251,6 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
                   <input id="colorbar" type="checkbox" class="default-action">
                   <label class="slider" for="colorbar"></label>
                 </div>
-              </div>
-              <div class="input-group" id="min_frame_time-group" title="Minimum frame time&#013;Higher settings reduce the frame rate&#013;Use this for a smoother stream and to reduce load on the WiFi and browser">
-                <label for="min_frame_time">Frame Duration Limit</label>
-                <select id="min_frame_time" class="default-action">
-                  <option value="3333">3.3s  (0.3fps)</option>
-                  <option value="2000">2s    (0.5fps)</option>
-                  <option value="1000">1s    (1fps)</option>
-                  <option value="500">500ms (2fps)</option>
-                  <option value="333">333ms (3fps)</option>
-                  <option value="200">200ms (5fps)</option>
-                  <option value="100">100ms (10fps)</option>
-                  <option value="50">50ms (20fps)</option>
-                  <option value="0" selected="selected">Disabled</option>
-                </select>
               </div>
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
@@ -285,7 +265,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
               </div>
               <div class="input-group" id="code_ver-group">
                 <label for="code_ver">
-                <a href="https://github.com/easytarget/esp32-cam-webserver"
+                <a href="https://github.com/abratchik/esp32-cam-webserver"
                   title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a></label>
                 <div id="code_ver" class="default-action"></div>
               </div>
@@ -298,7 +278,9 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         <figure>
           <div id="stream-container" class="image-container hidden">
             <div class="close close-rot-none" id="close-stream">×</div>
-            <img id="stream" src="">
+            <div id="stream" src="">
+              <iframe id="stream-frame" allowfullscreen="true"></iframe>
+            </div>
           </div>
         </figure>
       </div>
@@ -308,7 +290,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
   <script>
   document.addEventListener('DOMContentLoaded', function (event) {
     var baseHost = document.location.origin;
-    var streamURL = 'Undefined';
+
     var viewerURL = 'Undefined';
 
     const header = document.getElementById('logo')
@@ -321,6 +303,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const codeVer = document.getElementById('code_ver')
     const rotate = document.getElementById('rotate')
     const view = document.getElementById('stream')
+    const viewFrame = document.getElementById('stream-frame')
     const viewContainer = document.getElementById('stream-container')
     const stillButton = document.getElementById('get-still')
     const streamButton = document.getElementById('toggle-stream')
@@ -332,7 +315,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     const savePrefsButton = document.getElementById('save_prefs')
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
-    const minFrameTime = document.getElementById('min_frame_time')
+    const frameRate = document.getElementById('frame_rate')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -370,8 +353,10 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
           value ? hide(exposure) : show(exposure)
         } else if(el.id === "agc"){
           if (value) {
+            show(gainCeiling)
             hide(agcGain)
           } else {
+            hide(gainCeiling)
             show(agcGain)
           }
         } else if(el.id === "awb_gain"){
@@ -394,20 +379,9 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         } else if(el.id === "rotate"){
           rotate.value = value;
           applyRotation();
-        } else if(el.id === "min_frame_time"){
-          min_frame_time.value = value;
-        } else if(el.id === "stream_url"){
-          streamURL = value;
-          viewerURL = value + 'view';
-          stream_url.innerHTML = value;
-          stream_link.setAttribute("title", `Open the standalone stream viewer :: ${viewerURL}`);
-          stream_link.style.textDecoration = "underline";
-          stream_link.style.cursor = "pointer";
-          streamButton.setAttribute("title", `Start the stream :: ${streamURL}`);
-          show(streamGroup)
-          console.log('Stream URL set to: ' + streamURL);
-          console.log('Stream Viewer URL set to: ' + viewerURL);
-        }
+        } else if(el.id === "frame_rate"){
+          frame_rate.value = value;
+        } 
       }
     }
 
@@ -474,21 +448,21 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
         hide(waitSettings);
         show(settings);
         show(streamButton);
-        //startStream();
+        // startStream();
       })
 
     // Put some helpful text on the 'Still' button
-    stillButton.setAttribute("title", `Capture a still image :: ${baseHost}/capture`);
+    stillButton.setAttribute("title", `Capture a still image`);
 
     const stopStream = () => {
-      window.stop();
+      viewFrame.src = '';
       streamButton.innerHTML = 'Start Stream';
-      streamButton.setAttribute("title", `Start the stream :: ${streamURL}`);
+      streamButton.setAttribute("title", `Start the stream`);
       hide(viewContainer);
     }
 
     const startStream = () => {
-      view.src = streamURL;
+      viewFrame.src = '/view?mode=stream';
       view.scrollIntoView(false);
       streamButton.innerHTML = 'Stop Stream';
       streamButton.setAttribute("title", `Stop the stream`);
@@ -525,7 +499,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 
     stillButton.onclick = () => {
       stopStream();
-      view.src = `${baseHost}/capture?_cb=${Date.now()}`;
+      viewFrame.src = '/view?mode=still';
       view.scrollIntoView(false);
       show(viewContainer);
     }
@@ -562,11 +536,14 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     // Gain
     const agc = document.getElementById('agc')
     const agcGain = document.getElementById('agc_gain-group')
+    const gainCeiling = document.getElementById('gainceiling-group')
     agc.onchange = () => {
       updateConfig(agc)
       if (agc.checked) {
+        show(gainCeiling)
         hide(agcGain)
       } else {
+        hide(gainCeiling)
         show(agcGain)
       }
     }
@@ -597,8 +574,8 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
       updateConfig(framesize)
     }
 
-    minFrameTime.onchange = () => {
-      updateConfig(minFrameTime)
+    frameRate.onchange = () => {
+      updateConfig(frameRate)
     }
 
     xclk.onchange = () => {
@@ -607,7 +584,7 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
     }
 
     swapButton.onclick = () => {
-      window.open('/?view=simple','_self');
+      window.open('/view?mode=simple','_self');
     }
 
     savePrefsButton.onclick = () => {
@@ -637,6 +614,4 @@ const uint8_t index_ov3660_html[] = R"=====(<!doctype html>
 
   })
   </script>
-</html>)=====";
-
-size_t index_ov3660_html_len = sizeof(index_ov3660_html)-1;
+</html>
