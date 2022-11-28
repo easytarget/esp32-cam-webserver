@@ -51,6 +51,7 @@ extern char default_index[];
 extern int8_t streamCount;
 extern unsigned long streamsServed;
 extern unsigned long imagesServed;
+extern unsigned long indexVisited;
 extern int myRotation;
 extern int minFrameTime;
 extern int lampVal;
@@ -147,7 +148,7 @@ void serialDump() {
     int McuTc = (temprature_sens_read() - 32) / 1.8; // celsius
     int McuTf = temprature_sens_read(); // fahrenheit
     Serial.printf("System up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)\r\n", upDays, upHours, upMin, upSec);
-    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu\r\n", streamCount, streamsServed, imagesServed);
+    Serial.printf("Active streams: %i, Previous streams: %lu, Images captured: %lu, Index page visited: %lu\r\n", streamCount, streamsServed, imagesServed, indexVisited);
     Serial.printf("CPU Freq: %i MHz, Xclk Freq: %i MHz\r\n", ESP.getCpuFreqMHz(), xclk);
     Serial.printf("MCU temperature : %i C, %i F  (approximate)\r\n", McuTc, McuTf);
     Serial.printf("Heap: %i, free: %i, min free: %i, max block: %i\r\n", ESP.getHeapSize(), ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getMaxAllocHeap());
@@ -674,6 +675,8 @@ static esp_err_t index_handler(httpd_req_t *req){
     char*  buf;
     size_t buf_len;
     char view[32] = {0,};
+
+    indexVisited++;
 
     flashLED(75);
     // See if we have a specific target (full/simple/portal) and serve as appropriate

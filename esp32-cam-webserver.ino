@@ -140,6 +140,7 @@ char streamURL[64] = {"Undefined"};
 int8_t streamCount = 0;          // Number of currently active streams
 unsigned long streamsServed = 0; // Total completed streams
 unsigned long imagesServed = 0;  // Total image requests
+unsigned long indexVisited = 0;   // Total http root visited
 
 // This will be displayed to identify the firmware
 char myVer[] PROGMEM = __DATE__ " @ " __TIME__;
@@ -187,7 +188,7 @@ int minFrameTime = MIN_FRAME_TIME;
     #undef LED_PIN    // undefining this disables the notification LED
 #endif
 
-bool autoLamp = false;         // Automatic lamp (auto on while camera running)
+bool autoLamp = true;         // Automatic lamp (auto on while camera running)
 
 int lampChannel = 7;           // a free PWM channel (some channels used by camera)
 const int pwmfreq = 50000;     // 50K pwm frequency
@@ -818,8 +819,9 @@ void loop() {
             handleSerial();
             if (captivePortal) dnsServer.processNextRequest();
         }
-        if (accesspoint_start > 0 && millis() - accesspoint_start > 20 * WIFI_WATCHDOG && !streamsServed) {
-          Serial.println("Restarting due to too long AP inactivity...");
+        // If there is no any user activity we are restarting to try to connect WiFi again
+        if (!streamsServed && !imagesServed && !indexVisited && !streamCount && millis() - accesspoint_start > 20 * WIFI_WATCHDOG) {
+          Serial.println("Restarting due to AP inactivity...");
           ESP.restart();
         }
     } else {
