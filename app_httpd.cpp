@@ -598,7 +598,7 @@ static esp_err_t dump_handler(httpd_req_t *req){
     int McuTf = temprature_sens_read(); // fahrenheit
 
     d+= sprintf(d,"Up: %" PRId64 ":%02i:%02i:%02i (d:h:m:s)<br>\n", upDays, upHours, upMin, upSec);
-    d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu<br>\n", streamCount, streamsServed, imagesServed);
+    d+= sprintf(d,"Active streams: %i, Previous streams: %lu, Images captured: %lu, Index page visited: %lu<br>\n", streamCount, streamsServed, imagesServed, indexVisited);
     d+= sprintf(d,"CPU Freq: %i MHz, Xclk Freq: %i MHz<br>\n", ESP.getCpuFreqMHz(), xclk);
     d+= sprintf(d,"<span title=\"NOTE: Internal temperature sensor readings can be innacurate on the ESP32-c1 chipset, and may vary significantly between devices!\">");
     d+= sprintf(d,"MCU temperature : %i &deg;C, %i &deg;F</span>\n<br>", McuTc, McuTf);
