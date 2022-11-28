@@ -443,6 +443,9 @@ void StartCamera() {
     // We now have camera with default init
 }
 
+
+unsigned long accesspoint_start = 0;
+
 void WifiSetup() {
     // Feedback that we are now attempting to connect
     flashLED(300);
@@ -625,6 +628,7 @@ void WifiSetup() {
             dnsServer.start(DNS_PORT, "*", ip);
             captivePortal = true;
         }
+        accesspoint_start = millis();
     }
 }
 
@@ -813,6 +817,10 @@ void loop() {
             if (otaEnabled) ArduinoOTA.handle();
             handleSerial();
             if (captivePortal) dnsServer.processNextRequest();
+        }
+        if (accesspoint_start > 0 && millis() - accesspoint_start > 20 * WIFI_WATCHDOG && !streamsServed) {
+          Serial.println("Restarting due to too long AP inactivity...");
+          ESP.restart();
         }
     } else {
         // client mode can fail; so reconnect as appropriate
