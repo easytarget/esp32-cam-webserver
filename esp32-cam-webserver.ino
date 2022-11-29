@@ -294,16 +294,17 @@ void printLocalTime(bool extraData=false) {
     }
 }
 
-void calcURLs() {
-    // Set the URL's
-    #if defined(URL_HOSTNAME)
+// Set the URL's
+#if defined(URL_HOSTNAME)
+void calcURLs(char *base = URL_HOSTNAME) {
         if (httpPort != 80) {
-            sprintf(httpURL, "http://%s:%d/", URL_HOSTNAME, httpPort);
+            sprintf(httpURL, "http://%s:%d/", base, httpPort);
         } else {
-            sprintf(httpURL, "http://%s/", URL_HOSTNAME);
+            sprintf(httpURL, "http://%s/", base);
         }
-        sprintf(streamURL, "http://%s:%d/", URL_HOSTNAME, streamPort);
+        sprintf(streamURL, "http://%s:%d/", base, streamPort);
     #else
+void calcURLs() {
         Serial.println("Setting httpURL");
         if (httpPort != 80) {
             sprintf(httpURL, "http://%d.%d.%d.%d:%d/", ip[0], ip[1], ip[2], ip[3], httpPort);
@@ -446,6 +447,8 @@ void StartCamera() {
 
 
 unsigned long accesspoint_start = 0;
+int cam_index = -1;
+
 
 void WifiSetup() {
     // Feedback that we are now attempting to connect
@@ -565,13 +568,45 @@ void WifiSetup() {
             Serial.println("Client connection succeeded");
             accesspoint = false;
             // Note IP details
-            ip = WiFi.localIP();
+            ip = WiFi.localIP();         
             net = WiFi.subnetMask();
             gw = WiFi.gatewayIP();
             Serial.printf("IP address: %d.%d.%d.%d\r\n",ip[0],ip[1],ip[2],ip[3]);
             Serial.printf("Netmask   : %d.%d.%d.%d\r\n",net[0],net[1],net[2],net[3]);
             Serial.printf("Gateway   : %d.%d.%d.%d\r\n",gw[0],gw[1],gw[2],gw[3]);
+
+#ifdef AUTO_RENAME
+            int k;
+            bool renamed = false;
+            for (k = 0; k < sizeof(mdnsName); k++)
+              if (mdnsName[k] == '_')
+                break;
+            if (k < sizeof(mdnsName)) {
+              int i;
+              for (i = 0; i < sizeof(auto_rename_by_ip3); i++){
+                if (auto_rename_by_ip3[i] == ip[3]) {
+                  char s[5];
+                  i += 1;
+                  itoa(i, s, 10);
+                  for (int j = 0; j < strlen(s); j++) {
+                    mdnsName[k + j] = s[j];
+                    if (mdnsName[k + j + 1] == 0) // if we are at the end of the string or if it's not enough room for the number
+                      break;
+                    mdnsName[k + j + 1] = 0;
+                  }
+                  strcpy(myName, mdnsName);
+                  calcURLs(mdnsName);
+                  Serial.printf("Auto-renamed by IP list: %s\r\n", mdnsName);
+                  renamed = true;
+                  break;
+                }
+              }              
+            } 
+            if (!renamed) calcURLs();  
+  #else
             calcURLs();
+  #endif
+            
             // Flash the LED to show we are connected
             for (int i = 0; i < 5; i++) {
                 flashLED(50);
