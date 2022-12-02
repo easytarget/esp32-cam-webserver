@@ -321,6 +321,13 @@ static esp_err_t stream_handler(httpd_req_t *req){
     return res;
 }
 
+extern void relay(int8_t value);
+extern void switcher(int waitmsec, bool revert = false);
+extern void gettemperature(bool is_dht21 = false);
+extern float humidity;
+extern float temp;
+extern int8_t relay_on;
+
 static esp_err_t cmd_handler(httpd_req_t *req){
     char*  buf;
     size_t buf_len;
@@ -360,6 +367,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     int val = atoi(value);
     sensor_t * s = esp_camera_sensor_get();
     int res = 0;
+    char res_s[60] = "";
     if(!strcmp(variable, "framesize")) {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
     }
@@ -428,6 +436,21 @@ static esp_err_t cmd_handler(httpd_req_t *req){
           Serial.print('.');
         }
     }
+    else if(!strcmp(variable, "relay")) {
+        relay(val);
+        sprintf(res_s, "Relay %d", relay_on);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "switcher")) {
+        switcher(val);
+        sprintf(res_s, "Switcher %d", val);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "dht")) {
+        gettemperature(val == 1);
+        sprintf(res_s, "Temperature: %.1f&#176;C<br>Humidity: %.0f%s", temp, humidity, "%");
+        Serial.println(res_s);
+    }
     else {
         res = -1;
     }
@@ -435,7 +458,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         return httpd_resp_send_500(req);
     }
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-    return httpd_resp_send(req, NULL, 0);
+    return httpd_resp_send(req, res_s, strlen(res_s));  
 }
 
 static esp_err_t status_handler(httpd_req_t *req){

@@ -582,8 +582,7 @@ void WifiSetup() {
               if (mdnsName[k] == '_')
                 break;
             if (k < sizeof(mdnsName)) {
-              int i;
-              for (i = 0; i < sizeof(auto_rename_by_ip3); i++){
+              for (int i = 0; i < sizeof(auto_rename_by_ip3); i++){
                 if (auto_rename_by_ip3[i] == ip[3]) {
                   char s[5];
                   i += 1;
