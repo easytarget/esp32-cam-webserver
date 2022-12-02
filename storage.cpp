@@ -9,6 +9,9 @@ extern int lampVal;       // The current Lamp value
 extern bool autoLamp;     // Automatic lamp mode
 extern int xclk;          // Camera module clock speed
 extern int minFrameTime;  // Limits framerate
+extern int8_t relay_on;
+extern bool switcher_revert;
+extern int8_t dht_type; // 0 - None, 1 - d-11, 2 - DHT-21
 
 /*
  * Useful utility when debugging...
@@ -101,6 +104,10 @@ void loadPrefs(fs::FS &fs){
     if (xclkPref >= 2) xclk = xclkPref;
     myRotation = jsonExtract(prefs, "rotate").toInt();
 
+    relay_on = jsonExtract(prefs, "relay_on").toInt();
+    switcher_revert = jsonExtract(prefs, "switcher_revert").toInt();
+    dht_type = jsonExtract(prefs, "dht_type").toInt();
+
     // process camera settings
     s->set_framesize(s, (framesize_t)jsonExtract(prefs, "framesize").toInt());
     s->set_quality(s, jsonExtract(prefs, "quality").toInt());
@@ -174,7 +181,10 @@ void savePrefs(fs::FS &fs){
   p+=sprintf(p, "\"hmirror\":%u,", s->status.hmirror);
   p+=sprintf(p, "\"dcw\":%u,", s->status.dcw);
   p+=sprintf(p, "\"colorbar\":%u,", s->status.colorbar);
-  p+=sprintf(p, "\"rotate\":\"%d\"", myRotation);
+  p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
+  p+=sprintf(p, "\"relay_on\":\"%d\",", relay_on);
+  p+=sprintf(p, "\"switcher_revert\":\"%d\",", switcher_revert);
+  p+=sprintf(p, "\"dht_type\":\"%d\",", dht_type);
   *p++ = '}';
   *p++ = 0;
   file.print(json_response);

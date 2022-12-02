@@ -322,11 +322,19 @@ static esp_err_t stream_handler(httpd_req_t *req){
 }
 
 extern void relay(int8_t value);
-extern void switcher(int waitmsec, bool revert = false);
-extern void gettemperature(bool is_dht21 = false);
+extern void switcher(int waitmsec);
+extern void gettemperature(void);
 extern float humidity;
 extern float temp;
 extern int8_t relay_on;
+extern bool switcher_revert;
+extern int8_t dht_type; // 0 - None, 1 - dht 11, 2 - dht 21
+extern bool is_dht_inited;
+
+
+#ifdef NO_OTA
+extern bool need_update;
+#endif
 
 static esp_err_t cmd_handler(httpd_req_t *req){
     char*  buf;
@@ -441,16 +449,41 @@ static esp_err_t cmd_handler(httpd_req_t *req){
         sprintf(res_s, "Relay %d", relay_on);
         Serial.println(res_s);
     }
+    else if(!strcmp(variable, "switcher_revert")) {
+      switcher_revert = val;
+    }
     else if(!strcmp(variable, "switcher")) {
         switcher(val);
         sprintf(res_s, "Switcher %d", val);
         Serial.println(res_s);
     }
+    else if(!strcmp(variable, "dht_type")) {
+      dht_type = val;
+      is_dht_inited = false;
+      switch (dht_type) {
+        case  1: strcpy(res_s, "DHT-11 On");
+                 break;
+        case  2: strcpy(res_s, "DHT-21 On");
+                 break;
+        default: strcpy(res_s, "DHT disabled");
+      }
+      Serial.println(res_s);
+    }
     else if(!strcmp(variable, "dht")) {
-        gettemperature(val == 1);
-        sprintf(res_s, "Temperature: %.1f&#176;C<br>Humidity: %.0f%s", temp, humidity, "%");
+        if (dht_type) {
+          gettemperature();
+          sprintf(res_s, "DHT-%d1<br>Temperature: %.1f&#176;C<br>Humidity: %.0f%s", dht_type, temp, humidity, "%");
+        } else
+          strcpy(res_s, "DHT disabled");
         Serial.println(res_s);
     }
+#ifdef NO_OTA
+    else if(!strcmp(variable, "update_fw")) {
+      need_update = true;
+      strcpy(res_s, "Update started");
+      Serial.println(res_s);
+    }
+#endif
     else {
         res = -1;
     }

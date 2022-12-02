@@ -837,7 +837,18 @@ void setup() {
     while (Serial.available()) Serial.read();
 }
 
+
+#ifdef NO_OTA
+extern bool need_update;
+extern void update_fw(void);
+#endif
+
 void loop() {
+#ifdef NO_OTA
+    if (need_update)
+        update_fw();
+#endif
+        
     /*
      *  Just loop forever, reconnecting Wifi As necesscary in client mode
      * The stream and URI handler processes initiated by the startCameraServer() call at the
