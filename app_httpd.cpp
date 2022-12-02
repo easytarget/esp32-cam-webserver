@@ -322,14 +322,16 @@ static esp_err_t stream_handler(httpd_req_t *req){
 }
 
 extern void relay(int8_t value);
-extern void switcher(int waitmsec);
+extern void switcher(void);
 extern void gettemperature(void);
 extern float humidity;
 extern float temp;
 extern int8_t relay_on;
 extern bool switcher_revert;
+extern int switcher_wait;
 extern int8_t dht_type; // 0 - None, 1 - dht 11, 2 - dht 21
 extern bool is_dht_inited;
+extern bool need_restart;
 
 
 #ifdef NO_OTA
@@ -429,6 +431,9 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "clear_prefs")) {
         if (filesystem) removePrefs(SPIFFS);
     }
+    else if(!strcmp(variable, "restart")) {
+        need_restart = true;
+    }
     else if(!strcmp(variable, "reboot")) {
         if (lampVal != -1) setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
         esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
@@ -444,17 +449,24 @@ static esp_err_t cmd_handler(httpd_req_t *req){
           Serial.print('.');
         }
     }
-    else if(!strcmp(variable, "relay")) {
+    else if(!strcmp(variable, "relay_on")) {
         relay(val);
         sprintf(res_s, "Relay %d", relay_on);
         Serial.println(res_s);
     }
     else if(!strcmp(variable, "switcher_revert")) {
-      switcher_revert = val;
+        switcher_revert = val;
+        sprintf(res_s, "Switcher Reverted %d", switcher_revert);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "switcher_wait")) {
+        switcher_wait = val;
+        sprintf(res_s, "Switcher Wait %d", switcher_wait);
+        Serial.println(res_s);
     }
     else if(!strcmp(variable, "switcher")) {
-        switcher(val);
-        sprintf(res_s, "Switcher %d", val);
+        switcher();
+        sprintf(res_s, "Switcher %d (reverted=%d)", switcher_wait, switcher_revert);
         Serial.println(res_s);
     }
     else if(!strcmp(variable, "dht_type")) {
@@ -472,7 +484,7 @@ static esp_err_t cmd_handler(httpd_req_t *req){
     else if(!strcmp(variable, "dht")) {
         if (dht_type) {
           gettemperature();
-          sprintf(res_s, "DHT-%d1<br>Temperature: %.1f&#176;C<br>Humidity: %.0f%s", dht_type, temp, humidity, "%");
+          sprintf(res_s, "T=%.1f&#176;C<br>H=%.0f%s", temp, humidity, "%");
         } else
           strcpy(res_s, "DHT disabled");
         Serial.println(res_s);
@@ -533,7 +545,11 @@ static esp_err_t status_handler(httpd_req_t *req){
         p+=sprintf(p, "\"cam_name\":\"%s\",", myName);
         p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
         p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
-        p+=sprintf(p, "\"stream_url\":\"%s\"", streamURL);
+        p+=sprintf(p, "\"stream_url\":\"%s\",", streamURL);
+        p+=sprintf(p, "\"relay_on\":%u,", relay_on);
+        p+=sprintf(p, "\"switcher_revert\":%u,", switcher_revert);
+        p+=sprintf(p, "\"switcher_wait\":%u,", switcher_wait);
+        p+=sprintf(p, "\"dht_type\":%u", dht_type);
     }
     *p++ = '}';
     *p++ = 0;

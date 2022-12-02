@@ -1,18 +1,19 @@
 #ifdef NO_OTA
 #include <HTTPClient.h>
 #include <ESP32httpUpdate.h>
+#define FIRMWARE_FOLDER "http://192.168.108.43:8080/win/winweb/espfw/esp32-cam/"
+#define FIRMWARE_FILE "esp32_cam_last.bin"
 bool need_update = false;
 #endif
 
 #define SWITCH_PIN 2
 #define SWITCH_WAIT 300
 
-#define FIRMWARE_FOLDER "http://192.168.108.43:8080/win/winweb/espfw/esp32-cam/"
-#define FIRMWARE_FILE "esp32_cam_last.bin"
 
 #define RELAY_PIN 15
 int relay_on = 0;
 bool switcher_revert = false;
+int switcher_wait = 300;
 
 #include <DHT.h>
 #define DHT_PIN 13
@@ -61,7 +62,7 @@ void relay(int8_t value) {
   digitalWrite(RELAY_PIN, relay_on);
 }
 
-void switcher(int waitmsec) {
+void switcher(void) {
   int L0 = 0;
   int L1 = 1;
   if (switcher_revert) {
@@ -70,8 +71,8 @@ void switcher(int waitmsec) {
   }
   pinMode(SWITCH_PIN, OUTPUT);
   digitalWrite(SWITCH_PIN, L1);
-  if (waitmsec > 0) {
-    delay(waitmsec);
+  if (switcher_wait > 0) {
+    delay(switcher_wait);
     digitalWrite(SWITCH_PIN, L0);
   }
 }

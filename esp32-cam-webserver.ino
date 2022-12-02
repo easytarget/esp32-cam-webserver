@@ -843,11 +843,18 @@ extern bool need_update;
 extern void update_fw(void);
 #endif
 
+bool need_restart = false;
+
 void loop() {
 #ifdef NO_OTA
     if (need_update)
         update_fw();
 #endif
+
+    if (need_restart) {
+        delay(2000);
+        ESP.restart();
+    }
         
     /*
      *  Just loop forever, reconnecting Wifi As necesscary in client mode

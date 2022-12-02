@@ -258,9 +258,38 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="0" selected="selected">Disabled</option>
                 </select>
               </div>
+              <div class="input-group" id="dht-group">
+                <label for="dht_type">DHT</label>
+                <select id="dht_type" class="default-action" title="Select Temperatue and Humidity Sensor Type">
+                  <option value="0" selected="selected">None</option>
+                  <option value="1">DHT-11</option>
+                  <option value="2">DHT-21</option>
+                </select>
+                <button id="dht" title="Get Temperatue and Humidity">Get</button>
+                <label id="dht_result"></label>
+              </div>
+              <div class="input-group" id="switcher-group">
+                <label for="switcher_revert">Switcher</label>
+                <div class="switch" title="Use reverted logic on Switcher">
+                  <input id="switcher_revert" type="checkbox" class="default-action">
+                  <label class="slider" for="switcher_revert"></label>
+                </div>
+                <div class="text">
+                  <input id="switcher_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action">
+                </div>
+                <button id="switcher" title="Run Switcher: Turn On, Pause 300ms, Turn OFF">Run</button>
+              </div>
+              <div class="input-group" id="relay_on-group">
+                <label for="relay_on">Relay</label>
+                <div class="switch" title="Close/Open Relay">
+                  <input id="relay_on" type="checkbox" class="default-action">
+                  <label class="slider" for="relay_on"></label>
+                </div>
+              </div>
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
-                <button id="reboot" title="Reboot the camera module">Reboot</button>
+                <button id="restart" title="Restart ESP module">Restart</button>
+                <button id="reboot" title="Reboot the camera module" class="hidden">Reboot</button>
                 <button id="save_prefs" title="Save Preferences on camera module">Save</button>
                 <button id="clear_prefs" title="Erase saved Preferences on camera module">Erase</button>
               </div>
@@ -319,6 +348,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
     const minFrameTime = document.getElementById('min_frame_time')
+    const switcherButton = document.getElementById('switcher')
+    const switcherWait = document.getElementById('switcher_wait')
+    const dhtButton = document.getElementById('dht')
+    const dhtResult  = document.getElementById('dht_result')
+    const restartButton = document.getElementById('restart')
 
     const hide = el => {
       el.classList.add('hidden')
@@ -434,10 +468,21 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
 
       const query = `${baseHost}/control?var=${el.id}&val=${value}`
 
-      fetch(query)
-        .then(response => {
-          console.log(`request to ${query} finished, status: ${response.status}`)
-        })
+      if (el == dhtButton)
+        fetch(query)
+          .then(response => {
+            console.log(`request to ${query} finished, status: ${response.status}`)
+            return response.text();
+          })
+          .then(function (value) {
+            dhtResult.innerHTML = value;
+          })
+      else
+        fetch(query)
+          .then(response => {
+            console.log(`request to ${query} finished, status: ${response.status}`)
+          })
+        
     }
 
     document
@@ -597,6 +642,11 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       updateConfig(xclk)
     }
 
+    switcher_wait.onchange = () => {
+      console.log("Switcher Wait:" , switcher_wait);
+      updateConfig(switcherWait)
+    }
+
     swapButton.onclick = () => {
       window.open('/?view=simple','_self');
     }
@@ -605,6 +655,28 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       if (confirm("Save the current preferences?")) {
         updateConfig(savePrefsButton);
       }
+    }
+
+    switcherButton.onclick = () => {
+      updateConfig(switcherButton);
+    }
+
+    dhtButton.onclick = () => {
+      updateConfig(dhtButton);
+    }
+
+    restartButton.onclick = () => {
+      if (confirm("Restart ESP Module?")) {
+        updateConfig(restartButton);
+        // Some sort of countdown here?
+        hide(settings);
+        hide(viewContainer);
+        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 20 seconds.';
+        setTimeout(function() {
+          location.replace(document.URL);
+        }, 20000);
+      }
+      updateConfig();
     }
 
     clearPrefsButton.onclick = () => {
