@@ -447,8 +447,11 @@ void StartCamera() {
 
 
 unsigned long accesspoint_start = 0;
-int cam_index = -1;
 
+#include "vsc.h"
+extern int camera_data_size;
+extern int camera_data_index;
+extern struct camera_data camera_datas[];
 
 void WifiSetup() {
     // Feedback that we are now attempting to connect
@@ -575,16 +578,15 @@ void WifiSetup() {
             Serial.printf("Netmask   : %d.%d.%d.%d\r\n",net[0],net[1],net[2],net[3]);
             Serial.printf("Gateway   : %d.%d.%d.%d\r\n",gw[0],gw[1],gw[2],gw[3]);
 
-#ifdef AUTO_RENAME
             int k;
-            bool renamed = false;
             for (k = 0; k < sizeof(mdnsName); k++)
               if (mdnsName[k] == '_')
                 break;
             if (k < sizeof(mdnsName)) {
-              for (int i = 0; i < sizeof(auto_rename_by_ip3); i++){
-                if (auto_rename_by_ip3[i] == ip[3]) {
+              for (int i = 0; i < camera_data_size; i++){
+                if (camera_datas[i].ip3 == ip[3]) {
                   char s[5];
+                  camera_data_index = i;
                   i += 1;
                   itoa(i, s, 10);
                   for (int j = 0; j < strlen(s); j++) {
@@ -596,15 +598,11 @@ void WifiSetup() {
                   strcpy(myName, mdnsName);
                   calcURLs(mdnsName);
                   Serial.printf("Auto-renamed by IP list: %s\r\n", mdnsName);
-                  renamed = true;
                   break;
                 }
               }              
             } 
-            if (!renamed) calcURLs();  
-  #else
-            calcURLs();
-  #endif
+            if (camera_data_index < 0) calcURLs();  
             
             // Flash the LED to show we are connected
             for (int i = 0; i < 5; i++) {
@@ -845,6 +843,8 @@ extern void update_fw(void);
 
 bool need_restart = false;
 
+extern void handleThingsBoard(void);
+
 void loop() {
 #ifdef NO_OTA
     if (need_update)
@@ -855,7 +855,7 @@ void loop() {
         delay(2000);
         ESP.restart();
     }
-        
+
     /*
      *  Just loop forever, reconnecting Wifi As necesscary in client mode
      * The stream and URI handler processes initiated by the startCameraServer() call at the
@@ -892,6 +892,7 @@ void loop() {
                 delay(100);
                 if (otaEnabled) ArduinoOTA.handle();
                 handleSerial();
+                handleThingsBoard();
             }
         } else {
             // disconnected; attempt to reconnect

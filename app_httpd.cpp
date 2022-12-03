@@ -330,6 +330,7 @@ extern int8_t relay_on;
 extern bool switcher_revert;
 extern int switcher_wait;
 extern int8_t dht_type; // 0 - None, 1 - dht 11, 2 - dht 21
+extern int dht_interval; // sec
 extern bool is_dht_inited;
 extern bool need_restart;
 
@@ -481,6 +482,11 @@ static esp_err_t cmd_handler(httpd_req_t *req){
       }
       Serial.println(res_s);
     }
+    else if(!strcmp(variable, "dht_interval")) {
+        dht_interval = val;
+        sprintf(res_s, "DHT data send interval %d sec", dht_interval);
+        Serial.println(res_s);
+    }
     else if(!strcmp(variable, "dht")) {
         if (dht_type) {
           gettemperature();
@@ -549,7 +555,8 @@ static esp_err_t status_handler(httpd_req_t *req){
         p+=sprintf(p, "\"relay_on\":%u,", relay_on);
         p+=sprintf(p, "\"switcher_revert\":%u,", switcher_revert);
         p+=sprintf(p, "\"switcher_wait\":%u,", switcher_wait);
-        p+=sprintf(p, "\"dht_type\":%u", dht_type);
+        p+=sprintf(p, "\"dht_type\":%u,", dht_type);
+        p+=sprintf(p, "\"dht_interval\":%u", dht_interval);
     }
     *p++ = '}';
     *p++ = 0;

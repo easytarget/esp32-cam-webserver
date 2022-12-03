@@ -265,6 +265,9 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <option value="1">DHT-11</option>
                   <option value="2">DHT-21</option>
                 </select>
+                <div class="text">
+                  <input id="dht_interval" type="number" min="0" max="86400" size="5" step="10" class="default-action" title="Interval of data sending sec. 0 - disabled">
+                </div>
                 <button id="dht" title="Get Temperatue and Humidity">Get</button>
                 <label id="dht_result"></label>
               </div>
@@ -275,7 +278,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                   <label class="slider" for="switcher_revert"></label>
                 </div>
                 <div class="text">
-                  <input id="switcher_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action">
+                  <input id="switcher_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action" title="Duration in msec">
                 </div>
                 <button id="switcher" title="Run Switcher: Turn On, Pause 300ms, Turn OFF">Run</button>
               </div>

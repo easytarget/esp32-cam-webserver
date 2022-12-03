@@ -1,5 +1,6 @@
-#ifdef NO_OTA
 #include <HTTPClient.h>
+
+#ifdef NO_OTA
 #include <ESP32httpUpdate.h>
 #define FIRMWARE_FOLDER "http://192.168.108.43:8080/win/winweb/espfw/esp32-cam/"
 #define FIRMWARE_FILE "esp32_cam_last.bin"
@@ -8,7 +9,6 @@ bool need_update = false;
 
 #define SWITCH_PIN 2
 #define SWITCH_WAIT 300
-
 
 #define RELAY_PIN 15
 int relay_on = 0;
@@ -20,8 +20,25 @@ int switcher_wait = 300;
 DHT dht11(DHT_PIN, DHT11);
 DHT dht21(DHT_PIN, DHT21);
 int8_t dht_type = 0; // 0 - None, 1 - dht 11, 2 - dht 21
+int dht_interval = 0;
 bool is_dht_inited = false;
 float humidity, temp;  // Values read from sensor
+
+unsigned long dht_prevMs = 0;
+unsigned long dht_curMs = 0;
+
+#define TB_SERVER  "192.168.108.43:8081"
+
+/* Auto rename if last part of IP address is in the list */
+/* Instead of ___ at the end of CAM_NAME will appear index 1,2,3...15...  from this list */
+#include "vsc.h"
+int camera_data_size = 3;
+int camera_data_index = -1;
+struct camera_data camera_datas[3] = {
+                                      { 203, "zUVAsF4JyKDqLOkUblYy" }, 
+                                      { 206, "BYE9zmxfrkGi2Nwlpzom" },
+                                      { 207, "cb4zha50w8IqQk1lqWIF" }
+                                    };
 
 #ifdef NO_OTA
 void update_fw(void) {
@@ -126,5 +143,30 @@ void gettemperature(void) {
 
     humidity = 0;
     temp = 0;
+  }
+}
+
+void handleThingsBoard(void) {
+  if (camera_data_index >= 0 && dht_interval) {            
+    dht_curMs = millis();
+    if (dht_curMs - dht_prevMs >= dht_interval * 1000) {
+      dht_prevMs = dht_curMs;
+      gettemperature();
+
+      char buf[128];
+
+      HTTPClient http;
+      sprintf(buf, "http://" TB_SERVER "/api/v1/%s/telemetry", camera_datas[camera_data_index].token);     
+      Serial.println(buf);
+      http.begin(buf);
+      http.addHeader("Content-Type", "application/json");
+
+      sprintf(buf, "{\"temperature\": %.1f, \"humidity\": %.0f}", temp, humidity);
+      Serial.println(buf);
+      int httpCode = http.POST(buf);
+      Serial.print("HTTP Response code is: ");
+      Serial.println(httpCode);
+      http.end();
+    }  
   }
 }
