@@ -300,7 +300,7 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
               </div>
               <div class="input-group" id="code_ver-group">
                 <label for="code_ver">
-                <a href="https://github.com/easytarget/esp32-cam-webserver"
+                <a href="https://github.com/chshkhr/esp32-cam-webserver"
                   title="ESP32 Cam Webserver on GitHub" target="_blank">Firmware</a></label>
                 <div id="code_ver" class="default-action"></div>
               </div>
