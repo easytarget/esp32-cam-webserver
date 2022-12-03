@@ -146,6 +146,8 @@ void gettemperature(void) {
   }
 }
 
+char tb_url[128] = "";
+
 void handleThingsBoard(void) {
   if (camera_data_index >= 0 && dht_interval) {            
     dht_curMs = millis();
@@ -156,16 +158,19 @@ void handleThingsBoard(void) {
       char buf[128];
 
       HTTPClient http;
-      sprintf(buf, "http://" TB_SERVER "/api/v1/%s/telemetry", camera_datas[camera_data_index].token);     
-      Serial.println(buf);
-      http.begin(buf);
+      if (strlen(tb_url) == 0)
+        sprintf(tb_url, "http://" TB_SERVER "/api/v1/%s/telemetry", camera_datas[camera_data_index].token);     
+      http.begin(tb_url);
       http.addHeader("Content-Type", "application/json");
 
       sprintf(buf, "{\"temperature\": %.1f, \"humidity\": %.0f}", temp, humidity);
-      Serial.println(buf);
       int httpCode = http.POST(buf);
-      Serial.print("HTTP Response code is: ");
-      Serial.println(httpCode);
+      if (httpCode != 200) {
+          Serial.println(tb_url);
+          Serial.println(buf);
+          Serial.print("HTTP Response code is: ");
+          Serial.println(httpCode);
+      }
       http.end();
     }  
   }
