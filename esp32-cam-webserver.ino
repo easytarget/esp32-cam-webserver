@@ -34,7 +34,17 @@ void setup() {
     delay(200); // a short delay to let spi bus settle after init
 
     // Start (init) the camera 
-    AppCam.start();
+    if (AppCam.start() != OS_SUCCESS) {
+        delay(100);  // need a delay here or the next serial o/p gets missed
+        Serial.println();
+        Serial.print("CRITICAL FAILURE:"); Serial.println(AppCam.getErr());
+        Serial.println("A full (hard, power off/on) reboot will probably be needed to recover from this.");
+        Serial.println("Meanwhile; this unit will reboot in 1 minute since these errors sometime clear automatically");
+        resetI2CBus();
+        scheduleReboot(60);
+    }
+    else
+        Serial.println("Camera init succeeded");
 
     // Now load and apply preferences
     delay(200); // a short delay to let spi bus settle after camera init
@@ -125,7 +135,7 @@ void loop() {
 /// @brief tries to initialize the filesystem until success, otherwise loops indefinitely
 void filesystemStart(){
   Serial.println("Starting filesystem");
-  while ( !init_storage() ) {
+  while ( !Storage.init() ) {
     // if we sit in this loop something is wrong;
     Serial.println("Filesystem mount failed");
     for (int i=0; i<10; i++) {
@@ -135,8 +145,8 @@ void filesystemStart(){
     delay(1000);
     Serial.println("Retrying..");
   }
-
-  listDir("/", 0);
+  
+  // Storage.listDir("/", 0);
 }
 
 // Serial input 
@@ -172,5 +182,18 @@ void flashLED(int flashtime) {
     delay(flashtime);
     digitalWrite(LED_PIN, LED_OFF);
 #endif
+}
+
+void scheduleReboot(int delay) {
+    esp_task_wdt_init(delay,true);
+    esp_task_wdt_add(NULL);
+}
+
+// Reset the I2C bus.. may help when rebooting.
+void resetI2CBus() {
+    periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly in case that is the problem
+    periph_module_disable(PERIPH_I2C1_MODULE);
+    periph_module_reset(PERIPH_I2C0_MODULE);
+    periph_module_reset(PERIPH_I2C1_MODULE);
 }
 

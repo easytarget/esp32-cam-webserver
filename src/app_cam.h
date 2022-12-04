@@ -14,6 +14,11 @@
     #undef LED_PIN              // undefining this disables the notification LED
 #endif
 
+
+/**
+ * @brief Camera Manager
+ * Manages all interactions with camera
+ */
 class CLAppCam : public CLAppComponent {
     public:
 
@@ -30,7 +35,8 @@ class CLAppCam : public CLAppComponent {
         void setAutoLamp(bool val) {autoLamp = val;};
         bool isAutoLamp() { return autoLamp;};
 
-        int getSensorPID() {return sensorPID;};
+        int getSensorPID() {return (sensor?sensor->id.PID:0);};
+        sensor_t * getSensor() {return sensor;};
         String getErr() {return critERR;};
 
         int getFrameRate() {return frameRate;};
@@ -42,13 +48,15 @@ class CLAppCam : public CLAppComponent {
         void setRotation(int val) {myRotation = val;};
         int getRotation() {return myRotation;};
 
+        int snapToBufer();
+        uint8_t * getBuffer() {return fb->buf;};
+        size_t getBufferSize() {return fb->len;};
+        bool isJPEGinBuffer() {return fb->format == PIXFORMAT_JPEG;};
+        void releaseBuffer(); 
+
     private:
         // Camera config structure
         camera_config_t config;
-
-        // This will be set to the sensors PID (identifier) during initialisation
-        //camera_pid_t sensorPID;
-        int sensorPID;
 
         // Camera module bus communications frequency.
         // Originally: config.xclk_freq_mhz = 20000000, but this lead to visual artifacts on many modules.
@@ -84,6 +92,12 @@ class CLAppCam : public CLAppComponent {
         // initial rotation
         // default can be set in /default_prefs.json
         int myRotation = 0;
+
+        // camera buffer pointer
+        camera_fb_t * fb = NULL;
+
+        // camera sensor
+        sensor_t * sensor;
 
 
 };

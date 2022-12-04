@@ -27,42 +27,43 @@ int CLAppHttpd::start() {
     });
 
     server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(*fsStorage, "/www/setup.html", "", false, processor);
+        request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
     });
 
     server->on("/portal", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(*fsStorage, "/www/portal.html", "", false, processor);
+        request->send(Storage.getFS(), "/www/portal.html", "", false, processor);
     });
 
     server->on("/view", HTTP_GET, [](AsyncWebServerRequest *request){
         if(request->hasArg("mode")) {
             if(request->arg("mode") == "simple") {
-                request->send(*fsStorage, "/www/index_simple.html", "", false, processor);
+                request->send(Storage.getFS(), "/www/index_simple.html", "", false, processor);
             }
             else if(request->arg("mode") == "full") {
                 if (AppCam.getSensorPID() == OV3660_PID) 
-                    request->send(*fsStorage, "/www/index_ov3660.html", "", false, processor);
-                request->send(*fsStorage, "/www/index_ov2640.html", "", false, processor);
+                    request->send(Storage.getFS(), "/www/index_ov3660.html", "", false, processor);
+                request->send(Storage.getFS(), "/www/index_ov2640.html", "", false, processor);
             }
             else if(request->arg("mode") == "stream" || 
                     request->arg("mode") == "still") {
-                if(AppCam.getErr().isEmpty()) {
+                if(!AppCam.getLastErr()) {
                     AppHttpd.setStreamMode((request->arg("mode") == "stream"? CAPTURE_STREAM:CAPTURE_STILL));
-                    request->send(*fsStorage, "/www/streamviewer.html", "", false, processor);
+                    request->send(Storage.getFS(), "/www/streamviewer.html", "", false, processor);
                 }
                 else
-                    request->send(*fsStorage, "/www/error.html", "", false, processor);
+                    request->send(Storage.getFS(), "/www/error.html", "", false, processor);
             }
             else
                 request->send(400);
         }
         else
-            request->send(*fsStorage, "/www/index_simple.html", "", false, processor);
+            request->send(Storage.getFS(), "/www/index_simple.html", "", false, processor);
     });
 
-    server->on("/dump", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(*fsStorage, "/www/dump.html");
-    });
+    // adding fixed mappigs
+    for(int i=0; i<mappingCount; i++) {
+        server->serveStatic(mappingList[i]->uri, Storage.getFS(), mappingList[i]->path);
+    }
     
     server->on("/control", HTTP_GET, onControl);
     server->on("/status", HTTP_GET, onStatus);
@@ -75,8 +76,6 @@ int CLAppHttpd::start() {
     server->addHandler(ws);   
 
     snap_timer = xTimerCreate("SnapTimer", 1000/AppCam.getFrameRate()/portTICK_PERIOD_MS, pdTRUE, 0, onSnapTimer);
-    
-    server->serveStatic("/", *fsStorage, "/www");
 
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server->begin();
@@ -139,38 +138,34 @@ String processor(const String& var) {
     return String();
 }
 
-esp_err_t CLAppHttpd::snapToStream(bool debug) {
-    camera_fb_t * fb = NULL;
-    esp_err_t res = ESP_OK;
+int CLAppHttpd::snapToStream(bool debug) {
 
-    fb = esp_camera_fb_get();
+    int res = AppCam.snapToBufer();
 
-    if(fb) {
-        size_t fb_len = 0;
-        if(fb->format == PIXFORMAT_JPEG){
-            fb_len = fb->len;
-            ws->binary(AppHttpd.getClientId(), fb->buf, fb->len);
+    if(!res) {
+
+        if(AppCam.isJPEGinBuffer()){
+            ws->binary(AppHttpd.getClientId(), AppCam.getBuffer(), AppCam.getBufferSize());
             if(debug) {
-                Serial.print("JPG: "); Serial.print((uint32_t)(fb_len)); 
+                Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
             }
         } else {
             // camera failed to aquire frame
             if(debug) 
                 Serial.println("Capture Error: Non-JPEG image returned by camera module");
-            res = ESP_FAIL;
+            res = OS_FAIL;
         }
     }
 
-    esp_camera_fb_return(fb);
-    fb = NULL;
+    AppCam.releaseBuffer();
     return res;
 }
 
-esp_err_t CLAppHttpd::startStream(uint32_t id) {
+int CLAppHttpd::startStream(uint32_t id) {
     client_id = id;
 
     if(!snap_timer)
-        return ESP_FAIL;
+        return OS_FAIL;
 
     if(xTimerIsTimerActive(snap_timer))
         xTimerStop(snap_timer, 100);
@@ -190,9 +185,9 @@ esp_err_t CLAppHttpd::startStream(uint32_t id) {
         }
         int64_t fr_start = esp_timer_get_time();
     
-        if (snapToStream(isDebugMode()) != ESP_OK) {
+        if (snapToStream(isDebugMode()) != OS_SUCCESS) {
             if(AppCam.isAutoLamp()) AppCam.setLamp(0);
-            return ESP_FAIL;
+            return OS_FAIL;
         }
         
         if (isDebugMode()) {
@@ -205,14 +200,14 @@ esp_err_t CLAppHttpd::startStream(uint32_t id) {
         imagesServed++;
     }
     else
-        return ESP_FAIL;
-    return ESP_OK;
+        return OS_FAIL;
+    return OS_SUCCESS;
 }
 
-esp_err_t CLAppHttpd::stopStream(uint32_t id) {
+int CLAppHttpd::stopStream(uint32_t id) {
     client_id = 0;
     if(!snap_timer)
-        return ESP_FAIL;
+        return OS_FAIL;
     
     if(xTimerIsTimerActive(snap_timer))
         xTimerStop(snap_timer, 100);   
@@ -222,12 +217,12 @@ esp_err_t CLAppHttpd::stopStream(uint32_t id) {
         streamsServed++;
         streamCount=0;
     }
-    return ESP_OK;
+    return OS_SUCCESS;
 }
 
 void onControl(AsyncWebServerRequest *request) {
     
-    if (AppCam.getErr().length() > 0) {
+    if (AppCam.getLastErr()) {
         request->send(500);
         return;
     }
@@ -248,10 +243,31 @@ void onControl(AsyncWebServerRequest *request) {
         AppHttpd.serialSendCommand(value.c_str());
         request->send(200, "", "OK");
         return;
+    }    
+    else if(variable ==  "save_prefs") {
+        int res = 0;
+        if(value == "conn") 
+            res = AppConn.savePrefs();
+        else 
+            // TODO: change to explicit value. We are saving camera settings by default but this is for backward compatibility only
+            res = AppCam.savePrefs();
+        if( res == OS_SUCCESS)
+            request->send(200, "", "OK");
+        else
+            request->send(500, "", "Failed to save preferences");
+        return;
+    }
+    else if(variable ==  "remove_prefs") {
+        CLAppComponent * component = (value == "conn"?(CLAppComponent*)&AppConn:(CLAppComponent*)&AppCam);
+        if(component->removePrefs() == OS_SUCCESS)
+            request->send(200, "", "OK");
+        else
+            request->send(500, "", "Failed to reset preferences");
+        return;
     }
 
     int val = value.toInt();
-    sensor_t * s = esp_camera_sensor_get();
+    sensor_t * s = AppCam.getSensor();
     int res = 0;
     if(variable == "framesize") {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
@@ -290,12 +306,6 @@ void onControl(AsyncWebServerRequest *request) {
     }
     else if(variable ==  "lamp" && AppCam.getLamp() != -1) {
         AppCam.setLamp(constrain(val,0,100));
-    }
-    else if(variable ==  "save_prefs") {
-        AppCam.savePrefs();
-    }
-    else if(variable == "clear_prefs") {
-        AppCam.removePrefs();
     }
     else if(variable == "reboot") {
         if (AppCam.getLamp() != -1) AppCam.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
@@ -340,8 +350,8 @@ void onStatus(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     // Do not get attempt to get sensor when in error; causes a panic..
     response->print("{");
-    if (AppCam.getErr().length() == 0) {
-        sensor_t * s = esp_camera_sensor_get();
+    if (!AppCam.getLastErr()) {
+        sensor_t * s = AppCam.getSensor();
         response->printf("\"lamp\":%d,", AppCam.getLamp());
         response->printf("\"autolamp\":%d,", AppCam.isAutoLamp());
         response->printf("\"frame_rate\":%d,", AppCam.getFrameRate());
@@ -449,9 +459,9 @@ void dumpSystemStatusToJson(char * buf, size_t size) {
     buf += sprintf(buf,"\"psram_min_free\":%i,", (psramFound()?ESP.getMinFreePsram():0));
     buf += sprintf(buf,"\"psram_max_bloc\":%i,", (psramFound()?ESP.getMaxAllocPsram():0));
 
-    buf += sprintf(buf,"\"storage_size\":%i,", storageSize());
-    buf += sprintf(buf,"\"storage_used\":%i,", storageUsed());
-    buf += sprintf(buf,"\"storage_units\":\"%s\",", (capacityUnits()==STORAGE_UNITS_MB?"MB":""));
+    buf += sprintf(buf,"\"storage_size\":%i,", Storage.getSize());
+    buf += sprintf(buf,"\"storage_used\":%i,", Storage.getUsed());
+    buf += sprintf(buf,"\"storage_units\":\"%s\",", (Storage.capacityUnits()==STORAGE_UNITS_MB?"MB":""));
     buf += sprintf(buf,"\"serial_buf\":\"%s\"", AppHttpd.getSerialBuffer());
     buf += sprintf(buf, "}");
 }
@@ -467,7 +477,25 @@ int CLAppHttpd::loadPrefs() {
     if(ret != OS_SUCCESS) {
         return ret;
     }
-    
+
+    if (json_obj_get_array(&jctx, "mapping", &mappingCount) == OS_SUCCESS) {
+        if(mappingCount > 0) 
+            for(int i=0; i < mappingCount && i < MAX_URI_MAPPINGS; i++) {
+                if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
+                    UriMapping *um = (UriMapping*) malloc(sizeof(UriMapping));
+                    if(json_obj_get_string(&jctx, "uri", um->uri, sizeof(um->uri)) == OS_SUCCESS &&
+                       json_obj_get_string(&jctx, "path", um->path, sizeof(um->path)) == OS_SUCCESS ) {
+                        mappingList[i] = um;
+                    } 
+                    else {
+                        free(um);
+                    }
+                    json_arr_leave_object(&jctx);
+                }    
+            }    
+        json_obj_leave_array(&jctx);
+    }
+
     json_obj_get_string(&jctx, "my_name", myName, sizeof(myName));
     bool dbg;
     if(json_obj_get_bool(&jctx, "debug_mode", &dbg) == OS_SUCCESS)

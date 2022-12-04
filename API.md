@@ -76,11 +76,16 @@ Only for 3Mp+ camera modules:
 
 #### Commands
 These are commands; they can be sent by calling the `/control` URI with them as 
-the `<key>` *(a `<val>` must also be supplied, but can be any value and is ignored)*.
+the `<key>` parameter.
 ```
-save_prefs      - Saves preferences file
-clear_prefs     - Deletes the preferences file
-reboot          - Reboots the board
+* save_prefs      - Saves preferences
+  `val=cam` or not specified will save camera preferences
+  `val=conn` will save network preferences
+* clear_prefs     - Deletes camera the preferences
+  `val=cam` or not specified will reset camera preferences
+  `val=conn` will reset network preferences. Attention! after this the server will boot as access point after restart, and all
+  connection settings will be lost. 
+* reboot          - Reboots the board
 ```
 
 ## Examples

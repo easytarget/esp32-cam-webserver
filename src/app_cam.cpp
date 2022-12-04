@@ -40,32 +40,18 @@ int CLAppCam::start() {
     #endif
 
     // camera init
-    esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK) {
-        delay(100);  // need a delay here or the next serial o/p gets missed
-        Serial.printf("\r\n\r\nCRITICAL FAILURE: Camera sensor failed to initialise.\r\n\r\n");
-        Serial.printf("A full (hard, power off/on) reboot will probably be needed to recover from this.\r\n");
-        Serial.printf("Meanwhile; this unit will reboot in 1 minute since these errors sometime clear automatically\r\n");
-        // Reset the I2C bus.. may help when rebooting.
-        periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly in case that is the problem
-        periph_module_disable(PERIPH_I2C1_MODULE);
-        periph_module_reset(PERIPH_I2C0_MODULE);
-        periph_module_reset(PERIPH_I2C1_MODULE);
-        // And set the error text for the UI
-        critERR = "<h1>Error!</h1><hr><p>Camera module failed to initialise!</p><p>Please reset (power off/on) the camera.</p>";
-        critERR += "<p>We will continue to reboot once per minute since this error sometimes clears automatically.</p>";
-        // Start a 60 second watchdog timer
-        esp_task_wdt_init(60,true);
-        esp_task_wdt_add(NULL);
+    setErr(esp_camera_init(&config));
+    
+    if (getLastErr()) {
+        critERR = "Camera sensor failed to initialise";
+        return getLastErr();
     } else {
-        Serial.println("Camera init succeeded");
 
         // Get a reference to the sensor
-        sensor_t * s = esp_camera_sensor_get();
+        sensor = esp_camera_sensor_get();
 
         // Dump camera module, warn for unsupported modules.
-        sensorPID = s->id.PID;
-        switch (sensorPID) {
+        switch (sensor->id.PID) {
             case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
             case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
             case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
@@ -86,7 +72,7 @@ int CLAppCam::start() {
         Serial.println("No lamp, or lamp disabled in config");
     }
 
-    return OK;
+    return OS_SUCCESS;
 }
 
 int CLAppCam::stop() {
@@ -171,7 +157,7 @@ int CLAppCam::loadPrefs() {
 int CLAppCam::savePrefs(){
     char * prefs_file = getPrefsFileName(true); 
 
-    if (fsStorage->exists(prefs_file)) {
+    if (Storage.exists(prefs_file)) {
         Serial.printf("Updating %s\r\n", prefs_file);
     } else {
         Serial.printf("Creating %s\r\n", prefs_file);
@@ -212,10 +198,11 @@ int CLAppCam::savePrefs(){
     json_gen_obj_set_int(&jstr, "hmirror", s->status.hmirror);
     json_gen_obj_set_int(&jstr, "dcw", s->status.dcw);
     json_gen_obj_set_int(&jstr, "colorbar", s->status.colorbar);
-
     json_gen_obj_set_bool(&jstr, "debug_mode", isDebugMode());
+    json_gen_end_object(&jstr);
+    json_gen_str_end(&jstr);
 
-    File file = fsStorage->open(prefs_file, FILE_WRITE);
+    File file = Storage.open(prefs_file, FILE_WRITE);
     if(file) {
         file.print(buf);
         file.close();
@@ -226,6 +213,19 @@ int CLAppCam::savePrefs(){
         return FAIL;
     }
 
+}
+
+int CLAppCam::snapToBufer() {
+    fb = esp_camera_fb_get();
+
+    return (fb?ESP_OK:ESP_FAIL);
+}
+
+void CLAppCam::releaseBuffer() {
+    if(fb) {
+        esp_camera_fb_return(fb);
+        fb = NULL;
+    }
 }
 
 

@@ -3,7 +3,7 @@
 char * CLAppComponent::getPrefsFileName(bool forsave) {
     if(tag) {
         sprintf(prefs, "/%s.json", tag);
-        if(fsStorage->exists(prefs) || forsave)
+        if(Storage.exists(prefs) || forsave)
             return prefs;
         else {
             Serial.printf("Pref file %s not found, falling back to default\r\n", prefs);
@@ -18,7 +18,7 @@ char * CLAppComponent::getPrefsFileName(bool forsave) {
 void CLAppComponent::dumpPrefs() {
     char *prefs_file = getPrefsFileName(); 
     String s;
-    if(readFileToString(prefs_file, &s) != OK) {
+    if(Storage.readFileToString(prefs_file, &s) != OK) {
         Serial.printf("Preference file %s not found.\r\n", prefs_file);
         return;
     }
@@ -33,16 +33,18 @@ int CLAppComponent::readJsonIntVal(jparse_ctx_t *jctx_ptr, char* token) {
   return 0;
 }
 
-void CLAppComponent::removePrefs() {
+int CLAppComponent::removePrefs() {
   char *prefs_file = getPrefsFileName(true);  
-  if (fsStorage->exists(prefs_file)) {
+  if (Storage.exists(prefs_file)) {
     Serial.printf("Removing %s\r\n", prefs_file);
-    if (!fsStorage->remove(prefs_file)) {
-      Serial.println("Error removing preferences");
+    if (!Storage.remove(prefs_file)) {
+      sprintf("Error removing %s preferences\r\n", tag);
+      return OS_FAIL;
     }
   } else {
-    Serial.println("No saved preferences file to remove");
+    Serial.printf("No saved %s preferences to remove\r\n", tag);
   }
+  return OS_SUCCESS;
 }
 
 int CLAppComponent::parsePrefs(jparse_ctx_t *jctx) {
@@ -50,7 +52,7 @@ int CLAppComponent::parsePrefs(jparse_ctx_t *jctx) {
 
   String conn_json;
 
-  if(readFileToString(conn_file, &conn_json) != OK) {
+  if(Storage.readFileToString(conn_file, &conn_json) != OK) {
       Serial.printf("Failed to open the connection settings from %s \r\n", conn_file);
       return OS_FAIL;
   }

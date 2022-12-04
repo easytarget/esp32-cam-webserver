@@ -1,10 +1,8 @@
-# ESP32-CAM Example Revisited<sup>2</sup> &nbsp;&nbsp;&nbsp;  &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](data/www/logo.svg)</span>
+# ESP32-CAM WebCam Server &nbsp;&nbsp;&nbsp;  &nbsp;&nbsp; 
+<span title="ESP EYE">![ESP-EYE logo](data/www/img/logo.svg)</span>
 
-## Taken from the ESP examples, and expanded 
-This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example 
-sketch from Espressif:
-
-* Original [CameraWebServer](https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer)
+This sketch is a fully customizable webcam server based on ESP32-based board with camera. It can be used as a starting point for 
+your own webcam solution. 
 
 ### Key features: ###
 * Extended options for default network and camera settings
@@ -128,9 +126,15 @@ folder of the SD card:
 ```json
 {
     "my_name": "MY_NAME",
+    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
+            {"uri":"/img", "path": "/www/img"},
+            {"uri":"/css", "path": "/www/css"},
+            {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
 }
 ```
+
+The parameter `mapping` allows to configure folders with static content for the web server. 
 
 Similarly, default camera configuration parameters can be set by creating the file `cam.json`:
 

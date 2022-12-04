@@ -1,9 +1,6 @@
 #include "storage.h"
 
-/// @brief List the content of a folder
-/// @param dirname 
-/// @param levels 
-void listDir(const char * dirname, uint8_t levels){
+void CLStorage::listDir(const char * dirname, uint8_t levels){
   Serial.printf("Listing directory: %s\r\n", dirname);
 
   File root = fsStorage->open(dirname);
@@ -15,6 +12,8 @@ void listDir(const char * dirname, uint8_t levels){
     Serial.println(" - not a directory");
     return;
   }
+  
+  root.rewindDirectory();
 
   File file = root.openNextFile();
   while(file){
@@ -35,11 +34,7 @@ void listDir(const char * dirname, uint8_t levels){
 }
 
 
-
-
-/// @brief file storage initialization
-/// @return true if success, or false otherwise.
-bool init_storage() {
+bool CLStorage::init() {
 #ifdef USE_LittleFS
   return fsStorage->begin(FORMAT_LITTLEFS_IF_FAILED);
 #else
@@ -65,17 +60,14 @@ bool init_storage() {
       break;    
   }
 
-  Serial.printf(" card size: %lluMB\n", storageSize());
-
+  Serial.printf(" card size: %lluMB\n", getSize());
+  
   return true;
 #endif
 }
 
-/// @brief Load a file to a String
-/// @param path file name
-/// @param s pointer to the String buffer
-/// @return OK(0) or FAIL(1)
-int readFileToString(char *path, String *s)
+
+int CLStorage::readFileToString(char *path, String *s)
 {
 	File file = fsStorage->open(path);
 	if (!file)
@@ -90,14 +82,16 @@ int readFileToString(char *path, String *s)
 	return OK;
 }
 
-int storageSize() {
+int CLStorage::getSize() {
   return (int) (fsStorage->totalBytes() / pow(1024, STORAGE_UNITS));
 }
 
-int storageUsed() {
+int CLStorage::getUsed() {
   return (int) (fsStorage->usedBytes() / pow(1024, STORAGE_UNITS));
 }
 
-int capacityUnits() {
+int CLStorage::capacityUnits() {
   return STORAGE_UNITS;
 }
+
+CLStorage Storage;

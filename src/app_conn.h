@@ -27,11 +27,23 @@
 #define NTP_GMT_OFFSET 14400
 #define NTP_DST_OFFSET 0
 
+/**
+ * @brief WiFi connectivity details (SSID/password).
+ * 
+ */
+struct Station { char ssid[64]; char password[64]; bool dhcp;};
 
-struct Station { char ssid[65]; char password[65]; bool dhcp;};
-
+/**
+ * @brief Static IP strcuture for configuring AP and WiFi parameters
+ * 
+ */
 struct StaticIP { IPAddress *ip; IPAddress *netmask; IPAddress *gateway; IPAddress *dns1; IPAddress *dns2; };
 
+/**
+ * @brief Connection Manager
+ * This class manages everything related to connectivity of the application: WiFi, OTA etc.
+ * 
+ */
 class CLAppConn : public CLAppComponent {
     public:
         CLAppConn();

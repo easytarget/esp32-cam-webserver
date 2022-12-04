@@ -1,3 +1,7 @@
 {
+    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
+                {"uri":"/img", "path": "/www/img"},
+                {"uri":"/css", "path": "/www/css"},
+                {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
 }

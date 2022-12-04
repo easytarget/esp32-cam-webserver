@@ -202,8 +202,8 @@ int CLAppConn::loadPrefs() {
                 if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
                     Station *s = (Station*) malloc(sizeof(Station));
                     if(json_obj_get_string(&jctx, "ssid", s->ssid, sizeof(s->ssid)) == OS_SUCCESS &&
-                    json_obj_get_string(&jctx, "pass", s->password, sizeof(s->password)) == OS_SUCCESS &&
-                    json_obj_get_bool(&jctx, "dhcp", &s->dhcp) == OS_SUCCESS) {
+                       json_obj_get_string(&jctx, "pass", s->password, sizeof(s->password)) == OS_SUCCESS &&
+                       json_obj_get_bool(&jctx, "dhcp", &s->dhcp) == OS_SUCCESS) {
                         Serial.printf("%s\r\n", s->ssid);
                         stationList[i] = s;
                     } 
@@ -270,7 +270,7 @@ int CLAppConn::loadPrefs() {
 
 int CLAppConn::savePrefs() {
     // TODO: add saving of WiFi prefs
-    return OK;
+    return OS_SUCCESS;
 }
 
 void CLAppConn::enableOTA(bool enable) {
@@ -309,7 +309,7 @@ void CLAppConn::enableOTA(bool enable) {
                 // critERR += "<p>Wait for OTA to finish and reboot, or <a href=\"control?var=reboot&val=0\" title=\"Reboot Now (may interrupt OTA)\">reboot manually</a> to recover</p>";
             })
             .onEnd([]() {
-                Serial.println("\r\nEnd");
+                Serial.println("End");
             })
             .onProgress([](unsigned int progress, unsigned int total) {
                 Serial.printf("Progress: %u%%\r", (progress / (total / 100)));

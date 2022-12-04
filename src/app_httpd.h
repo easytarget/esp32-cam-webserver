@@ -1,7 +1,6 @@
 #ifndef app_httpd_h
 #define app_httpd_h
 
-#include <esp_camera.h>
 #include <esp_int_wdt.h>
 #include <esp_task_wdt.h>
 #include <freertos/timers.h>
@@ -10,6 +9,8 @@
 #include "storage.h"
 #include "app_conn.h"
 #include "app_cam.h"
+
+#define MAX_URI_MAPPINGS    32
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,19 @@ void onSnapTimer(TimerHandle_t pxTimer);
 
 void dumpSystemStatusToJson(char * buf, size_t size);
 
+
+/**
+ * @brief Static URI to path mapping
+ * 
+ */
+struct UriMapping { char uri[32]; char path[32];};
+
+
+/** 
+ * @brief WebServer Manager
+ * Class for handling web server requests. The web pages are assumed to be stored in the file system (can be SD card or LittleFS).  
+ * 
+ */
 class CLAppHttpd : public CLAppComponent {
     public:
         CLAppHttpd();
@@ -48,9 +62,9 @@ class CLAppHttpd : public CLAppComponent {
         void setStreamMode(capture_mode mode) {streammode = mode;};
         capture_mode getStreamMode() {return streammode;};
 
-        esp_err_t snapToStream(bool debug = false);
-        esp_err_t startStream(uint32_t id);
-        esp_err_t stopStream(uint32_t id);
+        int snapToStream(bool debug = false);
+        int startStream(uint32_t id);
+        int stopStream(uint32_t id);
 
         void updateSnapTimer(int frameRate);
 
@@ -68,6 +82,9 @@ class CLAppHttpd : public CLAppComponent {
 
 
     private:
+
+        UriMapping *mappingList[MAX_URI_MAPPINGS]; 
+        int mappingCount=0;
 
         // Name of the application used in web interface
         // Can be re-defined in the httpd.json file

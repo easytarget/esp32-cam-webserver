@@ -4,12 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>Patriot Crawler - Status</title>
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-        <link rel="stylesheet" type="text/css" href="/style.css">
+        <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
     </head>
     <body onload="fetchData()">
-        <img src="/logo.svg" style="position: relative; float: right;">
+        <img src="/img/logo.svg" style="position: relative; float: right;">
         <h1>ESP32 Cam Webserver</h1>
         <div id="content"></div>
         <div class="input-group">
@@ -125,7 +125,7 @@
             bodyHtml += 'Filesystem: ' + data.storage_size + data.storage_units +  
                         ', used: ' + data.storage_used + data.storage_units + '<br>';
 
-            if(data.serial_buf.lenght == 0) {
+            if(data.serial_buf != "") {
                 bodyHtml += '<h2>Serial</h2>';
                 bodyHtml += data.serial_buf;
             }
