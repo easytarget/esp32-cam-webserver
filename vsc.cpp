@@ -32,13 +32,7 @@ unsigned long dht_curMs = 0;
 /* Auto rename if last part of IP address is in the list */
 /* Instead of ___ at the end of CAM_NAME will appear index 1,2,3...15...  from this list */
 #include "vsc.h"
-int camera_data_size = 3;
 int camera_data_index = -1;
-struct camera_data camera_datas[3] = {
-                                      { 203, "zUVAsF4JyKDqLOkUblYy" }, 
-                                      { 206, "BYE9zmxfrkGi2Nwlpzom" },
-                                      { 207, "cb4zha50w8IqQk1lqWIF" }
-                                    };
 
 #ifdef NO_OTA
 void update_fw(void) {
@@ -149,7 +143,7 @@ void gettemperature(void) {
 char tb_url[128] = "";
 
 void handleThingsBoard(void) {
-  if (camera_data_index >= 0 && dht_interval) {            
+  if (dht_type && camera_data_index >= 0 && dht_interval) {            
     dht_curMs = millis();
     if (dht_curMs - dht_prevMs >= dht_interval * 1000) {
       dht_prevMs = dht_curMs;

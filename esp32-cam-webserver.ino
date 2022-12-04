@@ -449,9 +449,7 @@ void StartCamera() {
 unsigned long accesspoint_start = 0;
 
 #include "vsc.h"
-extern int camera_data_size;
 extern int camera_data_index;
-extern struct camera_data camera_datas[];
 
 void WifiSetup() {
     // Feedback that we are now attempting to connect
