@@ -5,6 +5,7 @@
 #include <esp_task_wdt.h>
 #include <freertos/timers.h>
 
+#include "ESP32Servo.h"
 #include "ESPAsyncWebServer.h"
 #include "storage.h"
 #include "app_conn.h"
@@ -39,6 +40,8 @@ void dumpSystemStatusToJson(char * buf, size_t size);
  */
 struct UriMapping { char uri[32]; char path[32];};
 
+struct AppServo {int pin; Servo * servo;};
+
 
 /** 
  * @brief WebServer Manager
@@ -57,6 +60,7 @@ class CLAppHttpd : public CLAppComponent {
         int8_t getStreamCount() {return streamCount;};
         long getStreamsServed() {return streamsServed;};
         unsigned long getImagesServed() {return imagesServed;};
+        int getServoCount() {return servoCount;};
         void incImagesServed(){imagesServed++;};
 
         void setStreamMode(capture_mode mode) {streammode = mode;};
@@ -80,11 +84,24 @@ class CLAppHttpd : public CLAppComponent {
 
         char * getSerialBuffer() {return serialBuffer;};
 
+        /**
+         * @brief attaches a new servo and returns its ID in case of success, or OS_FAIL otherwise
+         * 
+         * @param pin 
+         * @return int 
+         */
+        int attachServo(int pin);
+        
+        int writeServo(int pin, int value);
+
 
     private:
 
         UriMapping *mappingList[MAX_URI_MAPPINGS]; 
         int mappingCount=0;
+
+        AppServo *servos[MAX_SERVOS];
+        int servoCount = 0;
 
         // Name of the application used in web interface
         // Can be re-defined in the httpd.json file

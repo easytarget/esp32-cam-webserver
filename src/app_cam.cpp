@@ -52,12 +52,23 @@ int CLAppCam::start() {
 
         // Dump camera module, warn for unsupported modules.
         switch (sensor->id.PID) {
-            case OV9650_PID: Serial.println("WARNING: OV9650 camera module is not properly supported, will fallback to OV2640 operation"); break;
-            case OV7725_PID: Serial.println("WARNING: OV7725 camera module is not properly supported, will fallback to OV2640 operation"); break;
-            case OV2640_PID: Serial.println("OV2640 camera module detected"); break;
-            case OV3660_PID: Serial.println("OV3660 camera module detected"); break;
-            default: Serial.println("WARNING: Camera module is unknown and not properly supported, will fallback to OV2640 operation");
+            case OV9650_PID: 
+                Serial.print("OV9650");  
+                break;
+            case OV7725_PID: 
+                Serial.print("OV7725"); 
+                break;
+            case OV2640_PID: 
+                Serial.print("OV2640"); 
+                break;
+            case OV3660_PID: 
+                Serial.print("OV3660"); 
+                break;
+            default: 
+                Serial.print("UNKNOWN");
+                break;
         }
+        Serial.println(" camera module detected");
 
     }
 
@@ -120,6 +131,8 @@ int CLAppCam::loadPrefs() {
         s->set_brightness(s, readJsonIntVal(&jctx, "brightness"));
         s->set_contrast(s, readJsonIntVal(&jctx, "contrast"));
         s->set_saturation(s, readJsonIntVal(&jctx, "saturation"));
+        s->set_sharpness(s, readJsonIntVal(&jctx, "sharpness"));
+        s->set_denoise(s, readJsonIntVal(&jctx, "denoise"));
         s->set_special_effect(s, readJsonIntVal(&jctx, "special_effect"));
         s->set_wb_mode(s, readJsonIntVal(&jctx, "wb_mode"));
         s->set_whitebal(s, readJsonIntVal(&jctx, "awb"));
@@ -179,6 +192,8 @@ int CLAppCam::savePrefs(){
     json_gen_obj_set_int(&jstr, "brightness", s->status.brightness);
     json_gen_obj_set_int(&jstr, "contrast", s->status.contrast);
     json_gen_obj_set_int(&jstr, "saturation", s->status.saturation);
+    json_gen_obj_set_int(&jstr, "sharpness", s->status.sharpness);
+    json_gen_obj_set_int(&jstr, "denoise", s->status.denoise);
     json_gen_obj_set_int(&jstr, "special_effect", s->status.special_effect);
     json_gen_obj_set_int(&jstr, "wb_mode", s->status.wb_mode);
     json_gen_obj_set_int(&jstr, "awb", s->status.awb);

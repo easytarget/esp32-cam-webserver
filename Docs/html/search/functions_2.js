@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['enableota_0',['enableOTA',['../class_c_l_app_conn.html#a5e9975f7afdb88ae197fb3ad43942c7f',1,'CLAppConn']]],
-  ['exists_1',['exists',['../class_c_l_storage.html#aa5b081483af1fcf83fca0573cc1c6f44',1,'CLStorage']]]
+  ['dumpprefs_0',['dumpPrefs',['../class_c_l_app_component.html#ad90151113ffbbcc630e347580b3ee9fe',1,'CLAppComponent']]],
+  ['dumpsystemstatustojson_1',['dumpSystemStatusToJson',['../app__httpd_8cpp.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp']]]
 ];

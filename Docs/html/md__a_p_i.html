@@ -73,10 +73,8 @@ URI's</h1>
 <h2><a class="anchor" id="autotoc_md2"></a>
 Web UI pages</h2>
 <ul>
-<li><code>/</code> or <code>/portal</code> - Default index (portal)</li>
-<li><code>/view?mode=full|simple|stream|still</code> - Go direct to specific page:</li>
-<li>- full: taking still and video with complete set of camera controls</li>
-<li>- simple: taking still and video with limited set of camera controls</li>
+<li><code>/</code> Default index (camera view)</li>
+<li><code>/view?mode=stream|still</code> - Go direct to specific page:</li>
 <li>- stream: starting video capture with full screen mode</li>
 <li>- still: taking a still image with full screen mode</li>
 <li><code>/dump</code> - Status page (automatically refreshed every 5 sec)</li>
@@ -120,8 +118,6 @@ Supported Control Variables:</h3>
 <div class="line">rotate          - Rotation Angle; integer, only -90, 0, 90 values are recognised</div>
 <div class="line">dcw             - 0 = disable, 1 = enable</div>
 <div class="line">colorbar        - Overlays a color test pattern on the stream; integer, 1 = enabled</div>
-<div class="line">face_detect     - Face Detection; 1 = enabled, Only settable if framesize &lt;= 4 (CIF)</div>
-<div class="line">face_recognize  - Face recognition; 1 = enabled, only settable if Face detection is already enabled</div>
 </div><!-- fragment --><h4><a class="anchor" id="autotoc_md5"></a>
 Framesize values</h4>
 <p >These may vary between different ESP framework releases </p><div class="fragment"><div class="line"> 0 - THUMB (96x96)</div>
@@ -144,7 +140,7 @@ Commands</h3>
 <p >These are commands; they can be sent by calling the <code>/control</code> URI with them as the <code>&lt;key&gt;</code> parameter. </p><div class="fragment"><div class="line">* save_prefs      - Saves preferences</div>
 <div class="line">  `val=cam` or not specified will save camera preferences</div>
 <div class="line">  `val=conn` will save network preferences</div>
-<div class="line">* clear_prefs     - Deletes camera the preferences</div>
+<div class="line">* remove_prefs     - Deletes camera the preferences</div>
 <div class="line">  `val=cam` or not specified will reset camera preferences</div>
 <div class="line">  `val=conn` will reset network preferences. Attention! after this the server will boot as access point after restart, and all</div>
 <div class="line">  connection settings will be lost. </div>

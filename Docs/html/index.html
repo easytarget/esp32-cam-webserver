@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.3"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>ESP32 WebCam Server: ESP32-CAM WebCam Server &nbsp;&nbsp;&nbsp;  &nbsp;&nbsp;</title>
+<title>ESP32 WebCam Server: ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; &lt;span title=&quot;Master branch build status&quot;&gt;&lt;a href=&quot;https://travis-ci.com/github/easytarget/esp32-cam-webserver&quot; &gt;&lt;img src=&quot;https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master&quot; alt=&quot;CI Status&quot;/&gt;&lt;/a&gt;&lt;/span&gt; &nbsp;&nbsp; &lt;span title=&quot;ESP EYE&quot;&gt;&lt;img src=&quot;Docs/logo.svg&quot; alt=&quot;ESP-EYE logo&quot;/&gt;&lt;/span&gt;</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -64,11 +64,11 @@ $(function() {
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">ESP32-CAM WebCam Server &#160;&#160;&#160; &#160;&#160; </div></div>
+  <div class="headertitle"><div class="title">ESP32-CAM WebServer. &#160;&#160;&#160; <span title="Master branch build status"><a href="https://travis-ci.com/github/easytarget/esp32-cam-webserver"><img src="https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master" alt="CI Status" style="pointer-events: none;" class="inline"/></a></span> &#160;&#160; <span title="ESP EYE"><img src="Docs/logo.svg" alt="ESP-EYE logo" style="pointer-events: none;" class="inline"/></span> </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p ><a class="anchor" id="md_README"></a><span title="ESP EYE"><img src="data/www/img/logo.svg" alt="ESP-EYE logo" style="pointer-events: none;" class="inline"/></span></p>
-<p >This sketch is a fully customizable webcam server based on ESP32-based board with camera. It can be used as a starting point for your own webcam solution.</p>
+<div class="textblock"><p ><a class="anchor" id="md_README"></a> This sketch is a fully customizable webcam server based on ESP32-based board with camera. It can be used as a starting point for your own webcam solution.</p>
+<p >There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.</p>
 <h2><a class="anchor" id="autotoc_md17"></a>
 Key features:</h2>
 <ul>
@@ -77,41 +77,33 @@ Key features:</h2>
 <li>Dedicated standalone stream viewer</li>
 <li>Over The Air firmware updates</li>
 <li>Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.</li>
-<li>Using just one IP port instead of two.</li>
+<li>Using just one IP port, easy for proxying.</li>
 <li>Porting the web server to <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESP Async Web Server</a>.</li>
-<li>Storing web pages as separate HTML/CSS/JS files on the SD drive, which greatly simplifies development of the interface. Basically, you can swap the face of this project just by replacing files on SD card.</li>
-<li>Reduced size of the sketch and improving memory utilization</li>
-<li>Porting the code from basic C to C++ object hierarchy, eliminating extensive use of global variables</li>
-<li>Lots of minor fixes and tweaks, documentation etc.</li>
+<li>Storing web pages as separate HTML/CSS/JS files on the SD drive, which greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on SD card.</li>
+<li>Compact size of the sketch and low memory utilization</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md18"></a>
-Key principles</h2>
-<p >There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.</p>
-<p >Hopefully this expanded example is more useful for those users who wish to set up a simple ESP32 based webcam using the cheap(ish) modules freely available online.</p>
-<h2><a class="anchor" id="autotoc_md19"></a>
-Summary of reductions</h2>
-<p >When re-desiginig and refactoring the original ESP32 Camera web server example from Espressve, the following key principles were followed:</p>
-<ol type="1">
-<li>Any idea can be killed by unnecessary features</li>
-<li>See <a href="https://www.youtube.com/watch?v=iMULJIXPxK4">this tutorial video</a>.</li>
-</ol>
-<p >Given the above, face recognition feature was removed. The main purpose of this sketch is to make the camera web server easily configurable and reusable.</p>
-<p >The original example, is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.</p>
-<h2><a class="anchor" id="autotoc_md20"></a>
 Supported development boards</h2>
 <p >The sketch has been tested on the <a href="https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf">AI Thinker ESP32-CAM</a> module. Other ESP32 boards equipped with camera may be compatible but not guaranteed.</p>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md19"></a>
+Supported camera models:</h2>
+<p >The sketch has been tested on the following camera models:</p>
+<ul>
+<li>OV2640 (default)</li>
+<li>OV3660</li>
+</ul>
+<p >Other camera models are not supported but may work with some limitations.</p>
+<h2><a class="anchor" id="autotoc_md20"></a>
 Known Issues</h2>
 <p >The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other communication problems are simply due to 'WiFi issues'.</p>
 <p >The AI-THINKER camera module &amp; esp32 combination is quite susceptible to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.</p>
 <p >A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream, the first steam will freeze.</p>
-<p >Currently, camera modules other than ov2640 are not supported.</p>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md21"></a>
 Setup:</h1>
 <ul>
 <li>For programming you will need a suitable development environment. Possible options include Visual Studio Code, Arduino Studio or Espressif development environment .</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md22"></a>
 Wiring for AI-THINKER Boards (and similar clone-alikes)</h2>
 <p >Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below. <img src="Docs/hookup.png" alt="Hoockup" class="inline"/></p><ul>
 <li>Connect the <b>RX</b> line from the serial adapter to the <b>TX</b> pin on ESP32</li>
@@ -119,12 +111,12 @@ Wiring for AI-THINKER Boards (and similar clone-alikes)</h2>
 <li>The <b>GPIO0</b> pin of the ESP32 must be held LOW (to ground) when the unit is powered up to allow it to enter it's programming mode. This can be done with simple jumper cable connected at poweron, fitting a switch for this is useful if you will be reprogramming a lot.</li>
 <li>You will to supply 5v to the ESP32 in order to power it during programming; the FTDI board alone fails to supply this sometimes. The ESP32 CAM board is very sensitive to the quality of power source. Decoupling capacitors are very much recommended.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md24"></a>
+<h2><a class="anchor" id="autotoc_md23"></a>
 Download the Sketch, Unpack and Rename</h2>
 <p >Download the latest release of the sketch this repository. Once you have done that you can open the sketch in the IDE by going to the <code>esp32-cam-webserver</code> sketch folder and selecting <code>esp32-cam-webserver.ino</code>.</p>
 <p >You also need to copy the content of the <b>data</b> folder from this repository to a micro SD flash memory card (must be formatted as FAT32) and insert it into the micro SD slot of the board.</p>
 <p >Without the SD card, the sketch will not start. Please ensure the size of the card does not exceed 4GB, which is a maximum supported capacity for ESP32-CAM board. Higher capacity SD card may not work.</p>
-<h2><a class="anchor" id="autotoc_md25"></a>
+<h2><a class="anchor" id="autotoc_md24"></a>
 Config</h2>
 <p >You will need to configure the web server with your WiFi settings. In order to do so, you will need to create a config file in the root folder of your SD card named <code>conn.json</code> and format it as follows:</p>
 <div class="fragment"><div class="line">{   </div>
@@ -165,6 +157,8 @@ Config</h2>
 <div class="line">    &quot;frame_rate&quot;:25,</div>
 <div class="line">    &quot;brightness&quot;:0,</div>
 <div class="line">    &quot;contrast&quot;:0,</div>
+<div class="line">    &quot;sharpness&quot;:0,</div>
+<div class="line">    &quot;denoise&quot;:0,</div>
 <div class="line">    &quot;saturation&quot;:0,</div>
 <div class="line">    &quot;special_effect&quot;:0,</div>
 <div class="line">    &quot;wb_mode&quot;:0,&quot;awb&quot;:1,</div>
@@ -187,7 +181,7 @@ Config</h2>
 <div class="line">    &quot;rotate&quot;:&quot;0&quot;, </div>
 <div class="line">    &quot;debug_mode&quot;: false</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md25"></a>
 Programming</h2>
 <p >Assuming you are using the latest Espressif Arduino core the <code>ESP32 Dev Module</code> board will appear in the ESP32 Arduino section of the boards list. Select this (do not use the <code>AI-THINKER</code> entry listed in the boiards menu, it is not OTA compatible, and will cause the module to crash and reboot rather than updating if you use it. <img src="Docs/ota-board-selection.png" alt="IDE board config" class="inline"/></p>
 <p >Make sure you select the <code>Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)</code> partition cheme and turn <code>PSRAM</code> on.</p>
@@ -196,15 +190,15 @@ Programming</h2>
 <p >Once you have the initial upload done and the board is connected to the wifi network you should see it appearing in the <code>network ports</code> list of the IDE, and you can upload wirelessly.</p>
 <p >If you have a status LED configured it will give a double flash when it begins attempting to conenct to WiFi, and five short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.</p>
 <p >Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!</p>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md26"></a>
 API</h2>
 <p >The communications between the web browser and the camera module can also be used to send commands directly to the camera (eg to automate it, etc) and form, in effect, an API for the camera.</p><ul>
 <li><a class="el" href="md__a_p_i.html">ESP32 Camera Web Server JSON API</a>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 Contributing</h1>
 <p >Contributions are welcome; please see the <a class="el" href="md__c_o_n_t_r_i_b_u_t_i_n_g.html">Contribution guidelines</a>.</p>
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 Future plans</h1>
 <ol type="1">
 <li>Support of LittleFS.</li>

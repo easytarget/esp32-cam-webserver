@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['updatesnaptimer_0',['updateSnapTimer',['../class_c_l_app_httpd.html#a58f5ed0635650911e1540f138df24b29',1,'CLAppHttpd']]]
+  ['temprature_5fsens_5fread_0',['temprature_sens_read',['../app__httpd_8h.html#a2188b2e5ed72e93782e0a6d59111a180',1,'app_httpd.h']]]
 ];

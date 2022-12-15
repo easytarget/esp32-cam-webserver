@@ -1,4 +1,20 @@
 var searchData=
 [
-  ['temprature_5fsens_5fread_0',['temprature_sens_read',['../app__httpd_8h.html#a2188b2e5ed72e93782e0a6d59111a180',1,'app_httpd.h']]]
+  ['saveprefs_0',['savePrefs',['../class_c_l_app_cam.html#a0f2bc29dea9609204871b7b5bc281c4f',1,'CLAppCam::savePrefs()'],['../class_c_l_app_component.html#a31a25b7869113a15e18f34b2c690189a',1,'CLAppComponent::savePrefs()'],['../class_c_l_app_conn.html#ace5a052d85379ece71207129edc2a0f1',1,'CLAppConn::savePrefs()']]],
+  ['serialsendcommand_1',['serialSendCommand',['../class_c_l_app_httpd.html#a36be0ed79de4194e8d00b026fd4be4d0',1,'CLAppHttpd']]],
+  ['setautolamp_2',['setAutoLamp',['../class_c_l_app_cam.html#aa5bd4f968fd8345d3d2a5d8a121586c3',1,'CLAppCam']]],
+  ['setdebugmode_3',['setDebugMode',['../class_c_l_app_component.html#a9ab4a575691522178eb10d9bffcff5b7',1,'CLAppComponent']]],
+  ['seterr_4',['setErr',['../class_c_l_app_component.html#a9565596ad1c588c05e349d92b2476e40',1,'CLAppComponent']]],
+  ['setframerate_5',['setFrameRate',['../class_c_l_app_cam.html#a6581e369883546817a1edaedf4af1734',1,'CLAppCam']]],
+  ['setlamp_6',['setLamp',['../class_c_l_app_cam.html#a8cab0636ce5e566a7b89016c477aec2b',1,'CLAppCam']]],
+  ['setrotation_7',['setRotation',['../class_c_l_app_cam.html#a27d4c05b87660b0e04b6a8902f0f173e',1,'CLAppCam']]],
+  ['setstreammode_8',['setStreamMode',['../class_c_l_app_httpd.html#a40005188d09a72002252fd4b6e2cd2b9',1,'CLAppHttpd']]],
+  ['settag_9',['setTag',['../class_c_l_app_component.html#a75a706c37e31c3083c845d304e3a519b',1,'CLAppComponent']]],
+  ['setxclk_10',['setXclk',['../class_c_l_app_cam.html#a9ccd0763eb8eeb559b46e747df25d268',1,'CLAppCam']]],
+  ['snaptobufer_11',['snapToBufer',['../class_c_l_app_cam.html#a89a7a39bd89130cab06fd7139fc9b6d9',1,'CLAppCam']]],
+  ['snaptostream_12',['snapToStream',['../class_c_l_app_httpd.html#a4e52f72c1d20cf6420e2f17b0b521da4',1,'CLAppHttpd']]],
+  ['start_13',['start',['../class_c_l_app_cam.html#af277f42041c7c0a561bd8c8b087f4b3a',1,'CLAppCam::start()'],['../class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5',1,'CLAppComponent::start()'],['../class_c_l_app_conn.html#a75a0c8c0ab160691ecf58e3c4ad58951',1,'CLAppConn::start()'],['../class_c_l_app_httpd.html#aaf8a95884768b7ac3e1c04ea041ee514',1,'CLAppHttpd::start()']]],
+  ['startstream_14',['startStream',['../class_c_l_app_httpd.html#af836002eda44f3e400af0808bf9046c1',1,'CLAppHttpd']]],
+  ['stop_15',['stop',['../class_c_l_app_cam.html#a8f1da94b3efb536a15419e5983fcac81',1,'CLAppCam::stop()'],['../class_c_l_app_conn.html#ab0a56d0491f5fd3fdce6028447183a25',1,'CLAppConn::stop()']]],
+  ['stopstream_16',['stopStream',['../class_c_l_app_httpd.html#a4889a2a7ee9a0e5ab558b64983249e46',1,'CLAppHttpd']]]
 ];

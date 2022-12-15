@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['readfiletostring_0',['readFileToString',['../class_c_l_storage.html#a837b93ce2190684b5f17cc5b9da6f6ba',1,'CLStorage']]],
-  ['readjsonintval_1',['readJsonIntVal',['../class_c_l_app_component.html#aae2aee9e4a8001900d8b380adb66a8e3',1,'CLAppComponent']]],
-  ['releasebuffer_2',['releaseBuffer',['../class_c_l_app_cam.html#aaf9c6d7306c5122eb6766011b8fc4c4c',1,'CLAppCam']]],
-  ['remove_3',['remove',['../class_c_l_storage.html#afa5139f3590aba42b3de2c8e1786a43b',1,'CLStorage']]],
-  ['removeprefs_4',['removePrefs',['../class_c_l_app_component.html#af763174f3eed76761a2eeab9aa845e6a',1,'CLAppComponent']]]
+  ['parsebytes_0',['parseBytes',['../parsebytes_8cpp.html#a4d8e6d226a4ee77982a2810ca02a8b77',1,'parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base):&#160;parsebytes.cpp'],['../parsebytes_8h.html#a4d8e6d226a4ee77982a2810ca02a8b77',1,'parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base):&#160;parsebytes.cpp']]],
+  ['parseprefs_1',['parsePrefs',['../class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319',1,'CLAppComponent']]],
+  ['printlocaltime_2',['printLocalTime',['../class_c_l_app_conn.html#a9a4f24949950433f1672c3db6af49dde',1,'CLAppConn']]],
+  ['processor_3',['processor',['../app__httpd_8cpp.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp']]]
 ];

@@ -101,6 +101,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2b63e9eb18e2d67fc3f352fec0b66cd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1682f0b927c3c3691a20c1298e9922c9"><td class="memItemLeft" align="right" valign="top">unsigned long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a1682f0b927c3c3691a20c1298e9922c9">getImagesServed</a> ()</td></tr>
 <tr class="separator:a1682f0b927c3c3691a20c1298e9922c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a855bd052a5092da8d8246face69881d9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a855bd052a5092da8d8246face69881d9">getServoCount</a> ()</td></tr>
+<tr class="separator:a855bd052a5092da8d8246face69881d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2db88a341da481eff2270d5fa8d607a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a2db88a341da481eff2270d5fa8d607a3">incImagesServed</a> ()</td></tr>
 <tr class="separator:a2db88a341da481eff2270d5fa8d607a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40005188d09a72002252fd4b6e2cd2b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a40005188d09a72002252fd4b6e2cd2b9">setStreamMode</a> (<a class="el" href="app__httpd_8h.html#a4f1a58013e90714b6ff526f27933ad3d">capture_mode</a> mode)</td></tr>
@@ -129,6 +131,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a56a97b6250dd609d57e9c84128813846"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86f5338752065817fabed08e118a8ff8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a86f5338752065817fabed08e118a8ff8">getSerialBuffer</a> ()</td></tr>
 <tr class="separator:a86f5338752065817fabed08e118a8ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa2f502272c6e8be33ef908013b0d4c8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#afa2f502272c6e8be33ef908013b0d4c8">attachServo</a> (int pin)</td></tr>
+<tr class="memdesc:afa2f502272c6e8be33ef908013b0d4c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">attaches a new servo and returns its ID in case of success, or OS_FAIL otherwise  <a href="class_c_l_app_httpd.html#afa2f502272c6e8be33ef908013b0d4c8">More...</a><br /></td></tr>
+<tr class="separator:afa2f502272c6e8be33ef908013b0d4c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a85c33a135e46369c092c27a7fd5e04bd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a85c33a135e46369c092c27a7fd5e04bd">writeServo</a> (int pin, int value)</td></tr>
+<tr class="separator:a85c33a135e46369c092c27a7fd5e04bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_c_l_app_component"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_c_l_app_component')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_c_l_app_component.html">CLAppComponent</a></td></tr>
 <tr class="memitem:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5">start</a> ()</td></tr>
 <tr class="separator:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,6 +191,33 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="afa2f502272c6e8be33ef908013b0d4c8" name="afa2f502272c6e8be33ef908013b0d4c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa2f502272c6e8be33ef908013b0d4c8">&#9670;&nbsp;</a></span>attachServo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int CLAppHttpd::attachServo </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pin</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>attaches a new servo and returns its ID in case of success, or OS_FAIL otherwise </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pin</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>int </dd></dl>
+
+</div>
+</div>
 <a id="a9c73098b74bbc4bb1358c2723019e716" name="a9c73098b74bbc4bb1358c2723019e716"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9c73098b74bbc4bb1358c2723019e716">&#9670;&nbsp;</a></span>getClientId()</h2>
 
@@ -270,6 +304,31 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">char * CLAppHttpd::getSerialBuffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a855bd052a5092da8d8246face69881d9" name="a855bd052a5092da8d8246face69881d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a855bd052a5092da8d8246face69881d9">&#9670;&nbsp;</a></span>getServoCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int CLAppHttpd::getServoCount </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -628,6 +687,34 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramtype">int&#160;</td>
           <td class="paramname"><em>frameRate</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a85c33a135e46369c092c27a7fd5e04bd" name="a85c33a135e46369c092c27a7fd5e04bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a85c33a135e46369c092c27a7fd5e04bd">&#9670;&nbsp;</a></span>writeServo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int CLAppHttpd::writeServo </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

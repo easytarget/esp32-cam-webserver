@@ -4,10 +4,8 @@ this makes controlling all functions of the camera via GET requests possible.
 
 ## URI's
 ### Web UI pages
-* `/` or `/portal` - Default index (portal)
-* `/view?mode=full|simple|stream|still` - Go direct to specific page:
-* - full: taking still and video with complete set of camera controls
-* - simple: taking still and video with limited set of camera controls
+* `/` Default index (camera view)
+* `/view?mode=stream|still` - Go direct to specific page:
 * - stream: starting video capture with full screen mode
 * - still: taking a still image with full screen mode
 * `/dump` - Status page (automatically refreshed every 5 sec)
@@ -50,8 +48,6 @@ vflip           - 0 = disable, 1 = enable
 rotate          - Rotation Angle; integer, only -90, 0, 90 values are recognised
 dcw             - 0 = disable, 1 = enable
 colorbar        - Overlays a color test pattern on the stream; integer, 1 = enabled
-face_detect     - Face Detection; 1 = enabled, Only settable if framesize <= 4 (CIF)
-face_recognize  - Face recognition; 1 = enabled, only settable if Face detection is already enabled
 ```
 
 ##### Framesize values
@@ -81,7 +77,7 @@ the `<key>` parameter.
 * save_prefs      - Saves preferences
   `val=cam` or not specified will save camera preferences
   `val=conn` will save network preferences
-* clear_prefs     - Deletes camera the preferences
+* remove_prefs     - Deletes camera the preferences
   `val=cam` or not specified will reset camera preferences
   `val=conn` will reset network preferences. Attention! after this the server will boot as access point after restart, and all
   connection settings will be lost. 

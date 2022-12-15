@@ -1,8 +1,11 @@
-# ESP32-CAM WebCam Server &nbsp;&nbsp;&nbsp;  &nbsp;&nbsp; 
-<span title="ESP EYE">![ESP-EYE logo](data/www/img/logo.svg)</span>
+# ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
 
-This sketch is a fully customizable webcam server based on ESP32-based board with camera. It can be used as a starting point for 
-your own webcam solution. 
+This sketch is a fully customizable webcam server based on ESP32-based board with camera. 
+It can be used as a starting point for your own webcam solution. 
+
+There are many other variants of a webcam server for these modules online, 
+but most are created for a specific scenario and not good for general, casual, 
+webcam use.
 
 ### Key features: ###
 * Extended options for default network and camera settings
@@ -10,38 +13,22 @@ your own webcam solution.
 * Dedicated standalone stream viewer
 * Over The Air firmware updates
 * Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
-* Using just one IP port instead of two. 
+* Using just one IP port, easy for proxying. 
 * Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
-* Storing web pages as separate HTML/CSS/JS files on the SD drive, which greatly simplifies development of the interface. Basically, you can swap the face of this project just by replacing files on SD card. 
-* Reduced size of the sketch and improving memory utilization
-* Porting the code from basic C to C++ object hierarchy, eliminating extensive use of global variables 
-* Lots of minor fixes and tweaks, documentation etc.
-
-### Key principles ###
-There are many other variants of a webcam server for these modules online, 
-but most are created for a specific scenario and not good for general, casual, 
-webcam use.
-
-Hopefully this expanded example is more useful for those users who wish to set up 
-a simple ESP32 based webcam using the cheap(ish) modules freely available online.
-
-### Summary of reductions ###
-When re-desiginig and refactoring the original ESP32 Camera web server example from
-Espressve, the following key principles were followed:
-
-1. Any idea can be killed by unnecessary features 
-2. See [this tutorial video](https://www.youtube.com/watch?v=iMULJIXPxK4).
-
-Given the above, face recognition feature was removed. The main purpose of this 
-sketch is to make the camera web server easily configurable and reusable. 
-
-The original example, is a bit incomprehensible and hard to modify as supplied. 
-It is very focused on showing off the face recognition capabilities, and forgets 
-the 'webcam' part.
+* Storing web pages as separate HTML/CSS/JS files on the SD drive, which greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on SD card. 
+* Compact size of the sketch and low memory utilization
   
 ### Supported development boards ###
 The sketch has been tested on the [AI Thinker ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) 
 module. Other ESP32 boards equipped with camera may be compatible but not guaranteed.
+
+### Supported camera models:
+The sketch has been tested on the following camera models:
+
+* OV2640 (default)
+* OV3660
+
+Other camera models are not supported but may work with some limitations. 
 
 ### Known Issues
 
@@ -57,8 +44,6 @@ decoupling capacitors on the power lines.
 A basic limitation of the sketch is that it can can only support one stream at a time. 
 If you try to connect to a cam that is already streaming (or attempting to stream, 
 the first steam will freeze. 
-
-Currently, camera modules other than ov2640 are not supported.
 
 ## Setup:
 
@@ -148,6 +133,8 @@ Similarly, default camera configuration parameters can be set by creating the fi
     "frame_rate":25,
     "brightness":0,
     "contrast":0,
+    "sharpness":0,
+    "denoise":0,
     "saturation":0,
     "special_effect":0,
     "wb_mode":0,"awb":1,

@@ -21,43 +21,23 @@ int CLAppHttpd::start() {
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         if(AppConn.isAccessPoint())
-            request->redirect("/setup");
+            request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
         else
-            request->redirect("/portal");
-    });
-
-    server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
-    });
-
-    server->on("/portal", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(Storage.getFS(), "/www/portal.html", "", false, processor);
+            request->send(Storage.getFS(), "/www/index.html", "", false, processor);
     });
 
     server->on("/view", HTTP_GET, [](AsyncWebServerRequest *request){
-        if(request->hasArg("mode")) {
-            if(request->arg("mode") == "simple") {
-                request->send(Storage.getFS(), "/www/index_simple.html", "", false, processor);
-            }
-            else if(request->arg("mode") == "full") {
-                if (AppCam.getSensorPID() == OV3660_PID) 
-                    request->send(Storage.getFS(), "/www/index_ov3660.html", "", false, processor);
-                request->send(Storage.getFS(), "/www/index_ov2640.html", "", false, processor);
-            }
-            else if(request->arg("mode") == "stream" || 
-                    request->arg("mode") == "still") {
-                if(!AppCam.getLastErr()) {
-                    AppHttpd.setStreamMode((request->arg("mode") == "stream"? CAPTURE_STREAM:CAPTURE_STILL));
-                    request->send(Storage.getFS(), "/www/streamviewer.html", "", false, processor);
-                }
-                else
-                    request->send(Storage.getFS(), "/www/error.html", "", false, processor);
+        if(request->arg("mode") == "stream" || 
+            request->arg("mode") == "still") {
+            if(!AppCam.getLastErr()) {
+                AppHttpd.setStreamMode((request->arg("mode") == "stream"? CAPTURE_STREAM:CAPTURE_STILL));
+                request->send(Storage.getFS(), "/www/view.html", "", false, processor);
             }
             else
-                request->send(400);
+                request->send(Storage.getFS(), "/www/error.html", "", false, processor);
         }
         else
-            request->send(Storage.getFS(), "/www/index_simple.html", "", false, processor);
+            request->send(400);
     });
 
     // adding fixed mappigs
@@ -108,17 +88,48 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
     }
     else if(type == WS_EVT_DATA){
         AwsFrameInfo * info = (AwsFrameInfo*)arg;
-        Serial.printf("ws[%s][%u] frame[%u] %u %s[%llu - %llu]: ", server->url(), client->id(), info->num,
-         info->message_opcode, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+        uint8_t* msg = (uint8_t*) data;
 
-        char* msg = (char*) data;
+        switch(*msg) {
+            case (uint8_t)'u':
+                AppHttpd.startStream(client->id());
+                break;
+            case (uint8_t)'s':
+                AppHttpd.setStreamMode(CAPTURE_STREAM);
+                AppHttpd.startStream(client->id());
+                break;
+            case (uint8_t)'p':  
+                AppHttpd.setStreamMode(CAPTURE_STILL);
+                AppHttpd.startStream(client->id());
+                break;
+            case (uint8_t)'a':  // attach servo
+                if(len == 2) {
+                    int pin = *(msg+1);
+                    AppHttpd.attachServo(pin);
+                }
+                break;
+            case (uint8_t)'w':  // write servo value
+                if(len == 3) {
+                    int pin = *(msg+1);
+                    int value = *(msg+2);
+                    AppHttpd.writeServo(pin, value);
+                }
+                break;
+            case (uint8_t)'t':  // terminate stream
+                AppHttpd.stopStream(client->id());
+                break;
+            default:
+                Serial.printf("ws[%s] client[%u] frame[%u] %u %s[%llu - %llu]: ", server->url(), client->id(), info->num,
+                    info->message_opcode, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+                for(int i=0; i< len; i++) {
+                    Serial.printf("%d,", *msg);
+                    msg++;
+                }
+                Serial.println();
+                break;
+        }
 
-        if(*msg == 's') {
-            AppHttpd.startStream(client->id());
-        }
-        else if(*msg, 't') {
-            AppHttpd.stopStream(client->id());
-        }
+
         
     }
 
@@ -277,6 +288,8 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable == "contrast") res = s->set_contrast(s, val);
     else if(variable == "brightness") res = s->set_brightness(s, val);
     else if(variable ==  "saturation") res = s->set_saturation(s, val);
+    else if(variable ==  "sharpness") res = s->set_sharpness(s, val);
+    else if(variable ==  "denoise") res = s->set_denoise(s, val);
     else if(variable ==  "gainceiling") res = s->set_gainceiling(s, (gainceiling_t)val);
     else if(variable ==  "colorbar") res = s->set_colorbar(s, val);
     else if(variable ==  "awb") res = s->set_whitebal(s, val);
@@ -381,6 +394,8 @@ void onStatus(AsyncWebServerRequest *request) {
         response->printf("\"hmirror\":%u,", s->status.hmirror);
         response->printf("\"dcw\":%u,", s->status.dcw);
         response->printf("\"colorbar\":%u,", s->status.colorbar);
+        response->printf("\"cam_pid\":%u,", s->id.PID);
+        response->printf("\"cam_ver\":%u,", s->id.VER);
         response->printf("\"cam_name\":\"%s\",", AppHttpd.getName());
         response->printf("\"code_ver\":\"%s\",", AppHttpd.getVersion().c_str());
         response->printf("\"rotate\":\"%d\",", AppCam.getRotation());
@@ -502,6 +517,56 @@ int CLAppHttpd::loadPrefs() {
         setDebugMode(dbg);  
 
     return ret;
+}
+
+int CLAppHttpd::attachServo(int pin) {
+
+    if(servoCount >= MAX_SERVOS) return OS_FAIL;
+
+    for(int i=0; i<servoCount; i++) 
+        if(servos[i]->pin == pin) return OS_FAIL; // pin already used
+
+    AppServo * newservo = (AppServo*) malloc(sizeof(AppServo));
+    newservo->pin = pin;
+    newservo->servo = new Servo();
+    if(!newservo->servo) {
+        Serial.println("Failed to create Servo"); 
+        free(newservo);
+        return OS_FAIL;
+    }
+    
+    newservo->servo->attach(pin);
+
+    if(!newservo->servo->attached()) {
+        Serial.print("Failed to attach Servo on pin "); Serial.println(pin);
+        free(newservo->servo);
+        free(newservo);
+        return OS_FAIL;
+    }
+
+    Serial.print("Created a new servo on pin "); Serial.println(pin);
+
+    servos[servoCount] = newservo;
+
+    servoCount++;
+
+    return servoCount - 1; 
+}
+
+int CLAppHttpd::writeServo(int pin, int value) {
+    for(int i=0; i<servoCount; i++) {
+        if(servos[i] && servos[i]->pin == pin) {
+            Servo * servo = servos[i]->servo;
+            if(servo->attached()) {
+                servo->write(value);
+                return OS_SUCCESS;
+            }
+            else
+                return OS_FAIL;    
+        }
+    }
+
+    return OS_FAIL;
 }
 
 CLAppHttpd AppHttpd;
