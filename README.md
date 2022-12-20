@@ -9,14 +9,17 @@ webcam use.
 
 ### Key features: ###
 * Extended options for default network and camera settings
+* Configuration through the web browser, including intial WiFi setup
 * Save and restore settings in JSON configuration files
 * Dedicated standalone stream viewer
 * Over The Air firmware updates
 * Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
 * Using just one IP port, easy for proxying. 
 * Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
-* Storing web pages as separate HTML/CSS/JS files on the SD drive, which greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on SD card. 
+* Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card
+or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system. 
 * Compact size of the sketch and low memory utilization
+
   
 ### Supported development boards ###
 The sketch has been tested on the [AI Thinker ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) 
@@ -54,7 +57,8 @@ the first steam will freeze.
 
 Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below.
 ![Hoockup](Docs/hookup.png)
-* Connect the **RX** line from the serial adapter to the **TX** pin on ESP32
+
+* Connect the **RX** line from the serisal adapter to the **TX** pin on ESP32
 * The adapters **TX** line goes to the ESP32 **RX** pin
 * The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is 
   powered up to allow it to enter it's programming mode. This can be done with simple 
@@ -64,31 +68,104 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
   board alone fails to supply this sometimes. The ESP32 CAM board is very sensitive 
   to the quality of power source. Decoupling capacitors are very much recommended.
 
-### Download the Sketch, Unpack and Rename
+### Download the Sketch, Unpack and compile
 Download the latest release of the sketch this repository. Once you have done that you 
 can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and 
-selecting `esp32-cam-webserver.ino`.
+selecting `esp32-cam-webserver.ino`. Compile it and upload to your board.
 
-You also need to copy the content of the **data** folder from this repository to a micro 
-SD flash memory card (must be formatted as FAT32) and insert it into the micro SD slot of 
-the board. 
+### Preparing the Web Server storage.
+You will need to copy the content of the **data** folder from this repository to the storage, which 
+can be either a micro SD flash memory card or the built-in flash memory with Little FS file system.
 
-Without the SD card, the sketch will not start. Please ensure the size of the card does 
-not exceed 4GB, which is a maximum supported capacity for ESP32-CAM board. 
-Higher capacity SD card may not work.
+**IMPORTANT!** Without the storage and content of the data folder on it, the sketch will not start. 
 
-### Config
+#### Using micro SD flash memory card
+You will need a blank SD card, which must be formatted as FAT32. Insert it into the micro SD slot of your computer and copy all the files from the **data** folder. The structure of files on the SD card should be 
+like this: 
+![Data Folder](Docs/data-folder.png)
 
-You will need to configure the web server with your WiFi settings. In order to do so,
-you will need to create a config file in the root folder of your SD card named `conn.json`
-and format it as follows:
+After that, insert the card in the slot of your ESP32CAM board and restart it. The Server should start normally.
+
+Please ensure the size of the card does not exceed 4GB, which is a maximum supported capacity for ESP32-CAM board. Higher capacity SD card may not work.
+
+#### Using built-in storage formatted as Little FS 
+This option is still experimental and recommended for advanced users only. First, you will need to 
+prepare your board and the dev environment for LittleFS. You can read about it [here:](https://github.com/lorol/LITTLEFS).
+
+Next, you will need to prepare the sketch for work with LittleFS. For that, you will need to uncomment the 
+following line in the `src/app_config.h`:
+
+```
+// #define USE_LittleFS
+```
+
+Re-build the sketch and upload it to the ESP32CAM board. Also upload the data folder using the 
+**ESP32 Sketch Data Upload** tool, which is invoked from the `Tools` menu of Arduino IDE.
+
+Provided that everything goes well, you shoudl be able to boot your ESP32 CAM Web Server from LittleFS.
+
+### Initial configuration
+
+If the system has not been configured yet, it will start in Access Point mode by default. The SSID
+of the access point will be `esp32cam` and the password is `123456789`. if you have the Serial monitor
+connected to the ESP32CAM board, you shoudl see the following messages:
+
+```
+No known networks found, entering AccessPoint fallback mode
+Setting up Access Point (channel=1)
+  SSID     : esp32cam
+  Password : 123456789
+IP address: 192.168.4.1
+Access Point init successfull
+Starting Captive Portal
+OTA is disabled
+mDNS responder started
+Added HTTP service to MDNS server
+^Connected
+```
+
+Connected to the access point and open the url http://192.168.4.1/. You should see the following page: 
+![WiFi AP Setup](Docs/wifi-setup-ap.png)
+
+Switch the Access Point Mode off. The screen will change as follows: 
+![WiFi Setup](Docs/wifi-setup.png)
+
+Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure you wifi router has this band enabled.
+
+Set up your preffered NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. 
+If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not 
+leave it empty or default.
+
+Click `Save` and then `Reboot`. If everything is configured correctly, the ESP32CAM board will restart 
+and connect to your wifi automatically. The assigned IP address can be seen in the Serial Monitor logs.
+
+Open the browser and navigate to http://<YOUR_IP_ADDRESS:YOUR_PORT>/ (for example, http://192.168.0.2:8080)
+
+You should see the following screen: 
+![Index](Docs/index.png). 
+
+Here you can take still images or start the video streaming from the camera installed on ESP32CAM.
+
+The WiFi configuration page is available at the address `http://<YOUR_IP_ADDRESS:YOUR_PORT>/setup`.
+
+The system monitoring page is accessible at `http://<YOUR_IP_ADDRESS:YOUR_PORT>/dump`
+
+### Configuration files
+
+The web server stores its configuraion in JSON files. The format of the files is below. If any of these
+files is missing in the root folder of the storage used, default values will be loaded.
+
+#### Network Configuration (/conn.json)
 
 ```json
 {   
     "mdns_name":"YOUR_MDNS_NAME",
     "stations":[
-        {"ssid": "YOUR_SSID", "pass":"YOUR_WIFI_PASSWORD", "dhcp": true}
+        {"ssid": "YOUR_SSID", "pass":"YOUR_WIFI_PASSWORD"}
     ],
+    "dhcp": true,
+    "static_ip": {"ip":"192.168.0.2", "netmask":"255.255.255.0", "gateway":"192.168.0.1", 
+                  "dns1":"192.168.0.1", "dns2":"8.8.8.8"},
     "http_port":80,
     "ota_enabled":true,
     "ota_password":"YOUR_OTA_PASSWORD",
@@ -102,11 +179,8 @@ and format it as follows:
     "debug_mode": false
 }
 ```
-Replace the WiFi and OTA parameters with your settings and save. PLease note that the sketch
-will not boot properly if WiFi connection is established.
 
-Web server name can configured by creating another config file, `httpd.json`, in the root
-folder of the SD card:
+#### HTTP server configuration (/httpd.json)
 
 ```json
 {
@@ -121,7 +195,7 @@ folder of the SD card:
 
 The parameter `mapping` allows to configure folders with static content for the web server. 
 
-Similarly, default camera configuration parameters can be set by creating the file `cam.json`:
+### Camera Configuration (/cam.json):
 
 ```json
 {   
@@ -188,8 +262,6 @@ If you have a status LED configured it will give a double flash when it begins
 attempting to conenct to WiFi, and five short flashes once it has succeeded. It will 
 also flash briefly when you access the camera to change settings.
 
-Go to the URL given in the serial output, the web UI should appear with the settings 
-panel open. Click away!
 
 ### API
 The communications between the web browser and the camera module can also be used to 
@@ -203,7 +275,6 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 ## Future plans
 
-1. Support of LittleFS. 
-3. Support of other boards and cameras.
-4. Explore how to improve the video quality and further reduce requirements to resources.
+1. Support of other boards and cameras.
+2. Explore how to improve the video quality and further reduce requirements to resources.
 

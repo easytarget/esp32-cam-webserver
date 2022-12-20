@@ -115,11 +115,11 @@ int CLAppCam::loadPrefs() {
 
   // process local settings
 
-    json_obj_get_int(&jctx, "lamp", &lampVal);
-    json_obj_get_int(&jctx, "frame_rate", &frameRate);
-    json_obj_get_bool(&jctx, "autolamp", &autoLamp);
-    json_obj_get_int(&jctx, "xclk", &xclk);
-    json_obj_get_int(&jctx, "rotate", &myRotation);
+    json_obj_get_int(&jctx, (char*)"lamp", &lampVal);
+    json_obj_get_int(&jctx, (char*)"frame_rate", &frameRate);
+    json_obj_get_bool(&jctx, (char*)"autolamp", &autoLamp);
+    json_obj_get_int(&jctx, (char*)"xclk", &xclk);
+    json_obj_get_int(&jctx, (char*)"rotate", &myRotation);
 
     // get sensor reference
     sensor_t * s = esp_camera_sensor_get();
@@ -154,13 +154,12 @@ int CLAppCam::loadPrefs() {
         s->set_colorbar(s, readJsonIntVal(&jctx, "colorbar"));
         
         bool dbg;
-        if(json_obj_get_bool(&jctx, "debug_mode", &dbg) == OS_SUCCESS)
+        if(json_obj_get_bool(&jctx, (char*)"debug_mode", &dbg) == OS_SUCCESS)
             setDebugMode(dbg);   
     }
     else {
         Serial.println("Failed to get camera handle. Camera settings skipped");
     }
-
   
     // close the file
     json_parse_end(&jctx);

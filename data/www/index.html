@@ -31,8 +31,8 @@
       <div id="content">
         <input type="checkbox" id="view-mode" checked="checked" class="hidden">
         <div class="hidden" id="sidebar">
-          <input type="checkbox" id="nav-toggle-cb" checked="checked">
-            <nav id="menu"></nav>
+         <input type="checkbox" id="nav-toggle-cb" checked="checked">
+            <nav id="menu"></nav> 
         </div>
         <figure>
           <div id="stream-container" class="image-container hidden">
@@ -68,100 +68,6 @@
     const swapButton = document.getElementById('swap-viewer');
 
 
-    const loadControlValue = (el, value) => {
-
-      let initialValue;
-      if (el.type === 'checkbox') {
-        initialValue = el.checked;
-        value = !!value;
-        el.checked = value;
-      } else {
-        initialValue = el.value;
-        el.value = value;
-        if(el.value != value) {
-          el.setAttribute("data-outofrange", "true");
-        }
-      }
-
-      refreshControl(el);
-
-    }
-
-    function updateRangeConfig (el) {
-      if (!el.getAttribute("data-updating") == "true") {
-        el.setAttribute("data-updating", "true");
-        setTimeout(function(el){
-          submitChanges(el);
-        }, 150, el);
-      }
-    }
-
-    function refreshControl(el) {
-      let value;
-      switch (el.type) {
-        case 'checkbox':
-          value = el.checked ? 1 : 0;
-          showhide(el.getAttribute("data-show"), value);
-          showhide(el.getAttribute("data-hide"), !value);
-          break;
-        case 'range':
-          value = el.value;
-          var isshown = el.getAttribute("data-outofrange") != "true";
-          showhide(el.getAttribute("data-show"), isshown);
-          showhide(el.getAttribute("data-hide"), !isshown);
-          break;
-        case 'select-one':
-        if(el.id == "rotate") {
-            applyRotation(el);
-          }
-        case 'number':
-          value = el.value;
-          break;
-        case 'button':
-        case 'submit':
-          value = '1';
-          break;
-        default:
-          if(el.nodeName == "DIV") {
-            el.innerHTML = el.value;
-          }
-          break;
-        } 
-        return value;
-    }
-
-
-    function submitChanges (el) {
-
-      if(el.type == "submit") {
-        if(el.getAttribute("data-ask")) {
-          if(!confirm(el.getAttribute("title") + "?")) return;
-        }
-
-        if(el.id == "reboot") {
-          hide(settings);
-          hide(viewContainer);
-          header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
-          setTimeout(function() {
-            location.replace(document.URL);
-          }, 30000);
-        } 
-      }
-      else if(el.type == "range") {
-        el.setAttribute("data-updating", "");
-      }
-
-
-      let value = refreshControl(el);
-
-      const query = `${baseHost}/control?var=${el.id}&val=${value}`;
-
-      fetch(query)
-        .then(response => {
-          console.log(`request to ${query} finished, status: ${response.status}`);
-        });
-    }
-
     const toggleViewMode = () => {
       if(viewMode.checked) {
         swapButton.innerHTML = "Full";
@@ -177,24 +83,8 @@
         .forEach(el => {
           var simple = el.getAttribute("data-simple");
           // if input group not simple, hide or show it, depending on the view mode (checked = simple)
-          if(simple != "true") {
-
-            if(viewMode.checked) {
-              // we check if not already hidden and save the state if yes
-              if(el.classList.contains("hidden")) {
-                el.setAttribute("data-hidden", "true");
-              }
-              else {
-                hide(el);
-                el.setAttribute("data-hidden", "false");
-              }
-            }  
-            else {
-              if(el.getAttribute("data-hidden") == "false") {
-                show(el);
-              }
-            }
-          }
+          if(simple != "true") 
+            showhideone(el, viewMode.checked, "_simple");
 
         });
 
@@ -250,21 +140,23 @@
       console.log('Rotation ' + rot + ' applied');
     };  
 
+    function refresh(el) {
+      if(el.id == "rotate") {
+        applyRotation(el);
+      }
+      return refreshControl(el);
+    }
+
     const addPreferences = (parent) => {
       var div_group = document.createElement("div"); 
       div_group.classList.add("input-group");
+      div_group.classList.add("actions-group");
       div_group.setAttribute("id", "preferences-group");
       div_group.setAttribute("data-simple", "true");
 
-      var lbl = document.createElement("label");
-      lbl.setAttribute("for", "prefs");
-      lbl.setAttribute("style", "line-height: 2em;");
-      // lbl.innerHTML = "Preferences";
-      div_group.appendChild(lbl);
-
+      div_group.appendChild(createButton("save_prefs", "Save", "Save preferences on camera module", "true", "cam"));
+      div_group.appendChild(createButton("remove_prefs", "Erase", "Erase saved preferences on camera module", "true", "cam"));
       div_group.appendChild(createButton("reboot", "Reboot", "Reboot the camera module", "true"));
-      div_group.appendChild(createButton("save_prefs", "Save", "Save preferences on camera module", "true"));
-      div_group.appendChild(createButton("remove_prefs", "Erase", "Erase saved preferences on camera module", "true"));
 
       parent.appendChild(div_group);
     };
@@ -299,7 +191,11 @@
         document
           .querySelectorAll('.default-action')
           .forEach(el => {
-            loadControlValue(el, state[el.id], false);
+            loadControlValue(el, state[el.id]);
+            refreshControl(el);
+            if(el.id == "rotate") {
+                applyRotation(el);
+            }
           });
         
         toggleViewMode();
@@ -337,10 +233,23 @@
           .querySelectorAll('.default-action')
           .forEach(el => {
             if(el.type == "submit")
-              el.onclick = () => submitChanges(el);
-            else
-              el.onchange = () => submitChanges(el);
-
+              el.onclick = () =>  {
+                if(submitChanges(el)) {
+                    if(el.id == "reboot") {
+                      hide(settings);
+                      hide(viewContainer);
+                      header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+                    }
+                }
+              }
+            else {
+              el.onchange = () => {
+                submitChanges(el);
+                if(el.id == "rotate") {
+                  applyRotation(el);
+                }
+              }
+            }
           });
 
         // Update range sliders as they are being moved
@@ -355,13 +264,11 @@
           var value = viewMode.checked ? 1 : 0;
           viewMode.checked = !value;
             toggleViewMode();
-            // window.open('/view?mode=simple','_self');
           };
           
         toggleMenuVisible(true);
-        // startStream();
       });  
 
-  })
+  });
   </script>
 </html>

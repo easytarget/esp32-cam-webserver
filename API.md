@@ -9,6 +9,7 @@ this makes controlling all functions of the camera via GET requests possible.
 * - stream: starting video capture with full screen mode
 * - still: taking a still image with full screen mode
 * `/dump` - Status page (automatically refreshed every 5 sec)
+* `/setup` - Configure network settings (WiFi, OTA, etc)
 
 ### Special *key / val* settings and commands
 

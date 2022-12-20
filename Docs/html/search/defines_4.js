@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['ntp_5fdst_5foffset_0',['NTP_DST_OFFSET',['../app__conn_8h.html#a3c6fa4af03ad17716da92c20fa8ff64b',1,'app_conn.h']]],
-  ['ntp_5fgmt_5foffset_1',['NTP_GMT_OFFSET',['../app__conn_8h.html#a2c57373b84abca8b795c0a8dd84568a9',1,'app_conn.h']]],
-  ['ntpserver_2',['NTPSERVER',['../app__conn_8h.html#a6a6985b24d084cef13acc6754ab4c3a9',1,'app_conn.h']]]
+  ['storage_5funits_0',['STORAGE_UNITS',['../storage_8h.html#a41be8b1964027c1f9ddfc1e01af3f261',1,'storage.h']]],
+  ['storage_5funits_5fbt_1',['STORAGE_UNITS_BT',['../storage_8h.html#a58de0b755f7c8d4e84b9be13013c03d2',1,'storage.h']]],
+  ['storage_5funits_5fmb_2',['STORAGE_UNITS_MB',['../storage_8h.html#acfefb2c2a43c05d5c979ef54f7030a34',1,'storage.h']]]
 ];

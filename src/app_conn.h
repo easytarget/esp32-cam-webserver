@@ -14,30 +14,19 @@
 
 #define MAX_KNOWN_STATIONS  5
 
-/* NTP
- *  Uncomment the following to enable the on-board clock
- *  Pick a nearby pool server from: https://www.ntppool.org/zone/@
- *  Set the GMT offset to match your timezone IN SECONDS;
- *    see https://en.wikipedia.org/wiki/List_of_UTC_time_offsets
- *    1hr = 3600 seconds; do the math ;-)
- *    Default is CET (Central European Time), eg GMT + 1hr
- *  The DST offset is usually 1 hour (again, in seconds) if used in your country.
- */
-#define NTPSERVER "pool.ntp.org"
-#define NTP_GMT_OFFSET 14400
-#define NTP_DST_OFFSET 0
-
 /**
  * @brief WiFi connectivity details (SSID/password).
  * 
  */
-struct Station { char ssid[64]; char password[64]; bool dhcp;};
+struct Station { char ssid[64]; char password[64]; };
 
 /**
  * @brief Static IP strcuture for configuring AP and WiFi parameters
  * 
  */
 struct StaticIP { IPAddress *ip; IPAddress *netmask; IPAddress *gateway; IPAddress *dns1; IPAddress *dns2; };
+
+enum StaticIPField {IP, NETMASK, GATEWAY, DNS1, DNS2};
 
 /**
  * @brief Connection Manager
@@ -53,44 +42,77 @@ class CLAppConn : public CLAppComponent {
         int start();
         bool stop() {return WiFi.disconnect();};
 
-        void enableOTA(bool enable = true);
+        void startOTA();
         void handleOTA() {if(otaEnabled) ArduinoOTA.handle();};
+        bool isOTAEnabled() {return otaEnabled;};        
+        void setOTAEnabled(bool val) {otaEnabled = val;};
+        void setOTAPassword(const char * str) {snprintf(otaPassword, sizeof(otaPassword), str);};
 
         void configMDNS();
         void handleDNSRequest(){if (captivePortal) dnsServer.processNextRequest();};
+        char * getMDNSname() {return mdnsName;};
+        void setMDNSName(const char * str) {snprintf(mdnsName, sizeof(mdnsName), str);};
 
         void configNTP();
-
         char * getNTPServer() { return ntpServer;};
+        void setNTPServer(const char * str) {snprintf(ntpServer, sizeof(ntpServer), str);};
         long getGmtOffset_sec() {return gmtOffset_sec;};
+        void setGmtOffset_sec(long sec) {gmtOffset_sec = sec;};
         int getDaylightOffset_sec() {return daylightOffset_sec;};
+        void setDaylightOffset_sec(int sec) {daylightOffset_sec = sec;};
 
-        bool isOTAEnabled() {return otaEnabled;};
+        char * getSSID() {return ssid;};
+        void setSSID(const char * str) {snprintf(ssid, sizeof(ssid), str);};
+        void setPassword(const char * str) {snprintf(password, sizeof(password), str);};;
+
+        bool isDHCPEnabled() {return dhcp;};
+        void setDHCPEnabled(bool val) {dhcp = val;};
+        StaticIP * getStaticIP() {return &staticIP;};
+        void setStaticIP(IPAddress ** address, const char * strval);
 
         wl_status_t wifiStatus() {return (accesspoint?ap_status:WiFi.status());};
 
         char * getHTTPUrl(){ return httpURL;};
         char * getStreamUrl(){ return streamURL;};
         int getPort() {return httpPort;};
+        void setPort(int port) {httpPort = port;};
 
         char * getApName() {return apName;};
+        void setApName(const char * str) {snprintf(apName, sizeof(apName), str);};
+        void setApPass(const char * str) {snprintf(apPass, sizeof(apPass), str);};
 
         bool isAccessPoint() {return accesspoint;};
+        void setAccessPoint(bool val) {accesspoint = val;};
+        bool getAPDHCP() {return ap_dhcp;};
+        void setAPDHCP(bool val) {ap_dhcp = val;};
+        StaticIP * getAPIP() {return &apIP;};
+        int getAPChannel() {return ap_channel;};
+        void setAPChannel(int channel) {ap_channel = channel;};
+
         bool isCaptivePortal() {return captivePortal;};
 
         char * getLocalTimeStr();
         char * getUpTimeStr();
         void printLocalTime(bool extraData=false);
 
+        
     private:
+        int getSSIDIndex();
         void calcURLs();
+        void readIPFromJSON(jparse_ctx_t * context, IPAddress ** ip_address, char * token);
 
         // Known networks structure. Max number of known stations limited for memory considerations
         Station *stationList[MAX_KNOWN_STATIONS]; 
+        // number of known stations
         int stationCount = 0;
 
         // Static IP structure
         StaticIP staticIP;
+
+        bool dhcp=false;
+
+        char ssid[64];
+        char password[64];
 
         char mdnsName[20];
 
@@ -122,9 +144,9 @@ class CLAppConn : public CLAppComponent {
         char otaPassword[20] = "";
 
         // NTP parameters
-        char ntpServer[20] = NTPSERVER;
-        long  gmtOffset_sec = NTP_GMT_OFFSET;
-        int  daylightOffset_sec = NTP_DST_OFFSET;
+        char ntpServer[20];
+        long  gmtOffset_sec;
+        int  daylightOffset_sec;
 
 };
 

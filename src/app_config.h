@@ -19,17 +19,9 @@
 #define WIFI_WATCHDOG 15000
 
 /*
- * Over The Air firmware updates can be disabled by uncommenting the folowing line
- * When enabled the device will advertise itself using the MDNS_NAME defined above
- */
-// #define NO_OTA
-
-/*
  * Additional Features
  *
  */
-
-
 
 // Uncomment to disable the notification LED on the module
 // #define LED_DISABLE

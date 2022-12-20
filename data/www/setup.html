@@ -2,23 +2,98 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Patriot Crawler - Setup</title>
+        <title>ESP32CAM Network Setup</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
         <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <style>
+            @media (min-width: 800px) and (orientation:landscape) {
+              #content {
+                display:flex;
+                flex-wrap: nowrap;
+                flex-direction: column;
+                align-items:flex-start;
+              }
+            };
+            
+          </style>
     </head>
-    <body style="text-align: center;">
-        <img src="/img/logo.svg" style="position: relative; float: right;">
-        <h1>%CAMNAME% - Setup</h1>
-        
-        <div class="input-group" id="ssid-group">
-            <label for="ssid">WiFi SSID</label>
-            <input id="ssid" type="text" name="ssid">
-        </div>
-        <div class="input-group" id="pwd-group">
-            <label for="pass">Password</label>
-            <input id="pass" type="text" name="pass">
-        </div>
-        <hr>
+    <body>
+        <section class="main">
+            <div id="logo">
+                <div><h1>ESP32CAM Network Setup</h1></div>
+            </div>
+            <div id="content">
+                <div id="sidebar">
+                    <input type="checkbox" id="nav-toggle-cb" checked="checked">
+                        <nav id="menu"></nav>
+                </div>
+            </div>
+        </section>
     </body>
+    <script src="/js/setup.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function (event) {
+            var baseHost = document.location.origin;
+
+            const header = document.getElementById('logo');
+            const settings = document.getElementById('sidebar');
+
+
+            const addActions = (parent) => {
+                var div_group = document.createElement("div"); 
+                div_group.classList.add("input-group");
+                div_group.classList.add("actions-group");
+                div_group.setAttribute("id", "actions-group");
+                div_group.setAttribute("data-simple", "true");
+
+                div_group.appendChild(createButton("save_prefs", "Save", "Save network settings", "true", "conn"));
+                div_group.appendChild(createButton("reset_prefs", "Reset", "Reset network settings", "true", "conn"));
+                div_group.appendChild(createButton("reboot", "Reboot", "Reboot the server", "true"));
+
+                parent.appendChild(div_group);
+            };
+
+            // init the page controls
+            fetch(`${baseHost}/system`)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (state) {
+                var menu = document.getElementById("menu")
+                addFormFields(menu, networkFormFields, selectOptions);
+                addActions(menu);
+
+                document
+                    .querySelectorAll('.default-action')
+                    .forEach(el => {
+                        loadControlValue(el, state[el.id]);
+                        refreshControl(el);
+                    });
+
+                // Attach default on change action
+                document
+                    .querySelectorAll('.default-action')
+                    .forEach(el => {
+                        if(el.type == "submit")
+                            el.onclick = () => {
+                                if(submitChanges(el)) {
+                                    if(el.id == "reboot") {
+                                        hide(settings);
+                                        header.innerHTML = '<h1>Rebooting!</h1>';
+                                    }
+                                }
+                            }
+                        else
+                            el.onchange = () => submitChanges(el);
+
+                    });
+
+                show(settings);
+
+            });
+            
+        });
+    </script>
 </html>

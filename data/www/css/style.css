@@ -18,6 +18,10 @@ section.main {
   display: flex
 }
 
+.actions-group {
+  justify-content: center;
+}
+
 #menu,section.main {
   flex-direction: column
 }
@@ -229,14 +233,30 @@ input[type=range]:focus::-ms-fill-upper {
   background: #363636
 }
 
-input[type=text] {
+input[type=text], input[type=password] {
   border: 1px solid #363636;
   font-size: 14px;
   height: 20px;
   margin: 1px;
   outline: 0;
-  border-radius: 5px
+  border-radius: 5px;
+  width: 180px;
 }
+
+.gmt_offset {
+  width: 175px;
+}
+
+input[type=number] {
+  border: 1px solid #363636;
+  font-size: 14px;
+  height: 20px;
+  margin: 1px;
+  outline: 0;
+  border-radius: 5px;
+  width: 60px;
+}
+
 
 .switch {
   display: block;

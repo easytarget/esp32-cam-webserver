@@ -20,11 +20,15 @@ int CLAppHttpd::start() {
     ws = new AsyncWebSocket("/ws");
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        if(AppConn.isAccessPoint())
-            request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
-        else
+        if(AppConn.isConfigured())
             request->send(Storage.getFS(), "/www/index.html", "", false, processor);
+        else
+            request->redirect("/setup");
     });
+
+    server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
+    });    
 
     server->on("/view", HTTP_GET, [](AsyncWebServerRequest *request){
         if(request->arg("mode") == "stream" || 
@@ -245,6 +249,9 @@ void onControl(AsyncWebServerRequest *request) {
 
     String variable = request->arg("var");
     String value = request->arg("val");
+    int res = 0;
+    long val = value.toInt();
+    sensor_t * s = AppCam.getSensor();
 
     if(variable == "cmdout") {
         if(AppHttpd.isDebugMode()) {
@@ -252,35 +259,55 @@ void onControl(AsyncWebServerRequest *request) {
             Serial.println(value.c_str());
         }
         AppHttpd.serialSendCommand(value.c_str());
-        request->send(200, "", "OK");
+        request->send(200);
         return;
     }    
     else if(variable ==  "save_prefs") {
-        int res = 0;
         if(value == "conn") 
             res = AppConn.savePrefs();
-        else 
-            // TODO: change to explicit value. We are saving camera settings by default but this is for backward compatibility only
+        else if(value == "cam")
             res = AppCam.savePrefs();
-        if( res == OS_SUCCESS)
-            request->send(200, "", "OK");
+        else {
+            request->send(400);
+            return;
+        }
+        if(res == OS_SUCCESS)
+            request->send(200);
         else
-            request->send(500, "", "Failed to save preferences");
+            request->send(500);
         return;
     }
     else if(variable ==  "remove_prefs") {
-        CLAppComponent * component = (value == "conn"?(CLAppComponent*)&AppConn:(CLAppComponent*)&AppCam);
-        if(component->removePrefs() == OS_SUCCESS)
-            request->send(200, "", "OK");
+        if(value == "conn")
+            res = AppConn.savePrefs(); 
+        else if(value == "cam")
+            res = AppCam.savePrefs();
+        else {
+            request->send(400);
+            return;
+        }
+
+        if(res == OS_SUCCESS)
+            request->send(200);
         else
-            request->send(500, "", "Failed to reset preferences");
+            request->send(500);
         return;
     }
-
-    int val = value.toInt();
-    sensor_t * s = AppCam.getSensor();
-    int res = 0;
-    if(variable == "framesize") {
+    else if(variable == "ssid") {AppConn.setSSID(value.c_str());AppConn.setPassword("");}
+    else if(variable == "password") AppConn.setPassword(value.c_str());
+    else if(variable == "st_ip") AppConn.setStaticIP(&(AppConn.getStaticIP()->ip), value.c_str());
+    else if(variable == "st_subnet") AppConn.setStaticIP(&(AppConn.getStaticIP()->netmask), value.c_str());
+    else if(variable == "st_gateway") AppConn.setStaticIP(&(AppConn.getStaticIP()->gateway), value.c_str());
+    else if(variable == "dns1") AppConn.setStaticIP(&(AppConn.getStaticIP()->dns1), value.c_str());
+    else if(variable == "dns2") AppConn.setStaticIP(&(AppConn.getStaticIP()->dns2), value.c_str());
+    else if(variable == "ap_ip") AppConn.setStaticIP(&(AppConn.getAPIP()->ip), value.c_str());
+    else if(variable == "ap_subnet") AppConn.setStaticIP(&(AppConn.getAPIP()->netmask), value.c_str());
+    else if(variable == "ap_name") AppConn.setApName(value.c_str());
+    else if(variable == "ap_pass") AppConn.setApPass(value.c_str());
+    else if(variable == "mdns_name") AppConn.setMDNSName(value.c_str());
+    else if(variable == "ntp_server") AppConn.setNTPServer(value.c_str());
+    else if(variable == "ota_password") AppConn.setOTAPassword(value.c_str());
+    else if(variable == "framesize") {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
     }
     else if(variable == "quality") res = s->set_quality(s, val);
@@ -320,6 +347,14 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable ==  "lamp" && AppCam.getLamp() != -1) {
         AppCam.setLamp(constrain(val,0,100));
     }
+    else if(variable == "accesspoint") AppConn.setAccessPoint(val);
+    else if(variable == "ap_channel") AppConn.setAPChannel(val);
+    else if(variable == "ap_dhcp") AppConn.setAPDHCP(val);
+    else if(variable == "dhcp") AppConn.setDHCPEnabled(val);
+    else if(variable == "port") AppConn.setPort(val);
+    else if(variable == "ota_enabled") AppConn.setOTAEnabled(val);
+    else if(variable == "gmt_offset") AppConn.setGmtOffset_sec(val);
+    else if(variable == "dst_offset") AppConn.setDaylightOffset_sec(val);
     else if(variable == "reboot") {
         if (AppCam.getLamp() != -1) AppCam.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
         esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
@@ -338,10 +373,10 @@ void onControl(AsyncWebServerRequest *request) {
         res = -1;
     }
     if(res){
-        request->send(400, "", "Unknown command");
+        request->send(400);
         return;
     }
-    request->send(200, "", "OK");
+    request->send(200);
 }
 
 void CLAppHttpd::updateSnapTimer(int tps) {
@@ -408,7 +443,7 @@ void onStatus(AsyncWebServerRequest *request) {
 void onSystemStatus(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
 
-    char buf[1024];
+    char buf[1280];
     char * buf_ptr = buf;
     dumpSystemStatusToJson(buf_ptr, sizeof(buf));
     
@@ -436,14 +471,25 @@ void dumpSystemStatusToJson(char * buf, size_t size) {
     buf += sprintf(buf,"\"accesspoint\":%s,", (AppConn.isAccessPoint()?"true":"false"));
     buf += sprintf(buf,"\"captiveportal\":%s,", (AppConn.isCaptivePortal()?"true":"false"));
     buf += sprintf(buf,"\"ap_name\":\"%s\",", AppConn.getApName());
-    String ssidName = WiFi.SSID();
-    buf += sprintf(buf,"\"ssid\":\"%s\",", ssidName.c_str());
+    buf += sprintf(buf,"\"ssid\":\"%s\",", AppConn.getSSID());
     buf += sprintf(buf,"\"rssi\":%i,", WiFi.RSSI());
     String bssid = WiFi.BSSIDstr();
     buf += sprintf(buf,"\"bssid\":\"%s\",", bssid.c_str());
+    buf += sprintf(buf,"\"dhcp\":%i,", (AppConn.isDHCPEnabled()? 1:0 ));
     buf += sprintf(buf,"\"ip_address\":\"%s\",", (AppConn.isAccessPoint()?WiFi.softAPIP().toString():WiFi.localIP().toString()));
     buf += sprintf(buf,"\"subnet\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.subnetMask().toString():""));
     buf += sprintf(buf,"\"gateway\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.gatewayIP().toString():""));
+    buf += sprintf(buf,"\"st_ip\":\"%s\",", (AppConn.getStaticIP()->ip?AppConn.getStaticIP()->ip->toString():""));
+    buf += sprintf(buf,"\"st_subnet\":\"%s\",", (AppConn.getStaticIP()->netmask?AppConn.getStaticIP()->netmask->toString():""));
+    buf += sprintf(buf,"\"st_gateway\":\"%s\",", (AppConn.getStaticIP()->gateway?AppConn.getStaticIP()->gateway->toString():""));
+    buf += sprintf(buf,"\"dns1\":\"%s\",", (AppConn.getStaticIP()->dns1?AppConn.getStaticIP()->dns1->toString():""));
+    buf += sprintf(buf,"\"dns2\":\"%s\",", (AppConn.getStaticIP()->dns1?AppConn.getStaticIP()->dns2->toString():""));
+    buf += sprintf(buf,"\"ap_ip\":\"%s\",", (AppConn.getAPIP()->ip?AppConn.getAPIP()->ip->toString():""));
+    buf += sprintf(buf,"\"ap_subnet\":\"%s\",", (AppConn.getAPIP()->netmask?AppConn.getAPIP()->netmask->toString():""));
+    buf += sprintf(buf,"\"ap_channel\":\"%i\",", AppConn.getAPChannel());
+    buf += sprintf(buf,"\"ap_dhcp\":\"%i\",", AppConn.getAPDHCP());
+
+    buf += sprintf(buf,"\"mdns_name\":\"%s\",", AppConn.getMDNSname());
     buf += sprintf(buf,"\"port\":%i,", AppConn.getPort());
     byte mac[6];
     WiFi.macAddress(mac);
@@ -456,6 +502,7 @@ void dumpSystemStatusToJson(char * buf, size_t size) {
     buf += sprintf(buf,"\"active_streams\":%i,", AppHttpd.getStreamCount());
     buf += sprintf(buf,"\"prev_streams\":%lu,", AppHttpd.getStreamsServed());
     buf += sprintf(buf,"\"img_captured\":%lu,", AppHttpd.getImagesServed());
+    buf += sprintf(buf,"\"ota_enabled\":%i,", (AppConn.isOTAEnabled()? 1:0 ));
 
     buf += sprintf(buf,"\"cpu_freq\":%i,", ESP.getCpuFreqMHz());
     buf += sprintf(buf,"\"xclk\":%i,", AppCam.getXclk());
@@ -493,13 +540,13 @@ int CLAppHttpd::loadPrefs() {
         return ret;
     }
 
-    if (json_obj_get_array(&jctx, "mapping", &mappingCount) == OS_SUCCESS) {
+    if (json_obj_get_array(&jctx, (char*)"mapping", &mappingCount) == OS_SUCCESS) {
         if(mappingCount > 0) 
             for(int i=0; i < mappingCount && i < MAX_URI_MAPPINGS; i++) {
                 if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
                     UriMapping *um = (UriMapping*) malloc(sizeof(UriMapping));
-                    if(json_obj_get_string(&jctx, "uri", um->uri, sizeof(um->uri)) == OS_SUCCESS &&
-                       json_obj_get_string(&jctx, "path", um->path, sizeof(um->path)) == OS_SUCCESS ) {
+                    if(json_obj_get_string(&jctx, (char*)"uri", um->uri, sizeof(um->uri)) == OS_SUCCESS &&
+                       json_obj_get_string(&jctx, (char*)"path", um->path, sizeof(um->path)) == OS_SUCCESS ) {
                         mappingList[i] = um;
                     } 
                     else {
@@ -511,9 +558,9 @@ int CLAppHttpd::loadPrefs() {
         json_obj_leave_array(&jctx);
     }
 
-    json_obj_get_string(&jctx, "my_name", myName, sizeof(myName));
+    json_obj_get_string(&jctx, (char*)"my_name", myName, sizeof(myName));
     bool dbg;
-    if(json_obj_get_bool(&jctx, "debug_mode", &dbg) == OS_SUCCESS)
+    if(json_obj_get_bool(&jctx, (char*)"debug_mode", &dbg) == OS_SUCCESS)
         setDebugMode(dbg);  
 
     return ret;

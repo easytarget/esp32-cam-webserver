@@ -3,7 +3,8 @@
 char * CLAppComponent::getPrefsFileName(bool forsave) {
     if(tag) {
         sprintf(prefs, "/%s.json", tag);
-        if(Storage.exists(prefs) || forsave)
+        configured = Storage.exists(prefs);
+        if(configured || forsave)
             return prefs;
         else {
             Serial.printf("Pref file %s not found, falling back to default\r\n", prefs);
@@ -25,9 +26,12 @@ void CLAppComponent::dumpPrefs() {
     Serial.println(s);
 }
 
-int CLAppComponent::readJsonIntVal(jparse_ctx_t *jctx_ptr, char* token) {
+int CLAppComponent::readJsonIntVal(jparse_ctx_t *jctx_ptr, const char* token) {
   int res=0;
-  if(json_obj_get_int(jctx_ptr, token, &res) == OS_SUCCESS)
+
+  char * ptr = const_cast<char *>(token);
+
+  if(json_obj_get_int(jctx_ptr, ptr, &res) == OS_SUCCESS)
     return res;
 
   return 0;
@@ -38,7 +42,7 @@ int CLAppComponent::removePrefs() {
   if (Storage.exists(prefs_file)) {
     Serial.printf("Removing %s\r\n", prefs_file);
     if (!Storage.remove(prefs_file)) {
-      sprintf("Error removing %s preferences\r\n", tag);
+      Serial.printf("Error removing %s preferences\r\n", tag);
       return OS_FAIL;
     }
   } else {

@@ -66,16 +66,6 @@ void setup() {
         }
     }
 
-    // Set up OTA
-    #ifndef NO_OTA
-        AppConn.enableOTA();
-    #else
-        AppConn.enableOTA(false);
-    #endif
-
-    // http service attached to port
-    AppConn.configMDNS();
-
     // Set time via NTP server when enabled
     if(!AppConn.isAccessPoint()) {
         AppConn.configNTP();

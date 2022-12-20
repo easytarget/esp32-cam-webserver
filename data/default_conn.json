@@ -1,4 +1,5 @@
 {   "mdns_name":"esp32cam",
+    "dhcp":true,
     "http_port":80,
     "ota_enabled":true,
     "ota_password":"",
@@ -6,5 +7,8 @@
     "ap_pass":"123456789",
     "ap_ip": {"ip":"192.168.4.1", "netmask":"255.255.255.0"},
     "ap_dhcp":true,
+    "ntp_server":"pool.ntp.org",
+    "gmt_offset":0,
+    "dst_offset":0,    
     "debug_mode": false
 }

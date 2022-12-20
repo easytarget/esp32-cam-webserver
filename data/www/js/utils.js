@@ -7,20 +7,47 @@ const show = el => {
     el.classList.remove('hidden');
 };
 
-const showhide = (sids, mode) => {
+const showhide = (sids, mode, by) => {
     if(!sids) return;
     var ids = sids.trim().split(/\s+/);
 
     for(let i in ids) {
       var el = document.getElementById(ids[i]+"-group");
-      if(el) {
-        if(mode) 
-          show(el); 
-        else 
-          hide(el);
-      }
+      showhideone(el, !mode, by);
     }
 };
+
+const showhideone = (el, mode, by) => {
+  var state = el.getAttribute("data-hidden"); 
+  var hidden = (state?state.trim().split(/\s+/):[]); 
+  var index = hidden.indexOf(by);
+
+  if(mode) {
+    // we check if not already hidden and save the state if yes
+    if(el.classList.contains("hidden")) {
+      if(index<0) {
+        hidden.push(by);
+        el.setAttribute("data-hidden", hidden.join(" "));
+      }
+    }
+    else {
+      hide(el);
+      if(index<0) {
+        hidden.push(by);
+        el.setAttribute("data-hidden", hidden.join(" "));
+      }
+    }
+  }  
+  else {
+    if(index>=0) {
+      hidden.splice(index,1);
+      el.setAttribute("data-hidden", hidden.join(" "));
+    }
+    if(!hidden.length) {
+      show(el);
+    }
+  }
+}
 
 const disable = el => {
     el.classList.add('disabled')
@@ -38,7 +65,10 @@ const createInputGroup = (field) => {
   div_group.setAttribute("id", field.id + "-group");
   if(field.simple) div_group.setAttribute("data-simple", "true");
   if(field.title) div_group.setAttribute("title", field.title);
-  if(field.hidden && field.hidden == "true") div_group.classList.add("hidden");
+  if(field.hidden && field.hidden == "true") {
+    div_group.classList.add("hidden");
+    div_group.setAttribute("data-hidden", "_hidden");
+  }
   return div_group;
 }
 
@@ -167,13 +197,23 @@ const addTextInput = (parent, field) => {
     div_txt.classList.add("text");
 
     var input = document.createElement("input");
-    input.setAttribute("type", "number");
     input.setAttribute("id", field.id);
-    if(field.min_value) input.setAttribute("min", field.min_value);
-    if(field.max_value) input.setAttribute("max", field.max_value);
     if(field.size) input.setAttribute("size", field.size);
-    if(field.step) input.setAttribute("step", field.step);
     if(field.classes) input.setAttribute("class", field.classes);
+    if(field.type == "number") {
+      input.setAttribute("type", "number");
+      if(field.min_value) input.setAttribute("min", field.min_value);
+      if(field.max_value) input.setAttribute("max", field.max_value);
+      if(field.step) input.setAttribute("step", field.step);
+    }
+    else if(field.type == "ipv4") {
+      input.setAttribute("type", "text");
+      input.setAttribute("placeholder", "xxx.xxx.xxx.xxx");
+      input.classList.add("ipv4");
+    }
+    else {
+      input.setAttribute("type", field.type);
+    }
     div_txt.appendChild(input);
 
     if(field.max_caption) {
@@ -202,12 +242,13 @@ const addReadOnly = (parent, field) => {
 
 
 
-const createButton = (id, name, title, confirm) => {
+const createButton = (id, name, title, confirm, val) => {
     var btn = document.createElement("button");
     btn.setAttribute("id", id);
     btn.setAttribute("title", title);
     btn.setAttribute("class", "default-action");
     btn.setAttribute("data-ask", confirm)
+    btn.setAttribute("data-value", val);
     btn.innerHTML = name;
 
     return btn;
@@ -262,3 +303,95 @@ const updateFormFieldDefs = (fields, fieldupdates) => {
     }
   }
 };
+
+function refreshControl(el) {
+  let value;
+  switch (el.type) {
+    case 'checkbox':
+      value = el.checked ? 1 : 0;
+      showhide(el.getAttribute("data-show"), value, el.id);
+      showhide(el.getAttribute("data-hide"), !value, el.id);
+      break;
+    case 'range':
+      value = el.value;
+      var isshown = el.getAttribute("data-outofrange") != "true";
+      showhide(el.getAttribute("data-show"), isshown, el.id);
+      showhide(el.getAttribute("data-hide"), !isshown, el.id);
+      break;
+    case 'select-one':
+    case 'number':
+    case 'text':
+    case 'password':  
+      value = el.value;
+      break;
+    case 'button':
+    case 'submit':
+      value = el.getAttribute("data-value");
+      break;
+    default:
+      if(el.nodeName == "DIV") {
+        el.innerHTML = el.value;
+      }
+      break;
+    } 
+    return value;
+}
+
+const loadControlValue = (el, value) => {
+
+  let initialValue;
+  if (el.type === 'checkbox') {
+    initialValue = el.checked;
+    value = !!value;
+    el.checked = value;
+  } else {
+    initialValue = el.value;
+    el.value = value;
+    if(el.value != value) {
+      el.setAttribute("data-outofrange", "true");
+    }
+  }
+}
+
+
+function updateRangeConfig (el) {
+  if (!el.getAttribute("data-updating") == "true") {
+    el.setAttribute("data-updating", "true");
+    setTimeout(function(el){
+      submitChanges(el);
+    }, 150, el);
+  }
+}
+
+function submitChanges (el) {
+
+  if(el.type == "submit") {
+    if(el.getAttribute("data-ask")) {
+      if(!confirm(el.getAttribute("title") + "?")) return false;
+    }
+
+    if(el.id == "reboot") {
+      setTimeout(function() {
+        location.replace(document.URL);
+      }, 30000);
+    } 
+  }
+  else if(el.type == "range") {
+    el.setAttribute("data-updating", "");
+  }
+
+  let host = document.location.origin;
+  let value = refreshControl(el);
+
+  const query = `${host}/control?var=${el.id}&val=${value}`;
+
+  fetch(query)
+    .then(response => {
+      console.log(`request to ${query} finished, status: ${response.status}`);
+    });
+  
+    return true;
+}
+
+
+

@@ -25,86 +25,88 @@ int CLAppConn::start() {
     long bestRSSI = -1024;
     char bestSSID[65] = "";
     uint8_t bestBSSID[6];
-    if (stationCount > 0) {
-        // We have a list to scan
-        Serial.printf("Scanning local Wifi Networks\r\n");
-        int stationsFound = WiFi.scanNetworks();
-        Serial.printf("%i networks found\r\n", stationsFound);
-        if (stationsFound > 0) {
-            for (int i = 0; i < stationsFound; ++i) {
-                // Print SSID and RSSI for each network found
-                String thisSSID = WiFi.SSID(i);
-                int thisRSSI = WiFi.RSSI(i);
-                String thisBSSID = WiFi.BSSIDstr(i);
-                Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
-                // Scan our list of known external stations
-                for (int sta = 0; sta < stationCount; sta++) {
-                    if ((strcmp(stationList[sta]->ssid, thisSSID.c_str()) == 0) ||
-                    (strcmp(stationList[sta]->ssid, thisBSSID.c_str()) == 0)) {
-                        Serial.print("  -  Known!");
-                        // Chose the strongest RSSI seen
-                        if (thisRSSI > bestRSSI) {
-                            bestStation = sta;
-                            strncpy(bestSSID, thisSSID.c_str(), 64);
-                            // Convert char bssid[] to a byte array
-                            parseBytes(thisBSSID.c_str(), ':', bestBSSID, 6, 16);
-                            bestRSSI = thisRSSI;
+
+    if (!accesspoint) {
+        if(stationCount > 0) {
+            // We have a list to scan
+            Serial.printf("Scanning local Wifi Networks\r\n");
+            int stationsFound = WiFi.scanNetworks();
+            Serial.printf("%i networks found\r\n", stationsFound);
+            if (stationsFound > 0) {
+                for (int i = 0; i < stationsFound; ++i) {
+                    // Print SSID and RSSI for each network found
+                    String thisSSID = WiFi.SSID(i);
+                    int thisRSSI = WiFi.RSSI(i);
+                    String thisBSSID = WiFi.BSSIDstr(i);
+                    Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
+                    // Scan our list of known external stations
+                    for (int sta = 0; sta < stationCount; sta++) {
+                        if ((strcmp(stationList[sta]->ssid, thisSSID.c_str()) == 0) ||
+                        (strcmp(stationList[sta]->ssid, thisBSSID.c_str()) == 0)) {
+                            Serial.print("  -  Known!");
+                            // Chose the strongest RSSI seen
+                            if (thisRSSI > bestRSSI) {
+                                bestStation = sta;
+                                strncpy(bestSSID, thisSSID.c_str(), 64);
+                                // Convert char bssid[] to a byte array
+                                parseBytes(thisBSSID.c_str(), ':', bestBSSID, 6, 16);
+                                bestRSSI = thisRSSI;
+                            }
                         }
                     }
+                    Serial.println();
                 }
-                Serial.println();
             }
-        }
-    } else {
-        // No list to scan, therefore we are an accesspoint
-        accesspoint = true;
-    }
+        } 
 
-    if (bestStation == -1 ) {
-        if (!accesspoint) {
+        if (bestStation == -1 ) {
             Serial.println("No known networks found, entering AccessPoint fallback mode");
             accesspoint = true;
-        }
+        } 
+        else {
+            Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \r\n",
+                        bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3],
+                        bestBSSID[4], bestBSSID[5], bestSSID);
+            // Apply static settings if necesscary
+            if (dhcp == false) {
 
-    } else {
-        Serial.printf("Connecting to Wifi Network %d: [%02X:%02X:%02X:%02X:%02X:%02X] %s \r\n",
-                       bestStation, bestBSSID[0], bestBSSID[1], bestBSSID[2], bestBSSID[3],
-                       bestBSSID[4], bestBSSID[5], bestSSID);
-        // Apply static settings if necesscary
-        if (stationList[bestStation]->dhcp == false) {
-
-            if(staticIP.ip && staticIP.gateway  && staticIP.netmask) {
-                Serial.println("Applying static IP settings");
-                WiFi.config(*staticIP.ip, *staticIP.gateway, *staticIP.netmask, *staticIP.dns1, *staticIP.dns2);
+                if(staticIP.ip && staticIP.gateway  && staticIP.netmask) {
+                    Serial.println("Applying static IP settings");
+                    dhcp = false;
+                    WiFi.config(*staticIP.ip, *staticIP.gateway, *staticIP.netmask, *staticIP.dns1, *staticIP.dns2);
+                }
+                else {
+                    dhcp = true;
+                    Serial.println("Static IP settings requested but not defined properly in config, falling back to dhcp");
+                }    
             }
-            else
-                Serial.println("Static IP settings requested but not defined properly in config, falling back to dhcp");
-        }
 
-        WiFi.setHostname(mdnsName);
+            WiFi.setHostname(mdnsName);
 
-        // Initiate network connection request (3rd argument, channel = 0 is 'auto')
-        WiFi.begin(bestSSID, stationList[bestStation]->password, 0, bestBSSID);
+            // Initiate network connection request (3rd argument, channel = 0 is 'auto')
+            WiFi.begin(bestSSID, stationList[bestStation]->password, 0, bestBSSID);
 
-        // Wait to connect, or timeout
-        unsigned long start = millis();
-        while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
-            delay(500);
-            Serial.print('.');
-        }
-        // If we have connected, inform user
-        if (WiFi.status() == WL_CONNECTED) {
-            Serial.println("Client connection succeeded");
-            accesspoint = false;
-            // Print IP details
-            Serial.printf("IP address: %s\r\n",WiFi.localIP().toString());
-            Serial.printf("Netmask   : %s\r\n",WiFi.subnetMask().toString());
-            Serial.printf("Gateway   : %s\r\n",WiFi.gatewayIP().toString());
+            // Wait to connect, or timeout
+            unsigned long start = millis();
+            while ((millis() - start <= WIFI_WATCHDOG) && (WiFi.status() != WL_CONNECTED)) {
+                delay(500);
+                Serial.print('.');
+            }
+            // If we have connected, inform user
+            if (WiFi.status() == WL_CONNECTED) {
+                setSSID(WiFi.SSID().c_str());
+                setPassword(stationList[bestStation]->password);
+                Serial.println();
+                // Print IP details
+                Serial.printf("IP address: %s\r\n",WiFi.localIP().toString());
+                Serial.printf("Netmask   : %s\r\n",WiFi.subnetMask().toString());
+                Serial.printf("Gateway   : %s\r\n",WiFi.gatewayIP().toString());
 
-        } else {
-            Serial.println("Client connection Failed");
-            WiFi.disconnect();   // (resets the WiFi scan)
-            return wifiStatus();
+            } else {
+                Serial.println("WiFi connection failed");
+                WiFi.disconnect();   // (resets the WiFi scan)
+                return wifiStatus();
+            }
         }
     }
 
@@ -143,14 +145,18 @@ int CLAppConn::start() {
         Serial.println("Access Point init successfull");
 
         // Start the DNS captive portal if requested
-        // if (ap_dhcp) {
-        //     Serial.println("Starting Captive Portal");
-        //     dnsServer.start(DNS_PORT, "*", *apIP.ip);
-        //     captivePortal = true;
-        // }
+        if (ap_dhcp) {
+            Serial.println("Starting Captive Portal");
+            dnsServer.start(DNS_PORT, "*", *apIP.ip);
+            captivePortal = true;
+        }
     }
 
     calcURLs();
+
+    startOTA();
+    // http service attached to port
+    configMDNS();
 
     return wifiStatus();
 }
@@ -184,26 +190,26 @@ int CLAppConn::loadPrefs() {
         return ret;
     }
 
-    ret = json_obj_get_string(&jctx, "mdns_name", mdnsName, sizeof(mdnsName));
+    ret = json_obj_get_string(&jctx, (char*)"mdns_name", mdnsName, sizeof(mdnsName));
 
     if(ret != OS_SUCCESS)
         Serial.println("MDNS Name is not defined!");
 
     if(ret == OS_SUCCESS) {
-        json_obj_get_string(&jctx, "host_name", hostName, sizeof(hostName));
-        json_obj_get_int(&jctx, "http_port", &httpPort);
+        json_obj_get_string(&jctx, (char*)"host_name", hostName, sizeof(hostName));
+        json_obj_get_int(&jctx, (char*)"http_port", &httpPort);
+        json_obj_get_bool(&jctx, (char*)"dhcp", &dhcp);
     }
 
-    if (ret == OS_SUCCESS && json_obj_get_array(&jctx, "stations", &stationCount) == OS_SUCCESS) {
+    if (ret == OS_SUCCESS && json_obj_get_array(&jctx, (char*)"stations", &stationCount) == OS_SUCCESS) {
         Serial.print("Known external SSIDs: ");
         if(stationCount>0)
             for(int i=0; i < stationCount && i < MAX_KNOWN_STATIONS; i++) {
 
                 if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
                     Station *s = (Station*) malloc(sizeof(Station));
-                    if(json_obj_get_string(&jctx, "ssid", s->ssid, sizeof(s->ssid)) == OS_SUCCESS &&
-                       json_obj_get_string(&jctx, "pass", s->password, sizeof(s->password)) == OS_SUCCESS &&
-                       json_obj_get_bool(&jctx, "dhcp", &s->dhcp) == OS_SUCCESS) {
+                    if(json_obj_get_string(&jctx, (char*)"ssid", s->ssid, sizeof(s->ssid)) == OS_SUCCESS &&
+                       json_obj_get_string(&jctx, (char*)"pass", s->password, sizeof(s->password)) == OS_SUCCESS) {
                         Serial.printf("%s\r\n", s->ssid);
                         stationList[i] = s;
                     } 
@@ -218,49 +224,45 @@ int CLAppConn::loadPrefs() {
             Serial.println("None");
         json_obj_leave_array(&jctx);
     }
-
-    char ip[16], netmask[16], gateway[16];
         
     // read static IP
-    if(ret == OS_SUCCESS && json_obj_get_object(&jctx, "static_ip") == OS_SUCCESS) {
-        // TODO: add reading of static address
+    if(ret == OS_SUCCESS && json_obj_get_object(&jctx, (char*)"static_ip") == OS_SUCCESS) {
+        readIPFromJSON(&jctx, &staticIP.ip, (char*)"ip");
+        readIPFromJSON(&jctx, &staticIP.netmask, (char*)"netmask");
+        readIPFromJSON(&jctx, &staticIP.gateway, (char*)"gateway");
+        readIPFromJSON(&jctx, &staticIP.dns1, (char*)"dns1");
+        readIPFromJSON(&jctx, &staticIP.dns2, (char*)"dns2");
         json_obj_leave_object(&jctx);
     }
 
-    json_obj_get_string(&jctx, "ap_ssid", apName, sizeof(apName));
-    json_obj_get_string(&jctx, "ap_pass", apPass, sizeof(apPass));
-    if(json_obj_get_int(&jctx, "ap_channel", &ap_channel) != OS_SUCCESS)
+    json_obj_get_string(&jctx, (char*)"ap_ssid", apName, sizeof(apName));
+    json_obj_get_string(&jctx, (char*)"ap_pass", apPass, sizeof(apPass));
+    if(json_obj_get_int(&jctx, (char*)"ap_channel", &ap_channel) != OS_SUCCESS)
         ap_channel = 1;
-    if(json_obj_get_bool(&jctx, "ap_dhcp", &ap_dhcp) != OS_SUCCESS)
+    if(json_obj_get_bool(&jctx, (char*)"ap_dhcp", &ap_dhcp) != OS_SUCCESS)
         ap_dhcp = true;
     
-    if(ret == OS_SUCCESS && json_obj_get_object(&jctx, "ap_ip") == OS_SUCCESS) {
-        if(json_obj_get_string(&jctx, "ip", ip, sizeof(ip)) == OS_SUCCESS) {
-            if(!apIP.ip) apIP.ip = new IPAddress();
-            if(!apIP.ip->fromString(ip))
-                Serial.println("AP IP is invalid");
-        }
-        if(json_obj_get_string(&jctx, "netmask", netmask, sizeof(netmask))==OS_SUCCESS) {
-            if(!apIP.netmask) apIP.netmask = new IPAddress();
-            apIP.netmask->fromString(netmask);
-        }
+    // read AP IP
+    if(ret == OS_SUCCESS && json_obj_get_object(&jctx, (char*)"ap_ip") == OS_SUCCESS) {
+        readIPFromJSON(&jctx, &apIP.ip, (char*)"ip");
+        readIPFromJSON(&jctx, &apIP.netmask, (char*)"netmask");
         json_obj_leave_object(&jctx);
     }
 
     // OTA
-    json_obj_get_bool(&jctx, "ota_enabled", &otaEnabled);   
-    json_obj_get_string(&jctx, "ota_password", otaPassword, sizeof(otaPassword)); 
+    json_obj_get_bool(&jctx, (char*)"ota_enabled", &otaEnabled);   
+    json_obj_get_string(&jctx, (char*)"ota_password", otaPassword, sizeof(otaPassword)); 
 
     // NTP
-    json_obj_get_string(&jctx, "ntp_server", ntpServer, sizeof(ntpServer)); 
+    json_obj_get_string(&jctx, (char*)"ntp_server", ntpServer, sizeof(ntpServer)); 
     int64_t gmtOffset;
-    if(json_obj_get_int64(&jctx, "gmt_offset", &gmtOffset) == OS_SUCCESS) {
+    if(json_obj_get_int64(&jctx, (char*)"gmt_offset", &gmtOffset) == OS_SUCCESS) {
         gmtOffset_sec = (long) gmtOffset;
     }
-    json_obj_get_int(&jctx, "dst_offset", &daylightOffset_sec);
+    json_obj_get_int(&jctx, (char*)"dst_offset", &daylightOffset_sec);
 
     bool dbg;
-    if(json_obj_get_bool(&jctx, "debug_mode", &dbg) == OS_SUCCESS)
+    if(json_obj_get_bool(&jctx, (char*)"debug_mode", &dbg) == OS_SUCCESS)
         setDebugMode(dbg);    
 
     // close the file
@@ -268,15 +270,108 @@ int CLAppConn::loadPrefs() {
     return ret;
 }
 
+void CLAppConn::setStaticIP (IPAddress ** ip_address, const char * strval) {
+    if(!*ip_address) *ip_address = new IPAddress();
+    if(!(*ip_address)->fromString(strval)) {
+            Serial.print(strval); Serial.println(" is invalid IP address");
+    }
+}
+
+void CLAppConn::readIPFromJSON (jparse_ctx_t * context, IPAddress ** ip_address, char * token) {
+    char buf[16];
+    if(json_obj_get_string(context, token, buf, sizeof(buf)) == OS_SUCCESS) {
+        setStaticIP(ip_address, buf);
+    }
+}
+
 int CLAppConn::savePrefs() {
-    // TODO: add saving of WiFi prefs
+
+    char * prefs_file = getPrefsFileName(true); 
+
+    if (Storage.exists(prefs_file)) {
+        Serial.printf("Updating %s\r\n", prefs_file);
+    } else {
+        Serial.printf("Creating %s\r\n", prefs_file);
+    }
+    
+    char buf[1024];
+    json_gen_str_t jstr;
+    json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
+    json_gen_start_object(&jstr);
+    json_gen_obj_set_string(&jstr, "mdns_name", mdnsName);
+
+    int count = stationCount;
+    int index = getSSIDIndex();
+    if(index < 0 && count == MAX_KNOWN_STATIONS) {
+        count--;
+    }
+    
+    if(index < 0 || count > 0) {
+        json_gen_push_array(&jstr, "stations");
+        if(index < 0) {
+            json_gen_start_object(&jstr);
+            json_gen_obj_set_string(&jstr, "ssid", ssid);
+            json_gen_obj_set_string(&jstr, "pass", password);
+            json_gen_end_object(&jstr);
+        }
+ 
+        for(int i=0; i < count; i++) {
+            json_gen_start_object(&jstr);
+            json_gen_obj_set_string(&jstr, "ssid", stationList[i]->ssid);
+            if(index >= 0 && i == index)
+                json_gen_obj_set_string(&jstr, "pass", password);
+            else
+                json_gen_obj_set_string(&jstr, "pass", stationList[i]->password);
+            json_gen_end_object(&jstr);
+        }
+        json_gen_pop_array(&jstr);
+    }
+
+    json_gen_obj_set_bool(&jstr, "dhcp", dhcp);
+    json_gen_push_object(&jstr, "static_ip");
+    if(staticIP.ip) json_gen_obj_set_string(&jstr, "ip", staticIP.ip->toString().c_str());
+    if(staticIP.netmask) json_gen_obj_set_string(&jstr, "netmask", staticIP.netmask->toString().c_str());
+    if(staticIP.gateway) json_gen_obj_set_string(&jstr, "gateway", staticIP.gateway->toString().c_str());
+    if(staticIP.dns1) json_gen_obj_set_string(&jstr, "dns1", staticIP.dns1->toString().c_str());
+    if(staticIP.dns2) json_gen_obj_set_string(&jstr, "dns2", staticIP.dns2->toString().c_str());
+    json_gen_pop_object(&jstr);    
+    json_gen_obj_set_int(&jstr, "http_port", httpPort);
+    json_gen_obj_set_bool(&jstr, "ota_enabled", otaEnabled);
+    json_gen_obj_set_string(&jstr, "ota_password", otaPassword);
+    
+    json_gen_obj_set_string(&jstr, "ap_ssid", apName);
+    json_gen_obj_set_string(&jstr, "ap_pass", apPass);
+    json_gen_obj_set_bool(&jstr, "ap_dhcp", ap_dhcp);
+    json_gen_push_object(&jstr, "ap_ip");
+    if(apIP.ip) json_gen_obj_set_string(&jstr, "ip", apIP.ip->toString().c_str());
+    if(apIP.netmask) json_gen_obj_set_string(&jstr, "netmask", apIP.netmask->toString().c_str());
+    json_gen_pop_object(&jstr);
+
+    json_gen_obj_set_string(&jstr, "ntp_server", ntpServer);
+    json_gen_obj_set_int(&jstr, "gmt_offset", gmtOffset_sec);
+    json_gen_obj_set_int(&jstr, "dst_offset", daylightOffset_sec);
+
+    json_gen_obj_set_bool(&jstr, "debug_mode", isDebugMode());
+    json_gen_end_object(&jstr);
+    json_gen_str_end(&jstr);
+
+    File file = Storage.open(prefs_file, FILE_WRITE);
+    if(file) {
+        file.print(buf);
+        file.close();
+        return OK;
+    }
+    else {
+        Serial.printf("Failed to save connection preferences to file %s\r\n", prefs_file);
+        return FAIL;
+    }
     return OS_SUCCESS;
 }
 
-void CLAppConn::enableOTA(bool enable) {
+void CLAppConn::startOTA() {
     // Set up OTA
 
-    if(enable) {
+    if(otaEnabled) {
         Serial.println("Setting up OTA");
         // Port defaults to 3232
         // ArduinoOTA.setPort(3232);
@@ -325,12 +420,10 @@ void CLAppConn::enableOTA(bool enable) {
 
         ArduinoOTA.begin();
         Serial.println("OTA is enabled");
-        otaEnabled = true;
     }
     else {
         ArduinoOTA.end();
         Serial.println("OTA is disabled");
-        otaEnabled = false;
     }
 
 }
@@ -381,5 +474,15 @@ char * CLAppConn::getUpTimeStr() {
     sprintf(timeStringBuff,"%" PRId64 ":%02i:%02i:%02i (d:h:m:s)", upDays, upHours, upMin, upSec);
     return timeStringBuff;
 }
+
+int CLAppConn::getSSIDIndex() {
+    for(int i=0; i < stationCount; i++) {
+        if(!strcmp(ssid, stationList[i]->ssid)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 
 CLAppConn AppConn;

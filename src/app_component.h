@@ -1,8 +1,8 @@
 #ifndef app_component_h
 #define app_component_h
 
-#include <json_generator.h>
-#include <json_parser.h>
+#include "json_generator.h"
+#include "json_parser.h"
 
 #include "app_config.h"
 #include "storage.h"
@@ -29,6 +29,8 @@ class CLAppComponent {
 
         int getLastErr() {return last_err;};
 
+        bool isConfigured() {return configured;};
+
     protected:
         void setTag(const char *t) {tag = t;};
 
@@ -38,7 +40,7 @@ class CLAppComponent {
         /// @param jctx JSON context pointer
         /// @param token JSON field where the value is to be retrieved from
         /// @return value, or 0 if fail
-        int readJsonIntVal(jparse_ctx_t *jctx, char* token);
+        int readJsonIntVal(jparse_ctx_t *jctx, const char* token);
 
         int parsePrefs(jparse_ctx_t *jctx);
 
@@ -46,6 +48,7 @@ class CLAppComponent {
     private:
         // prefix for forming preference file name of this class
         const char * tag;   
+        bool configured = false;
 
         bool debug_mode = false;
 
