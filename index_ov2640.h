@@ -271,23 +271,38 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
                 <button id="dht" title="Get Temperatue and Humidity">Get</button>
                 <label id="dht_result"></label>
               </div>
-              <div class="input-group" id="switcher-group">
-                <label for="switcher_revert">Switcher</label>
-                <div class="switch" title="Use reverted logic on Switcher">
-                  <input id="switcher_revert" type="checkbox" class="default-action">
-                  <label class="slider" for="switcher_revert"></label>
+              <div class="input-group" id="switcher1-group">
+                <label for="switcher1_revert">Switcher1</label>
+                <div class="switch" title="Use reverted logic on Switcher 1">
+                  <input id="switcher1_revert" type="checkbox" class="default-action">
+                  <label class="slider" for="switcher1_revert"></label>
                 </div>
                 <div class="text">
-                  <input id="switcher_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action" title="Duration in msec">
+                  <input id="switcher1_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action" title="Duration in msec">
                 </div>
-                <button id="switcher" title="Run Switcher: Turn On, Pause 300ms, Turn OFF">Run</button>
+                <button id="switcher1" title="Turn On, Pause, Turn OFF">Run1</button>
               </div>
-              <div class="input-group" id="relay_on-group">
-                <label for="relay_on">Relay</label>
-                <div class="switch" title="Close/Open Relay">
-                  <input id="relay_on" type="checkbox" class="default-action">
-                  <label class="slider" for="relay_on"></label>
+              <div class="input-group" id="switcher2-group">
+                <label for="switcher2_revert">Switcher2</label>
+                <div class="switch" title="Use reverted logic on Switcher 2">
+                  <input id="switcher2_revert" type="checkbox" class="default-action">
+                  <label class="slider" for="switcher2_revert"></label>
                 </div>
+                <div class="text">
+                  <input id="switcher2_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action" title="Duration in msec">
+                </div>
+                <button id="switcher2" title="Turn On, Pause, Turn OFF">Run2</button>
+              </div>
+              <div class="input-group" id="switcher3-group">
+                <label for="switcher3_revert">Switcher3</label>
+                <div class="switch" title="Use reverted logic on Switcher 3">
+                  <input id="switcher3_revert" type="checkbox" class="default-action">
+                  <label class="slider" for="switcher3_revert"></label>
+                </div>
+                <div class="text">
+                  <input id="switcher3_wait" type="number" min="100" max="9900" size="4" step="100" class="default-action" title="Duration in msec">
+                </div>
+                <button id="switcher3" title="Turn On, Pause, Turn OFF">Run3</button>
               </div>
               <div class="input-group" id="preferences-group">
                 <label for="prefs" style="line-height: 2em;">Preferences</label>
@@ -351,8 +366,12 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
     const clearPrefsButton = document.getElementById('clear_prefs')
     const rebootButton = document.getElementById('reboot')
     const minFrameTime = document.getElementById('min_frame_time')
-    const switcherButton = document.getElementById('switcher')
-    const switcherWait = document.getElementById('switcher_wait')
+    const switcher1Button = document.getElementById('switcher1')
+    const switcher2Button = document.getElementById('switcher2')
+    const switcher3Button = document.getElementById('switcher3')
+    const switcher1Wait = document.getElementById('switcher1_wait')
+    const switcher2Wait = document.getElementById('switcher2_wait')
+    const switcher3Wait = document.getElementById('switcher3_wait')
     const dhtButton = document.getElementById('dht')
     const dhtResult  = document.getElementById('dht_result')
     const restartButton = document.getElementById('restart')
@@ -645,9 +664,19 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       updateConfig(xclk)
     }
 
-    switcher_wait.onchange = () => {
-      console.log("Switcher Wait:" , switcher_wait);
-      updateConfig(switcherWait)
+    switcher1_wait.onchange = () => {
+      console.log("Switcher 1 Wait:" , switcher1_wait);
+      updateConfig(switcher1Wait)
+    }
+
+    switcher2_wait.onchange = () => {
+      console.log("Switcher 2 Wait:" , switcher2_wait);
+      updateConfig(switcher2Wait)
+    }
+
+    switcher3_wait.onchange = () => {
+      console.log("Switcher 3 Wait:" , switcher3_wait);
+      updateConfig(switcher3Wait)
     }
 
     swapButton.onclick = () => {
@@ -660,8 +689,16 @@ const uint8_t index_ov2640_html[] = R"=====(<!doctype html>
       }
     }
 
-    switcherButton.onclick = () => {
-      updateConfig(switcherButton);
+    switcher1Button.onclick = () => {
+      updateConfig(switcher1Button);
+    }
+
+    switcher2Button.onclick = () => {
+      updateConfig(switcher2Button);
+    }
+
+    switcher3Button.onclick = () => {
+      updateConfig(switcher3Button);
     }
 
     dhtButton.onclick = () => {

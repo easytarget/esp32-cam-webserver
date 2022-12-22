@@ -663,6 +663,8 @@ void WifiSetup() {
     }
 }
 
+extern void switcher_init(void);
+
 void setup() {
     Serial.begin(115200);
     Serial.setDebugOutput(true);
@@ -711,6 +713,7 @@ void setup() {
     if (filesystem) {
         delay(200); // a short delay to let spi bus settle after camera init
         loadPrefs(SPIFFS);
+        switcher_init();
     } else {
         Serial.println("No Internal Filesystem, cannot load or save preferences");
     }

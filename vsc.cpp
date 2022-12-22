@@ -7,16 +7,16 @@
 bool need_update = false;
 #endif
 
-#define SWITCH_PIN 2
-#define SWITCH_WAIT 300
+#define SWITCHER_COUNT 3
+byte switcher_count = SWITCHER_COUNT;
+const byte switcher_pin[SWITCHER_COUNT] = {2, 14, 15}; // 4 - Flash
 
-#define RELAY_PIN 15
-int relay_on = 0;
-bool switcher_revert = false;
-int switcher_wait = 300;
+#define DHT_PIN 13
+
+bool switcher_revert[SWITCHER_COUNT] = {true, true, true};
+unsigned int switcher_wait[SWITCHER_COUNT] = {1000, 300, 300};
 
 #include <DHT.h>
-#define DHT_PIN 13
 DHT dht11(DHT_PIN, DHT11);
 DHT dht21(DHT_PIN, DHT21);
 int8_t dht_type = 0; // 0 - None, 1 - dht 11, 2 - dht 21
@@ -60,31 +60,28 @@ void update_fw(void) {
 }
 #endif
 
-void relay(int8_t value) {
-  pinMode(RELAY_PIN, OUTPUT);
-  if(value == -1)
-    relay_on = abs(relay_on - 1);
-  else
-    relay_on = value;
-  if (relay_on > 0)
-    relay_on = 1;
-  else if (relay_on < 0)
-    relay_on = 0;
-  digitalWrite(RELAY_PIN, relay_on);
+void switcher_init(void){
+  int L0;
+  for (byte i = 0 ; i < switcher_count; i++) {
+    L0 = 0;
+    if (switcher_revert[i]) L0 = 1;
+    pinMode(switcher_pin[i], OUTPUT);
+    digitalWrite(switcher_pin[i], L0);
+  }
 }
 
-void switcher(void) {
+void switcher(byte index) {
   int L0 = 0;
   int L1 = 1;
-  if (switcher_revert) {
+  if (switcher_revert[index]) {
     L0 = 1;
     L1 = 0;
   }
-  pinMode(SWITCH_PIN, OUTPUT);
-  digitalWrite(SWITCH_PIN, L1);
-  if (switcher_wait > 0) {
-    delay(switcher_wait);
-    digitalWrite(SWITCH_PIN, L0);
+  pinMode(switcher_pin[index], OUTPUT);
+  digitalWrite(switcher_pin[index], L1);
+  if (switcher_wait[index] > 0) {
+    delay(switcher_wait[index]);
+    digitalWrite(switcher_pin[index], L0);
   }
 }
 

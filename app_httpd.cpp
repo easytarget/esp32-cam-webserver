@@ -321,14 +321,12 @@ static esp_err_t stream_handler(httpd_req_t *req){
     return res;
 }
 
-extern void relay(int8_t value);
-extern void switcher(void);
+extern void switcher(byte index);
 extern void gettemperature(void);
 extern float humidity;
 extern float temp;
-extern int8_t relay_on;
-extern bool switcher_revert;
-extern int switcher_wait;
+extern bool switcher_revert[];
+extern unsigned int switcher_wait[];
 extern int8_t dht_type; // 0 - None, 1 - dht 11, 2 - dht 21
 extern int dht_interval; // sec
 extern bool is_dht_inited;
@@ -450,26 +448,55 @@ static esp_err_t cmd_handler(httpd_req_t *req){
           Serial.print('.');
         }
     }
-    else if(!strcmp(variable, "relay_on")) {
-        relay(val);
-        sprintf(res_s, "Relay %d", relay_on);
+
+    else if(!strcmp(variable, "switcher1_revert")) {
+        switcher_revert[0] = val;
+        sprintf(res_s, "Switcher1 Reverted %d", switcher_revert[0]);
         Serial.println(res_s);
     }
-    else if(!strcmp(variable, "switcher_revert")) {
-        switcher_revert = val;
-        sprintf(res_s, "Switcher Reverted %d", switcher_revert);
+    else if(!strcmp(variable, "switcher1_wait")) {
+        switcher_wait[0] = val;
+        sprintf(res_s, "Switcher1 Wait %d", switcher_wait[0]);
         Serial.println(res_s);
     }
-    else if(!strcmp(variable, "switcher_wait")) {
-        switcher_wait = val;
-        sprintf(res_s, "Switcher Wait %d", switcher_wait);
+    else if(!strcmp(variable, "switcher1")) {
+        switcher(0);
+        sprintf(res_s, "Switcher1 %d (reverted=%d)", switcher_wait[0], switcher_revert[0]);
         Serial.println(res_s);
     }
-    else if(!strcmp(variable, "switcher")) {
-        switcher();
-        sprintf(res_s, "Switcher %d (reverted=%d)", switcher_wait, switcher_revert);
+    
+    else if(!strcmp(variable, "switcher2_revert")) {
+        switcher_revert[1] = val;
+        sprintf(res_s, "Switcher2 Reverted %d", switcher_revert[1]);
         Serial.println(res_s);
     }
+    else if(!strcmp(variable, "switcher2_wait")) {
+        switcher_wait[1] = val;
+        sprintf(res_s, "Switcher2 Wait %d", switcher_wait[1]);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "switcher2")) {
+        switcher(1);
+        sprintf(res_s, "Switcher2 %d (reverted=%d)", switcher_wait[1], switcher_revert[1]);
+        Serial.println(res_s);
+    }
+    
+    else if(!strcmp(variable, "switcher3_revert")) {
+        switcher_revert[2] = val;
+        sprintf(res_s, "Switcher3 Reverted %d", switcher_revert[2]);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "switcher3_wait")) {
+        switcher_wait[2] = val;
+        sprintf(res_s, "Switcher3 Wait %d", switcher_wait[2]);
+        Serial.println(res_s);
+    }
+    else if(!strcmp(variable, "switcher3")) {
+        switcher(2);
+        sprintf(res_s, "Switcher3 %d (reverted=%d)", switcher_wait[2], switcher_revert[2]);
+        Serial.println(res_s);
+    }
+    
     else if(!strcmp(variable, "dht_type")) {
       dht_type = val;
       is_dht_inited = false;
@@ -552,9 +579,12 @@ static esp_err_t status_handler(httpd_req_t *req){
         p+=sprintf(p, "\"code_ver\":\"%s\",", myVer);
         p+=sprintf(p, "\"rotate\":\"%d\",", myRotation);
         p+=sprintf(p, "\"stream_url\":\"%s\",", streamURL);
-        p+=sprintf(p, "\"relay_on\":%u,", relay_on);
-        p+=sprintf(p, "\"switcher_revert\":%u,", switcher_revert);
-        p+=sprintf(p, "\"switcher_wait\":%u,", switcher_wait);
+        p+=sprintf(p, "\"switcher1_revert\":%u,", switcher_revert[0]);
+        p+=sprintf(p, "\"switcher1_wait\":%u,", switcher_wait[0]);
+        p+=sprintf(p, "\"switcher2_revert\":%u,", switcher_revert[1]);
+        p+=sprintf(p, "\"switcher2_wait\":%u,", switcher_wait[1]);
+        p+=sprintf(p, "\"switcher3_revert\":%u,", switcher_revert[2]);
+        p+=sprintf(p, "\"switcher3_wait\":%u,", switcher_wait[2]);
         p+=sprintf(p, "\"dht_type\":%u,", dht_type);
         p+=sprintf(p, "\"dht_interval\":%u", dht_interval);
     }
