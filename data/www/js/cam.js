@@ -193,8 +193,5 @@ var cameraFormFields = [{"id": "lamp", "name": "Light", "control": "range",
                            "title": "When DCW is on, the image that you receive will be the size that you requested (VGA, QQVGA, etc). &#013;When DCW is off, the image that you receive will be one of UXGA, SVGA, or CIF. In other words, literally the actual image size as read from the sensor without any scaling. &#013;Note that if DCW is off, and you pick a different image size, this implicitly turns DCW back on again (although this isn't reflected in the options).",
                            "classes": "default-action"},
                            {"id": "colorbar", "name": "Test Pattern", "control": "switch",
-                           "classes": "default-action"}, 
-                           {"id": "stream_url", "name": "Stream URL", "control": "readonly",
-                            "hidden":"true",
-                            "classes": "default-action"}];
+                           "classes": "default-action"}];
 

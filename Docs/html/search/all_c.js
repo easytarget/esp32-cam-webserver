@@ -1,13 +1,10 @@
 var searchData=
 [
-  ['parsebytes_0',['parseBytes',['../parsebytes_8cpp.html#a4d8e6d226a4ee77982a2810ca02a8b77',1,'parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base):&#160;parsebytes.cpp'],['../parsebytes_8h.html#a4d8e6d226a4ee77982a2810ca02a8b77',1,'parseBytes(const char *str, char sep, byte *bytes, int maxBytes, int base):&#160;parsebytes.cpp']]],
-  ['parsebytes_2ecpp_1',['parsebytes.cpp',['../parsebytes_8cpp.html',1,'']]],
-  ['parsebytes_2eh_2',['parsebytes.h',['../parsebytes_8h.html',1,'']]],
-  ['parseprefs_3',['parsePrefs',['../class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319',1,'CLAppComponent']]],
-  ['password_4',['password',['../struct_station.html#adfce66aab835659fef7ab8501def3867',1,'Station']]],
-  ['path_5',['path',['../struct_uri_mapping.html#a28b0be3b16e0a3d7f7bd4ecff420fa4f',1,'UriMapping']]],
-  ['printlocaltime_6',['printLocalTime',['../class_c_l_app_conn.html#a9a4f24949950433f1672c3db6af49dde',1,'CLAppConn']]],
-  ['processor_7',['processor',['../app__httpd_8cpp.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp']]],
-  ['pwm_5fdefault_5ffreq_8',['PWM_DEFAULT_FREQ',['../app__httpd_8h.html#a8791ebb56b256ad962ec5e05162c78e7',1,'app_httpd.h']]],
-  ['pwm_5fdefault_5fresolution_5fbits_9',['PWM_DEFAULT_RESOLUTION_BITS',['../app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a',1,'app_httpd.h']]]
+  ['oncontrol_0',['onControl',['../app__httpd_8cpp.html#ad15b6110c801dc234564fa2f8268a9ab',1,'onControl(AsyncWebServerRequest *request):&#160;app_httpd.cpp'],['../app__httpd_8h.html#ad15b6110c801dc234564fa2f8268a9ab',1,'onControl(AsyncWebServerRequest *request):&#160;app_httpd.cpp']]],
+  ['oninfo_1',['onInfo',['../app__httpd_8cpp.html#ad302c9a0a0e16505eef900b55250762e',1,'onInfo(AsyncWebServerRequest *request):&#160;app_httpd.cpp'],['../app__httpd_8h.html#ad302c9a0a0e16505eef900b55250762e',1,'onInfo(AsyncWebServerRequest *request):&#160;app_httpd.cpp']]],
+  ['onsnaptimer_2',['onSnapTimer',['../app__httpd_8cpp.html#a1424ebf10d44b20fd79bb8102221a969',1,'onSnapTimer(TimerHandle_t pxTimer):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a1424ebf10d44b20fd79bb8102221a969',1,'onSnapTimer(TimerHandle_t pxTimer):&#160;app_httpd.cpp']]],
+  ['onstatus_3',['onStatus',['../app__httpd_8cpp.html#acc8d1122165362713f0823aeb3b25d1e',1,'onStatus(AsyncWebServerRequest *request):&#160;app_httpd.cpp'],['../app__httpd_8h.html#acc8d1122165362713f0823aeb3b25d1e',1,'onStatus(AsyncWebServerRequest *request):&#160;app_httpd.cpp']]],
+  ['onsystemstatus_4',['onSystemStatus',['../app__httpd_8cpp.html#a9a31c0a3ca52126629c612c494b8d3c6',1,'onSystemStatus(AsyncWebServerRequest *request):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a9a31c0a3ca52126629c612c494b8d3c6',1,'onSystemStatus(AsyncWebServerRequest *request):&#160;app_httpd.cpp']]],
+  ['onwsevent_5',['onWsEvent',['../app__httpd_8cpp.html#a7064e9828984f378d3e04f9b7a47bcae',1,'onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a7064e9828984f378d3e04f9b7a47bcae',1,'onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len):&#160;app_httpd.cpp']]],
+  ['open_6',['open',['../class_c_l_storage.html#a867f099568b8c4f18f0135ad14260a01',1,'CLStorage']]]
 ];

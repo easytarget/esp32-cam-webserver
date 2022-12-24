@@ -1,5 +1,15 @@
 var searchData=
 [
-  ['esp32_2dcam_20webserver_2e_20_26nbsp_3b_26nbsp_3b_26nbsp_3b_20_3cspan_20title_3d_22master_20branch_20build_20status_22_3e_3ca_20href_3d_22https_3a_2f_2ftravis_2dci_2ecom_2fgithub_2feasytarget_2fesp32_2dcam_2dwebserver_22_20_3e_3cimg_20src_3d_22https_3a_2f_2ftravis_2dci_2ecom_2feasytarget_2fesp32_2dcam_2dwebserver_2esvg_3fbranch_3dmaster_22_20alt_3d_22ci_20status_22_2f_3e_3c_2fa_3e_3c_2fspan_3e_20_26nbsp_3b_26nbsp_3b_20_3cspan_20title_3d_22esp_20eye_22_3e_3cimg_20src_3d_22docs_2flogo_2esvg_22_20alt_3d_22esp_2deye_20logo_22_2f_3e_3c_2fspan_3e_0',['ESP32-CAM WebServer. &amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;span title=&quot;Master branch build status&quot;&gt;&lt;a href=&quot;https://travis-ci.com/github/easytarget/esp32-cam-webserver&quot; &gt;&lt;img src=&quot;https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master&quot; alt=&quot;CI Status&quot;/&gt;&lt;/a&gt;&lt;/span&gt; &amp;nbsp;&amp;nbsp; &lt;span title=&quot;ESP EYE&quot;&gt;&lt;img src=&quot;Docs/logo.svg&quot; alt=&quot;ESP-EYE logo&quot;/&gt;&lt;/span&gt;',['../index.html',1,'']]],
-  ['exists_1',['exists',['../class_c_l_storage.html#aa5b081483af1fcf83fca0573cc1c6f44',1,'CLStorage']]]
+  ['deallocate_0',['deallocate',['../class_e_s_p32_p_w_m.html#a95986a33fe242cd58e874321bec4b4a1',1,'ESP32PWM']]],
+  ['default_5fflash_1',['DEFAULT_FLASH',['../app__httpd_8h.html#a31c6807de63083a9717bbd5fde5089ed',1,'app_httpd.h']]],
+  ['default_5fpulse_5fwidth_2',['DEFAULT_PULSE_WIDTH',['../esp32pwm_8h.html#a7eada57cb49e7b1766a813e4635d79bd',1,'esp32pwm.h']]],
+  ['default_5fus_5fhigh_3',['DEFAULT_uS_HIGH',['../app__httpd_8h.html#a12e0b64b830ce153c3624bf7a8bdd311',1,'app_httpd.h']]],
+  ['default_5fus_5flow_4',['DEFAULT_uS_LOW',['../app__httpd_8h.html#ae5c73e62b0f79ae4f83bb715f5fa89de',1,'app_httpd.h']]],
+  ['detachpin_5',['detachPin',['../class_e_s_p32_p_w_m.html#acb41cd553c993b23f4ae3439857ae9af',1,'ESP32PWM']]],
+  ['dns1_6',['dns1',['../struct_static_i_p.html#a6257a5707d2a75fa38ef9d5064eb792d',1,'StaticIP']]],
+  ['dns1_7',['DNS1',['../app__conn_8h.html#a8dcad816a4482b08fbcf8b3db836d972a534eb036548d39866fd588f0704dd57c',1,'app_conn.h']]],
+  ['dns2_8',['dns2',['../struct_static_i_p.html#a61e727e8a383392a7f36820a22f1628d',1,'StaticIP']]],
+  ['dns2_9',['DNS2',['../app__conn_8h.html#a8dcad816a4482b08fbcf8b3db836d972aeb949548f1c324292681a420eb946b03',1,'app_conn.h']]],
+  ['dumpprefs_10',['dumpPrefs',['../class_c_l_app_component.html#ad90151113ffbbcc630e347580b3ee9fe',1,'CLAppComponent']]],
+  ['dumpsystemstatustojson_11',['dumpSystemStatusToJson',['../app__httpd_8cpp.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp']]]
 ];

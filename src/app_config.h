@@ -32,6 +32,7 @@
 // seems to be broken, but fixed in this PR: https://github.com/lorol/LITTLEFS/pull/56 
 // To install it, please navigate to you /libraries sub-folder of your sketch location and then execute 
 // git clone https://github.com/Michael2MacDonald/LITTLEFS.
+
 // #define USE_LittleFS
 
 /*

@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['wifi_5fwatchdog_0',['WIFI_WATCHDOG',['../app__config_8h.html#abe5fef12849f59923de575b49a6e222c',1,'app_config.h']]],
-  ['wifistatus_1',['wifiStatus',['../class_c_l_app_conn.html#a790ba7c0b56edae2de159abf29f0127b',1,'CLAppConn']]],
-  ['writepwm_2',['writePWM',['../class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58',1,'CLAppHttpd']]]
+  ['updatesnaptimer_0',['updateSnapTimer',['../class_c_l_app_httpd.html#a58f5ed0635650911e1540f138df24b29',1,'CLAppHttpd']]],
+  ['uri_1',['uri',['../struct_uri_mapping.html#a9ce212b0da4d58af1f79b5476b68a7e8',1,'UriMapping']]],
+  ['urimapping_2',['UriMapping',['../struct_uri_mapping.html',1,'']]],
+  ['usable_5fesp32_5fpwm_3',['USABLE_ESP32_PWM',['../esp32pwm_8h.html#abfb817e4209392435fecd08f5c0c1cc5',1,'esp32pwm.h']]],
+  ['ustoticks_4',['usToTicks',['../class_e_s_p32_p_w_m.html#a19fcda5f42fc7adf0a15088687a12862',1,'ESP32PWM']]]
 ];

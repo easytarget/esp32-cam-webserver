@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['updatesnaptimer_0',['updateSnapTimer',['../class_c_l_app_httpd.html#a58f5ed0635650911e1540f138df24b29',1,'CLAppHttpd']]],
-  ['uri_1',['uri',['../struct_uri_mapping.html#a9ce212b0da4d58af1f79b5476b68a7e8',1,'UriMapping']]],
-  ['urimapping_2',['UriMapping',['../struct_uri_mapping.html',1,'']]],
-  ['ustoticks_3',['usToTicks',['../class_c_l_app_httpd.html#aa47dae208e01da30449656e3ce29e73f',1,'CLAppHttpd']]]
+  ['temprature_5fsens_5fread_0',['temprature_sens_read',['../app__httpd_8h.html#a2188b2e5ed72e93782e0a6d59111a180',1,'app_httpd.h']]],
+  ['timerandindextochannel_1',['timerAndIndexToChannel',['../class_e_s_p32_p_w_m.html#a07842d4b42e4806aafd2b7fbdf6fc70d',1,'ESP32PWM']]]
 ];

@@ -80,7 +80,7 @@ $(function() {
 <div class="textblock"><code>#include &lt;esp_int_wdt.h&gt;</code><br />
 <code>#include &lt;esp_task_wdt.h&gt;</code><br />
 <code>#include &lt;freertos/timers.h&gt;</code><br />
-<code>#include &quot;ESP32Servo.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="esp32pwm_8h_source.html">esp32pwm.h</a>&quot;</code><br />
 <code>#include &quot;ESPAsyncWebServer.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="storage_8h_source.html">storage.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="app__conn_8h_source.html">app_conn.h</a>&quot;</code><br />
@@ -106,6 +106,10 @@ Macros</h2></td></tr>
 <tr class="separator:a8791ebb56b256ad962ec5e05162c78e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1103a8e595e190825db719eaed2b5d5a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a">PWM_DEFAULT_RESOLUTION_BITS</a>&#160;&#160;&#160;10</td></tr>
 <tr class="separator:a1103a8e595e190825db719eaed2b5d5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5c73e62b0f79ae4f83bb715f5fa89de"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#ae5c73e62b0f79ae4f83bb715f5fa89de">DEFAULT_uS_LOW</a>&#160;&#160;&#160;544</td></tr>
+<tr class="separator:ae5c73e62b0f79ae4f83bb715f5fa89de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12e0b64b830ce153c3624bf7a8bdd311"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a12e0b64b830ce153c3624bf7a8bdd311">DEFAULT_uS_HIGH</a>&#160;&#160;&#160;2400</td></tr>
+<tr class="separator:a12e0b64b830ce153c3624bf7a8bdd311"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31c6807de63083a9717bbd5fde5089ed"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a31c6807de63083a9717bbd5fde5089ed">DEFAULT_FLASH</a>&#160;&#160;&#160;0xFF</td></tr>
 <tr class="separator:a31c6807de63083a9717bbd5fde5089ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -151,6 +155,34 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define DEFAULT_FLASH&#160;&#160;&#160;0xFF</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a12e0b64b830ce153c3624bf7a8bdd311" name="a12e0b64b830ce153c3624bf7a8bdd311"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12e0b64b830ce153c3624bf7a8bdd311">&#9670;&nbsp;</a></span>DEFAULT_uS_HIGH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DEFAULT_uS_HIGH&#160;&#160;&#160;2400</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae5c73e62b0f79ae4f83bb715f5fa89de" name="ae5c73e62b0f79ae4f83bb715f5fa89de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5c73e62b0f79ae4f83bb715f5fa89de">&#9670;&nbsp;</a></span>DEFAULT_uS_LOW</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DEFAULT_uS_LOW&#160;&#160;&#160;544</td>
         </tr>
       </table>
 </div><div class="memdoc">

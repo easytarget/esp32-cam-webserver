@@ -83,8 +83,10 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
     else if(type == WS_EVT_DISCONNECT){
         Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
         AppHttpd.stopStream(client->id());        
-        if(AppHttpd.getControlClient() == client->id())
+        if(AppHttpd.getControlClient() == client->id()) {
             AppHttpd.setControlClient(0);
+            AppHttpd.serialSendCommand("Disconnected");
+        }
     }
     else if(type == WS_EVT_ERROR){
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -110,6 +112,7 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
                 break;
             case (uint8_t)'c':
                 AppHttpd.setControlClient(client->id());
+                AppHttpd.serialSendCommand("Connected");
                 break;
             case (uint8_t)'w':  // write PWM value
                 if(AppHttpd.getControlClient())
@@ -118,12 +121,15 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
                         int nparams = *(msg+2);
                         int vlen = *(msg+3);
                         int value = 0;
-                        if(vlen && nparams && vlen+4 == len) {
-                            if(vlen == 2)
-                                value = *(msg+4) + *(msg+5)*256;
-                            else
-                                value = *(msg+4);
-                        }
+
+                        if(vlen == 2)
+                            value = *(msg+4) + *(msg+5)*256;
+                        else
+                            value = *(msg+4);
+
+                        if(AppHttpd.isDebugMode())
+                            Serial.printf("vlen %d nparams %d value %d\r\n", vlen, nparams, value);
+
                         if(nparams == 1)
                             AppHttpd.writePWM(pin, value); // write to servo
                         else
@@ -572,18 +578,19 @@ int CLAppHttpd::loadPrefs() {
 
     if(json_obj_get_array(&jctx, (char*)"pwm", &count) == OS_SUCCESS) {
 
-        for(int i=0; i < count && i < MAX_SERVOS; i++) 
+        for(int i=0; i < count && i < NUM_PWM; i++) 
             if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
                 if(json_obj_get_int(&jctx, (char*)"pin", &pin) == OS_SUCCESS &&
                     json_obj_get_int(&jctx, (char*)"frequency", &freq) == OS_SUCCESS &&
                     json_obj_get_int(&jctx, (char*)"resolution", &resolution) == OS_SUCCESS) {
                     int index = attachPWM(pin, freq, resolution);
-                    if(index >= 0) 
+                    if(index >= 0) {
                         if(lampVal >= 0 && i == 0) {
                             lamppin = pin;
                             pwmMax = pow(2, resolution)-1;
                             Serial.printf("Flash lamp activated on pin %d\r\n", lamppin);
                         }
+                    }
                     else
                         Serial.printf("Failed to attach PWM to pin %d\r\n", pin);
                 }
@@ -637,8 +644,8 @@ int CLAppHttpd::savePrefs() {
     //         if(pwm[i]) {
     //             json_gen_start_object(&jstr);
     //             json_gen_obj_set_int(&jstr, (char*)"pin", pwm[i]->getPin());
-    //             json_gen_obj_set_int(&jstr, (char*)"freqquency", pwm[i]->readFreq());
-    //             json_gen_end_object(&jstr); (char*)"resolution", pwm[i]->resolutionBits);
+    //             json_gen_obj_set_int(&jstr, (char*)"freqquency", pwm[i]->getFreq());
+    //             json_gen_end_object(&jstr); (char*)"resolution", pwm[i]->getResolutionBits());
     //         }
         
     //     json_gen_pop_array(&jstr);
@@ -673,7 +680,7 @@ int CLAppHttpd::savePrefs() {
 
 int CLAppHttpd::attachPWM(uint8_t pin, double freq, uint8_t resolution_bits) {
 
-    if(pwmCount >= MAX_SERVOS) {
+    if(pwmCount >= NUM_PWM) {
         Serial.println("Number of available PWM channels exceeded");
         return OS_FAIL;
     }
@@ -699,7 +706,8 @@ int CLAppHttpd::attachPWM(uint8_t pin, double freq, uint8_t resolution_bits) {
         return OS_FAIL;
     }
 
-    Serial.printf("Created a new PWM channel %d on pin %d\r\n", newpwm->getChannel(), pin);
+    Serial.printf("Created a new PWM channel %d on pin %d (freq=%.2f, bits=%d)\r\n", 
+        newpwm->getChannel(), pin, freq, resolution_bits);
 
     pwm[pwmCount] = newpwm;
 
@@ -723,18 +731,20 @@ int CLAppHttpd::writePWM(uint8_t pin, int value, int min_v, int max_v) {
                             value = 180;
 
                         value = map(value, 0, 180, min_v, max_v);
+
                     }
                     if (value < min_v)          // ensure pulse width is valid
                         value = min_v;
                     else if (value > max_v)
                         value = max_v;
 
-                    value = usToTicks(value);  // convert to ticks
+                    value = pwm[i]->usToTicks(value);  // convert to ticks
+
                 }
                 // do the actual write
                 if(isDebugMode())
-                    Serial.printf("Write %d to PWM channel %d pin %d\r\n", 
-                                  value, pwm[i]->getChannel(), pwm[i]->getPin());
+                    Serial.printf("Write %d to PWM channel %d pin %d min %d max %d\r\n", 
+                                  value, pwm[i]->getChannel(), pwm[i]->getPin(), min_v, max_v);
                 pwm[i]->write(value);
                 return OS_SUCCESS;
             }
@@ -749,10 +759,6 @@ int CLAppHttpd::writePWM(uint8_t pin, int value, int min_v, int max_v) {
     return OS_FAIL;
 }
 
-int CLAppHttpd::usToTicks(int usec)
-{
-    return (int)((double)usec / ((double)REFRESH_USEC / (double)pow(2, PWM_DEFAULT_FREQ))*(((double)PWM_DEFAULT_FREQ)/50.0));
-}
 
 // Lamp Control
 void CLAppHttpd::setLamp(int newVal) {

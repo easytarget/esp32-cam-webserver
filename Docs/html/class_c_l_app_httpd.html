@@ -65,8 +65,7 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-methods">Protected Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a>  </div>
   <div class="headertitle"><div class="title">CLAppHttpd Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -151,7 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afadde6b2ff0f734e8146e980a8087da1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#afadde6b2ff0f734e8146e980a8087da1">attachPWM</a> (uint8_t pin, double freq=<a class="el" href="app__httpd_8h.html#a8791ebb56b256ad962ec5e05162c78e7">PWM_DEFAULT_FREQ</a>, uint8_t resolution_bits=<a class="el" href="app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a">PWM_DEFAULT_RESOLUTION_BITS</a>)</td></tr>
 <tr class="memdesc:afadde6b2ff0f734e8146e980a8087da1"><td class="mdescLeft">&#160;</td><td class="mdescRight">attaches a new PWM/servo and returns its ID in case of success, or OS_FAIL otherwise  <a href="class_c_l_app_httpd.html#afadde6b2ff0f734e8146e980a8087da1">More...</a><br /></td></tr>
 <tr class="separator:afadde6b2ff0f734e8146e980a8087da1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae5c0baea3d57adb3334d8274794cd58"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58">writePWM</a> (uint8_t pin, int value, int min_v=DEFAULT_uS_LOW, int max_v=DEFAULT_uS_HIGH)</td></tr>
+<tr class="memitem:aae5c0baea3d57adb3334d8274794cd58"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58">writePWM</a> (uint8_t pin, int value, int min_v=<a class="el" href="app__httpd_8h.html#ae5c73e62b0f79ae4f83bb715f5fa89de">DEFAULT_uS_LOW</a>, int max_v=<a class="el" href="app__httpd_8h.html#a12e0b64b830ce153c3624bf7a8bdd311">DEFAULT_uS_HIGH</a>)</td></tr>
 <tr class="memdesc:aae5c0baea3d57adb3334d8274794cd58"><td class="mdescLeft">&#160;</td><td class="mdescRight">writes an angle value to PWM/Servo.  <a href="class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58">More...</a><br /></td></tr>
 <tr class="separator:aae5c0baea3d57adb3334d8274794cd58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_c_l_app_component"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_c_l_app_component')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_c_l_app_component.html">CLAppComponent</a></td></tr>
@@ -176,10 +175,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ace751d352eba4d957eb06cd9de726e2f inherit pub_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#ace751d352eba4d957eb06cd9de726e2f">isConfigured</a> ()</td></tr>
 <tr class="separator:ace751d352eba4d957eb06cd9de726e2f inherit pub_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:aa47dae208e01da30449656e3ce29e73f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#aa47dae208e01da30449656e3ce29e73f">usToTicks</a> (int usec)</td></tr>
-<tr class="separator:aa47dae208e01da30449656e3ce29e73f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_class_c_l_app_component"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_c_l_app_component')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_c_l_app_component.html">CLAppComponent</a></td></tr>
 <tr class="memitem:a75a706c37e31c3083c845d304e3a519b inherit pro_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a75a706c37e31c3083c845d304e3a519b">setTag</a> (const char *t)</td></tr>
 <tr class="separator:a75a706c37e31c3083c845d304e3a519b inherit pro_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -920,32 +917,6 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="aa47dae208e01da30449656e3ce29e73f" name="aa47dae208e01da30449656e3ce29e73f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa47dae208e01da30449656e3ce29e73f">&#9670;&nbsp;</a></span>usToTicks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int CLAppHttpd::usToTicks </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>usec</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="aae5c0baea3d57adb3334d8274794cd58" name="aae5c0baea3d57adb3334d8274794cd58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aae5c0baea3d57adb3334d8274794cd58">&#9670;&nbsp;</a></span>writePWM()</h2>
 
@@ -968,13 +939,13 @@ Protected Member Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>min_v</em> = <code>DEFAULT_uS_LOW</code>, </td>
+          <td class="paramname"><em>min_v</em> = <code><a class="el" href="app__httpd_8h.html#ae5c73e62b0f79ae4f83bb715f5fa89de">DEFAULT_uS_LOW</a></code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>max_v</em> = <code>DEFAULT_uS_HIGH</code>&#160;</td>
+          <td class="paramname"><em>max_v</em> = <code><a class="el" href="app__httpd_8h.html#a12e0b64b830ce153c3624bf7a8bdd311">DEFAULT_uS_HIGH</a></code>&#160;</td>
         </tr>
         <tr>
           <td></td>

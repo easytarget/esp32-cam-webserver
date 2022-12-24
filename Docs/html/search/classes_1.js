@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['staticip_0',['StaticIP',['../struct_static_i_p.html',1,'']]],
-  ['station_1',['Station',['../struct_station.html',1,'']]]
+  ['esp32pwm_0',['ESP32PWM',['../class_e_s_p32_p_w_m.html',1,'']]]
 ];

@@ -5,7 +5,7 @@
 #include <esp_task_wdt.h>
 #include <freertos/timers.h>
 
-#include "ESP32Servo.h"
+#include "esp32pwm.h"
 #include "ESPAsyncWebServer.h"
 #include "storage.h"
 #include "app_conn.h"
@@ -15,6 +15,9 @@
 
 #define PWM_DEFAULT_FREQ                50
 #define PWM_DEFAULT_RESOLUTION_BITS     10
+
+#define DEFAULT_uS_LOW        544
+#define DEFAULT_uS_HIGH      2400
 
 #define DEFAULT_FLASH 0xFF
 
@@ -117,16 +120,13 @@ class CLAppHttpd : public CLAppComponent {
          * @return int 
          */
         int writePWM(uint8_t pin, int value, int min_v = DEFAULT_uS_LOW, int max_v = DEFAULT_uS_HIGH);
-        
-    protected:
-        int usToTicks(int usec);
 
     private:
 
         UriMapping *mappingList[MAX_URI_MAPPINGS]; 
         int mappingCount=0;
 
-        ESP32PWM *pwm[MAX_SERVOS];
+        ESP32PWM *pwm[NUM_PWM];
 
         int pwmCount = 0;
 
@@ -168,7 +168,6 @@ class CLAppHttpd : public CLAppComponent {
         const String version = __DATE__ " @ " __TIME__;
 
 };
-
 
 
 extern CLAppHttpd AppHttpd;

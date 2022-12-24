@@ -1,10 +1,21 @@
 var searchData=
 [
-  ['default_5fflash_0',['DEFAULT_FLASH',['../app__httpd_8h.html#a31c6807de63083a9717bbd5fde5089ed',1,'app_httpd.h']]],
-  ['dns1_1',['dns1',['../struct_static_i_p.html#a6257a5707d2a75fa38ef9d5064eb792d',1,'StaticIP']]],
-  ['dns1_2',['DNS1',['../app__conn_8h.html#a8dcad816a4482b08fbcf8b3db836d972a534eb036548d39866fd588f0704dd57c',1,'app_conn.h']]],
-  ['dns2_3',['dns2',['../struct_static_i_p.html#a61e727e8a383392a7f36820a22f1628d',1,'StaticIP']]],
-  ['dns2_4',['DNS2',['../app__conn_8h.html#a8dcad816a4482b08fbcf8b3db836d972aeb949548f1c324292681a420eb946b03',1,'app_conn.h']]],
-  ['dumpprefs_5',['dumpPrefs',['../class_c_l_app_component.html#ad90151113ffbbcc630e347580b3ee9fe',1,'CLAppComponent']]],
-  ['dumpsystemstatustojson_6',['dumpSystemStatusToJson',['../app__httpd_8cpp.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a93682b89d59abe5dbad7f6d2a7fa8b8e',1,'dumpSystemStatusToJson(char *buf, size_t size):&#160;app_httpd.cpp']]]
+  ['cam_5fname_0',['CAM_NAME',['../app__config_8h.html#acc59b7b9d083568456e1131e8492b5dd',1,'app_config.h']]],
+  ['camera_5fmodel_5fai_5fthinker_1',['CAMERA_MODEL_AI_THINKER',['../app__config_8h.html#af3ad6cce87c9d1876247f85e3cece96e',1,'app_config.h']]],
+  ['camera_5fpins_2eh_2',['camera_pins.h',['../camera__pins_8h.html',1,'']]],
+  ['capacityunits_3',['capacityUnits',['../class_c_l_storage.html#a287d73a832226a938cc114b21bf52fb7',1,'CLStorage']]],
+  ['capture_5fmode_4',['capture_mode',['../app__httpd_8h.html#a4f1a58013e90714b6ff526f27933ad3d',1,'app_httpd.h']]],
+  ['capture_5fstill_5',['CAPTURE_STILL',['../app__httpd_8h.html#a4f1a58013e90714b6ff526f27933ad3daa95e79ced3f093812e4ada2d4642d0ac',1,'app_httpd.h']]],
+  ['capture_5fstream_6',['CAPTURE_STREAM',['../app__httpd_8h.html#a4f1a58013e90714b6ff526f27933ad3dae34cdf188185e5606a30deb938e20b40',1,'app_httpd.h']]],
+  ['channelsremaining_7',['channelsRemaining',['../class_e_s_p32_p_w_m.html#aca266aeccd1dd2c6e6b6cf8277bcb4d3',1,'ESP32PWM']]],
+  ['checkfrequencyforsideeffects_8',['checkFrequencyForSideEffects',['../class_e_s_p32_p_w_m.html#a71ef8b9ae15745d27c854f2b5c3295d0',1,'ESP32PWM']]],
+  ['clappcam_9',['CLAppCam',['../class_c_l_app_cam.html',1,'CLAppCam'],['../class_c_l_app_cam.html#a5489d93c51c1b4f3457af58970ff953d',1,'CLAppCam::CLAppCam()']]],
+  ['clappcomponent_10',['CLAppComponent',['../class_c_l_app_component.html',1,'']]],
+  ['clappconn_11',['CLAppConn',['../class_c_l_app_conn.html',1,'CLAppConn'],['../class_c_l_app_conn.html#a40ab21138b6b3280000a139da9784f58',1,'CLAppConn::CLAppConn()']]],
+  ['clapphttpd_12',['CLAppHttpd',['../class_c_l_app_httpd.html',1,'CLAppHttpd'],['../class_c_l_app_httpd.html#ad921ac128d82e11c8170847b25970dea',1,'CLAppHttpd::CLAppHttpd()']]],
+  ['clstorage_13',['CLStorage',['../class_c_l_storage.html',1,'']]],
+  ['configmdns_14',['configMDNS',['../class_c_l_app_conn.html#ab12f6fe1f13192cdcf6c2243c0619a39',1,'CLAppConn']]],
+  ['configntp_15',['configNTP',['../class_c_l_app_conn.html#a17ffc56321ce2e765ae90d1b27ed10e2',1,'CLAppConn']]],
+  ['contributing_20to_20esp32_2dcam_20revisited_16',['Contributing to ESP32-CAM revisited',['../md__c_o_n_t_r_i_b_u_t_i_n_g.html',1,'']]],
+  ['contributing_2emd_17',['CONTRIBUTING.md',['../_c_o_n_t_r_i_b_u_t_i_n_g_8md.html',1,'']]]
 ];

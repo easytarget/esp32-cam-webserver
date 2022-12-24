@@ -121,7 +121,7 @@ Starting Captive Portal
 OTA is disabled
 mDNS responder started
 Added HTTP service to MDNS server
-^Connected
+Connected
 ```
 
 Connected to the access point and open the url http://192.168.4.1/. You should see the following page: 

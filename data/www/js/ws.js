@@ -1,6 +1,6 @@
 var urlCreator = window.URL || window.webkitURL;
 const stream = document.getElementById('video');
-var streamURL = stream.getAttribute("data-ws");
+var streamURL = 'ws://' + location.hostname + ':' + location.port + '/ws';
 
 const ws = new WebSocket(streamURL);
 ws.binaryType = 'arraybuffer';
