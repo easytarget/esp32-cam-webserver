@@ -26,9 +26,6 @@
 // Uncomment to disable the notification LED on the module
 // #define LED_DISABLE
 
-// Uncomment to disable the illumination lamp features
-// #define LAMP_DISABLE
-
 // Uncomment this line to use LittleFS instead of SD. 
 // NOTE!
 // LittleFS is still experimental, not recommended. The 'official' library installed from the Library Manager 
@@ -36,10 +33,6 @@
 // To install it, please navigate to you /libraries sub-folder of your sketch location and then execute 
 // git clone https://github.com/Michael2MacDonald/LITTLEFS.
 // #define USE_LittleFS
-
-// Define the startup lamp power setting (as a percentage, defaults to 0%)
-// Saved user settings will override this
-// #define LAMP_DEFAULT 0
 
 /*
  * Camera Hardware Selectiom

@@ -106,8 +106,9 @@ Setup:</h1>
 </ul>
 <h2><a class="anchor" id="autotoc_md22"></a>
 Wiring for AI-THINKER Boards (and similar clone-alikes)</h2>
-<p >Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below. <img src="Docs/hookup.png" alt="Hoockup" class="inline"/></p><ul>
-<li>Connect the <b>RX</b> line from the serial adapter to the <b>TX</b> pin on ESP32</li>
+<p >Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below. <img src="Docs/hookup.png" alt="Hoockup" class="inline"/></p>
+<ul>
+<li>Connect the <b>RX</b> line from the serisal adapter to the <b>TX</b> pin on ESP32</li>
 <li>The adapters <b>TX</b> line goes to the ESP32 <b>RX</b> pin</li>
 <li>The <b>GPIO0</b> pin of the ESP32 must be held LOW (to ground) when the unit is powered up to allow it to enter it's programming mode. This can be done with simple jumper cable connected at poweron, fitting a switch for this is useful if you will be reprogramming a lot.</li>
 <li>You will to supply 5v to the ESP32 in order to power it during programming; the FTDI board alone fails to supply this sometimes. The ESP32 CAM board is very sensitive to the quality of power source. Decoupling capacitors are very much recommended.</li>
@@ -121,7 +122,7 @@ Preparing the Web Server storage.</h2>
 <p ><b>IMPORTANT!</b> Without the storage and content of the data folder on it, the sketch will not start.</p>
 <h3><a class="anchor" id="autotoc_md25"></a>
 Using micro SD flash memory card</h3>
-<p >You will need a blank SD card, which must be formatted as FAT32. Insert it into the micro SD slot of your computer and copy all the files from the <b>data</b> folder. The structure of files on the SD card shoudl be like <a href="/Docs/data-folder.png">!this:</a></p>
+<p >You will need a blank SD card, which must be formatted as FAT32. Insert it into the micro SD slot of your computer and copy all the files from the <b>data</b> folder. The structure of files on the SD card should be like this: <img src="Docs/data-folder.png" alt="Data Folder" class="inline"/></p>
 <p >After that, insert the card in the slot of your ESP32CAM board and restart it. The Server should start normally.</p>
 <p >Please ensure the size of the card does not exceed 4GB, which is a maximum supported capacity for ESP32-CAM board. Higher capacity SD card may not work.</p>
 <h3><a class="anchor" id="autotoc_md26"></a>
@@ -145,13 +146,14 @@ Initial configuration</h2>
 <div class="line">mDNS responder started</div>
 <div class="line">Added HTTP service to MDNS server</div>
 <div class="line">^Connected</div>
-</div><!-- fragment --><p >Connected to the access point and open the url <a href="http://192.168.4.1/">http://192.168.4.1/</a>. You should see the <a href="/Docs/wifi-setup-ap.png">!following page:</a></p>
-<p >Switch the Access Point Mode off. The screen will change as <a href="/Docs/wifi-setup.png">!follows:</a></p>
+</div><!-- fragment --><p >Connected to the access point and open the url <a href="http://192.168.4.1/">http://192.168.4.1/</a>. You should see the following page: <img src="Docs/wifi-setup-ap.png" alt="WiFi AP Setup" class="inline"/></p>
+<p >Switch the Access Point Mode off. The screen will change as follows: <img src="Docs/wifi-setup.png" alt="WiFi Setup" class="inline"/></p>
 <p >Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure you wifi router has this band enabled.</p>
 <p >Set up your preffered NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not leave it empty or default.</p>
 <p >Click <code>Save</code> and then <code>Reboot</code>. If everything is configured correctly, the ESP32CAM board will restart and connect to your wifi automatically. The assigned IP address can be seen in the Serial Monitor logs.</p>
 <p >Open the browser and navigate to <a href="http://">http://</a>&lt;YOUR_IP_ADDRESS:YOUR_PORT&gt;/ (for example, <a href="http://192.168.0.2:8080">http://192.168.0.2:8080</a>)</p>
-<p >You should see the <a href="/Docs/index.png">!following screen:</a>. Here you can take still images or start the video streaming from the camera installed on ESP32CAM.</p>
+<p >You should see the following screen: <img src="Docs/index.png" alt="Index" class="inline"/>.</p>
+<p >Here you can take still images or start the video streaming from the camera installed on ESP32CAM.</p>
 <p >The WiFi configuration page is available at the address <code><a href="http://">http://</a>&lt;YOUR_IP_ADDRESS:YOUR_PORT&gt;/setup</code>.</p>
 <p >The system monitoring page is accessible at <code><a href="http://">http://</a>&lt;YOUR_IP_ADDRESS:YOUR_PORT&gt;/dump</code></p>
 <h2><a class="anchor" id="autotoc_md28"></a>
@@ -190,8 +192,8 @@ HTTP server configuration (/httpd.json)</h3>
 <div class="line">    &quot;debug_mode&quot;: false</div>
 <div class="line">}</div>
 </div><!-- fragment --><p >The parameter <code>mapping</code> allows to configure folders with static content for the web server.</p>
-<h2><a class="anchor" id="autotoc_md31"></a>
-Camera Configuration (/cam.json):</h2>
+<h3><a class="anchor" id="autotoc_md31"></a>
+Camera Configuration (/cam.json):</h3>
 <div class="fragment"><div class="line">{   </div>
 <div class="line">    &quot;lamp&quot;:-1,</div>
 <div class="line">    &quot;autolamp&quot;:0,</div>

@@ -13,6 +13,11 @@
 
 #define MAX_URI_MAPPINGS    32
 
+#define PWM_DEFAULT_FREQ                50
+#define PWM_DEFAULT_RESOLUTION_BITS     10
+
+#define DEFAULT_FLASH 0xFF
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,8 +45,6 @@ void dumpSystemStatusToJson(char * buf, size_t size);
  */
 struct UriMapping { char uri[32]; char path[32];};
 
-struct AppServo {int pin; Servo * servo;};
-
 
 /** 
  * @brief WebServer Manager
@@ -54,13 +57,16 @@ class CLAppHttpd : public CLAppComponent {
 
         int start();
         int loadPrefs();
+        int savePrefs();
 
-        uint32_t getClientId() {return client_id;};
+        uint32_t getStreamClient() {return stream_client;};
+        uint32_t getControlClient() {return control_client;};
+        void setControlClient(uint32_t id) {control_client = id;};
 
         int8_t getStreamCount() {return streamCount;};
         long getStreamsServed() {return streamsServed;};
         unsigned long getImagesServed() {return imagesServed;};
-        int getServoCount() {return servoCount;};
+        int getpwmCount() {return pwmCount;};
         void incImagesServed(){imagesServed++;};
 
         void setStreamMode(capture_mode mode) {streammode = mode;};
@@ -84,24 +90,45 @@ class CLAppHttpd : public CLAppComponent {
 
         char * getSerialBuffer() {return serialBuffer;};
 
+        void setAutoLamp(bool val) {autoLamp = val;};
+        bool isAutoLamp() { return autoLamp;};   
+        int getFlashLamp() {return flashLamp;}; 
+
+        void setLamp(int newVal = DEFAULT_FLASH);
+        int getLamp() {return lampVal;};    
+
         /**
-         * @brief attaches a new servo and returns its ID in case of success, or OS_FAIL otherwise
+         * @brief attaches a new PWM/servo and returns its ID in case of success, or OS_FAIL otherwise
          * 
          * @param pin 
+         * @param freq
+         * @param resolution_bits
          * @return int 
          */
-        int attachServo(int pin);
+        int attachPWM(uint8_t pin, double freq = PWM_DEFAULT_FREQ, uint8_t resolution_bits = PWM_DEFAULT_RESOLUTION_BITS);
         
-        int writeServo(int pin, int value);
-
+        /**
+         * @brief writes an angle value to PWM/Servo.
+         * 
+         * @param pin 
+         * @param value 
+         * @param min_v
+         * @param max_v
+         * @return int 
+         */
+        int writePWM(uint8_t pin, int value, int min_v = DEFAULT_uS_LOW, int max_v = DEFAULT_uS_HIGH);
+        
+    protected:
+        int usToTicks(int usec);
 
     private:
 
         UriMapping *mappingList[MAX_URI_MAPPINGS]; 
         int mappingCount=0;
 
-        AppServo *servos[MAX_SERVOS];
-        int servoCount = 0;
+        ESP32PWM *pwm[MAX_SERVOS];
+
+        int pwmCount = 0;
 
         // Name of the application used in web interface
         // Can be re-defined in the httpd.json file
@@ -111,10 +138,22 @@ class CLAppHttpd : public CLAppComponent {
 
         AsyncWebServer *server;
         AsyncWebSocket *ws; 
-        uint32_t client_id = 0;
+        
+        uint32_t stream_client;
+        uint32_t control_client;
+        
         TimerHandle_t snap_timer = NULL;
+        
+        // Flash LED lamp parameters.
+        // shoudl be defined in the 1st line of the pwm collection in the httpd prefs (httpd.json)
+        bool autoLamp = false;         // Automatic lamp (auto on while camera running)
+        int lampVal = -1;              // Lamp brightness
+        int flashLamp = 80;            // Flash brightness when taking still images
+        uint8_t lamppin = 0;           // Lamp pin, not defined by default
+        int pwmMax = 1;                // pwmMax = pow(2,pwmresolution)-1;
 
         int8_t streamCount=0;
+        
         long streamsServed=0;
         unsigned long imagesServed;
 

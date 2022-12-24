@@ -6,7 +6,8 @@ var searchData=
   ['parseprefs_3',['parsePrefs',['../class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319',1,'CLAppComponent']]],
   ['password_4',['password',['../struct_station.html#adfce66aab835659fef7ab8501def3867',1,'Station']]],
   ['path_5',['path',['../struct_uri_mapping.html#a28b0be3b16e0a3d7f7bd4ecff420fa4f',1,'UriMapping']]],
-  ['pin_6',['pin',['../struct_app_servo.html#ad51201b7ed0aa34d6285cb1fc54d8a69',1,'AppServo']]],
-  ['printlocaltime_7',['printLocalTime',['../class_c_l_app_conn.html#a9a4f24949950433f1672c3db6af49dde',1,'CLAppConn']]],
-  ['processor_8',['processor',['../app__httpd_8cpp.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp']]]
+  ['printlocaltime_6',['printLocalTime',['../class_c_l_app_conn.html#a9a4f24949950433f1672c3db6af49dde',1,'CLAppConn']]],
+  ['processor_7',['processor',['../app__httpd_8cpp.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp'],['../app__httpd_8h.html#a0c021f9721c3b479757f8e1b40624b6c',1,'processor(const String &amp;var):&#160;app_httpd.cpp']]],
+  ['pwm_5fdefault_5ffreq_8',['PWM_DEFAULT_FREQ',['../app__httpd_8h.html#a8791ebb56b256ad962ec5e05162c78e7',1,'app_httpd.h']]],
+  ['pwm_5fdefault_5fresolution_5fbits_9',['PWM_DEFAULT_RESOLUTION_BITS',['../app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a',1,'app_httpd.h']]]
 ];

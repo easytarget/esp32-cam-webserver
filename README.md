@@ -195,7 +195,7 @@ files is missing in the root folder of the storage used, default values will be 
 
 The parameter `mapping` allows to configure folders with static content for the web server. 
 
-### Camera Configuration (/cam.json):
+#### Camera Configuration (/cam.json):
 
 ```json
 {   

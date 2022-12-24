@@ -24,6 +24,8 @@
       <div id="logo">
         <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
         <button id="swap-viewer" style="float:left;">Simple</button>
+        <button id="nw-setup" style="float:left;" title="Configure network parameters">Network</button>
+        <button id="monitor" style="float:left;" title="Monitor system parameters">System</button>
         <button id="get-still" style="float:left;" title="Capture a still image">Get Still</button>
         <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
@@ -66,6 +68,9 @@
     const closeButton = document.getElementById('close-stream');
 
     const swapButton = document.getElementById('swap-viewer');
+
+    const networkButton = document.getElementById('nw-setup');
+    const monitorButton = document.getElementById('monitor');
 
 
     const toggleViewMode = () => {
@@ -199,6 +204,14 @@
           });
         
         toggleViewMode();
+
+        networkButton.onclick = () => {
+          window.location.href = '/setup';
+        }
+
+        monitorButton.onclick = () => {
+          window.open('/dump', "_blank");
+        }
         
         stillButton.onclick = () => {
             stopStream();

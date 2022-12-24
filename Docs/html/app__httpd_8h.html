@@ -93,8 +93,6 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_uri_mapping.html">UriMapping</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Static URI to path mapping.  <a href="struct_uri_mapping.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_app_servo.html">AppServo</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html">CLAppHttpd</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">WebServer Manager Class for handling web server requests. The web pages are assumed to be stored in the file system (can be SD card or LittleFS). <br  />
   <a href="class_c_l_app_httpd.html#details">More...</a><br /></td></tr>
@@ -104,6 +102,12 @@ Data Structures</h2></td></tr>
 Macros</h2></td></tr>
 <tr class="memitem:a637263863b33a51633c07ec542547fc1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a637263863b33a51633c07ec542547fc1">MAX_URI_MAPPINGS</a>&#160;&#160;&#160;32</td></tr>
 <tr class="separator:a637263863b33a51633c07ec542547fc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8791ebb56b256ad962ec5e05162c78e7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a8791ebb56b256ad962ec5e05162c78e7">PWM_DEFAULT_FREQ</a>&#160;&#160;&#160;50</td></tr>
+<tr class="separator:a8791ebb56b256ad962ec5e05162c78e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1103a8e595e190825db719eaed2b5d5a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a">PWM_DEFAULT_RESOLUTION_BITS</a>&#160;&#160;&#160;10</td></tr>
+<tr class="separator:a1103a8e595e190825db719eaed2b5d5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31c6807de63083a9717bbd5fde5089ed"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="app__httpd_8h.html#a31c6807de63083a9717bbd5fde5089ed">DEFAULT_FLASH</a>&#160;&#160;&#160;0xFF</td></tr>
+<tr class="separator:a31c6807de63083a9717bbd5fde5089ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -139,6 +143,20 @@ Variables</h2></td></tr>
 <tr class="separator:a0174a427778b574c2447cf5d8568f986"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a31c6807de63083a9717bbd5fde5089ed" name="a31c6807de63083a9717bbd5fde5089ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31c6807de63083a9717bbd5fde5089ed">&#9670;&nbsp;</a></span>DEFAULT_FLASH</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define DEFAULT_FLASH&#160;&#160;&#160;0xFF</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a637263863b33a51633c07ec542547fc1" name="a637263863b33a51633c07ec542547fc1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a637263863b33a51633c07ec542547fc1">&#9670;&nbsp;</a></span>MAX_URI_MAPPINGS</h2>
 
@@ -147,6 +165,34 @@ Variables</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">#define MAX_URI_MAPPINGS&#160;&#160;&#160;32</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8791ebb56b256ad962ec5e05162c78e7" name="a8791ebb56b256ad962ec5e05162c78e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8791ebb56b256ad962ec5e05162c78e7">&#9670;&nbsp;</a></span>PWM_DEFAULT_FREQ</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PWM_DEFAULT_FREQ&#160;&#160;&#160;50</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1103a8e595e190825db719eaed2b5d5a" name="a1103a8e595e190825db719eaed2b5d5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1103a8e595e190825db719eaed2b5d5a">&#9670;&nbsp;</a></span>PWM_DEFAULT_RESOLUTION_BITS</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PWM_DEFAULT_RESOLUTION_BITS&#160;&#160;&#160;10</td>
         </tr>
       </table>
 </div><div class="memdoc">

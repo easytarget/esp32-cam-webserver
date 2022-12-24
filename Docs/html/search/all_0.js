@@ -13,6 +13,5 @@ var searchData=
   ['appcam_10',['AppCam',['../app__cam_8cpp.html#a2c40f09444d86a4ed61c53c20f0c9825',1,'AppCam():&#160;app_cam.cpp'],['../app__cam_8h.html#a2c40f09444d86a4ed61c53c20f0c9825',1,'AppCam():&#160;app_cam.cpp']]],
   ['appconn_11',['AppConn',['../app__conn_8cpp.html#a3fca6c2df3835192bdadfe6edde1e63b',1,'AppConn():&#160;app_conn.cpp'],['../app__conn_8h.html#a3fca6c2df3835192bdadfe6edde1e63b',1,'AppConn():&#160;app_conn.cpp']]],
   ['apphttpd_12',['AppHttpd',['../app__httpd_8cpp.html#a0174a427778b574c2447cf5d8568f986',1,'AppHttpd():&#160;app_httpd.cpp'],['../app__httpd_8h.html#a0174a427778b574c2447cf5d8568f986',1,'AppHttpd():&#160;app_httpd.cpp']]],
-  ['appservo_13',['AppServo',['../struct_app_servo.html',1,'']]],
-  ['attachservo_14',['attachServo',['../class_c_l_app_httpd.html#afa2f502272c6e8be33ef908013b0d4c8',1,'CLAppHttpd']]]
+  ['attachpwm_13',['attachPWM',['../class_c_l_app_httpd.html#afadde6b2ff0f734e8146e980a8087da1',1,'CLAppHttpd']]]
 ];

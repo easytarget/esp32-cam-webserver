@@ -8,12 +8,6 @@
 #include "app_component.h"
 #include "camera_pins.h"
 
-#define LAMP_DEFAULT 80         // initial lamp value, range 0-100
-
-#if defined(LED_DISABLE)
-    #undef LED_PIN              // undefining this disables the notification LED
-#endif
-
 
 /**
  * @brief Camera Manager
@@ -28,12 +22,6 @@ class CLAppCam : public CLAppComponent {
         int stop(); 
         int loadPrefs();
         int savePrefs();
-
-        void setLamp(int newVal = LAMP_DEFAULT);
-        int getLamp() {return lampVal;};
-
-        void setAutoLamp(bool val) {autoLamp = val;};
-        bool isAutoLamp() { return autoLamp;};
 
         int getSensorPID() {return (sensor?sensor->id.PID:0);};
         sensor_t * getSensor() {return sensor;};
@@ -68,17 +56,6 @@ class CLAppCam : public CLAppComponent {
         // default can be set in /default_prefs.json
         int frameRate = 25;
 
-        // Flash LED lamp parameters.
-        bool autoLamp = false;         // Automatic lamp (auto on while camera running)
-        
-        // Illumination LAMP and status LED
-        #if defined(LAMP_DISABLE)
-            int lampVal = -1; // lamp is disabled in config
-        #elif defined(LAMP_PIN)
-            int lampVal = 0; 
-        #else
-            int lampVal = -1; // no lamp pin assigned
-        #endif
 
         int lampChannel = 7;           // a free PWM channel (some channels used by camera)
         const int pwmfreq = 50000;     // 50K pwm frequency

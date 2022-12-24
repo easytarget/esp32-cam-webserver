@@ -72,38 +72,12 @@ int CLAppCam::start() {
 
     }
 
-        // Initialise and set the lamp
-    if (lampVal != -1) {
-        #if defined(LAMP_PIN)
-            ledcSetup(lampChannel, pwmfreq, pwmresolution);  // configure LED PWM channel
-            ledcAttachPin(LAMP_PIN, lampChannel);            // attach the GPIO pin to the channel
-            setLamp(0);                        // set default value
-         #endif
-    } else {
-        Serial.println("No lamp, or lamp disabled in config");
-    }
-
     return OS_SUCCESS;
 }
 
 int CLAppCam::stop() {
     Serial.println("Stopping Camera");
     return esp_camera_deinit();
-}
-
-
-// Lamp Control
-void CLAppCam::setLamp(int newVal) {
-#if defined(LAMP_PIN)
-    lampVal = newVal;
-    
-    // Apply a logarithmic function to the scale.
-    if(lampVal >=0) {
-        int brightness = round((pow(2,(1+(lampVal*0.02)))-2)/6*pwmMax);
-        ledcWrite(lampChannel, brightness);
-    }
-
-#endif
 }
 
 int CLAppCam::loadPrefs() {
@@ -115,9 +89,7 @@ int CLAppCam::loadPrefs() {
 
   // process local settings
 
-    json_obj_get_int(&jctx, (char*)"lamp", &lampVal);
     json_obj_get_int(&jctx, (char*)"frame_rate", &frameRate);
-    json_obj_get_bool(&jctx, (char*)"autolamp", &autoLamp);
     json_obj_get_int(&jctx, (char*)"xclk", &xclk);
     json_obj_get_int(&jctx, (char*)"rotate", &myRotation);
 
@@ -179,8 +151,6 @@ int CLAppCam::savePrefs(){
     json_gen_str_t jstr;
     json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
     json_gen_start_object(&jstr);
-    json_gen_obj_set_int(&jstr, "lamp", lampVal);
-    json_gen_obj_set_bool(&jstr, "autolamp", autoLamp);
     json_gen_obj_set_int(&jstr, "xclk", xclk);
     json_gen_obj_set_int(&jstr, "frame_rate", frameRate);
     json_gen_obj_set_int(&jstr, "rotate", myRotation);

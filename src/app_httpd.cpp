@@ -9,7 +9,7 @@ CLAppHttpd::CLAppHttpd() {
 }
 
 void onSnapTimer(TimerHandle_t pxTimer){
-    if(AppHttpd.getClientId() != 0) AppHttpd.snapToStream();
+    AppHttpd.snapToStream();
 }
 
 int CLAppHttpd::start() {
@@ -83,6 +83,8 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
     else if(type == WS_EVT_DISCONNECT){
         Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
         AppHttpd.stopStream(client->id());        
+        if(AppHttpd.getControlClient() == client->id())
+            AppHttpd.setControlClient(0);
     }
     else if(type == WS_EVT_ERROR){
         Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
@@ -106,18 +108,27 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
                 AppHttpd.setStreamMode(CAPTURE_STILL);
                 AppHttpd.startStream(client->id());
                 break;
-            case (uint8_t)'a':  // attach servo
-                if(len == 2) {
-                    int pin = *(msg+1);
-                    AppHttpd.attachServo(pin);
-                }
+            case (uint8_t)'c':
+                AppHttpd.setControlClient(client->id());
                 break;
-            case (uint8_t)'w':  // write servo value
-                if(len == 3) {
-                    int pin = *(msg+1);
-                    int value = *(msg+2);
-                    AppHttpd.writeServo(pin, value);
-                }
+            case (uint8_t)'w':  // write PWM value
+                if(AppHttpd.getControlClient())
+                    if(len > 4) {
+                        uint8_t pin = *(msg+1);
+                        int nparams = *(msg+2);
+                        int vlen = *(msg+3);
+                        int value = 0;
+                        if(vlen && nparams && vlen+4 == len) {
+                            if(vlen == 2)
+                                value = *(msg+4) + *(msg+5)*256;
+                            else
+                                value = *(msg+4);
+                        }
+                        if(nparams == 1)
+                            AppHttpd.writePWM(pin, value); // write to servo
+                        else
+                            AppHttpd.writePWM(pin, value, 0); // write to raw PWM
+                    }
                 break;
             case (uint8_t)'t':  // terminate stream
                 AppHttpd.stopStream(client->id());
@@ -154,13 +165,15 @@ String processor(const String& var) {
 }
 
 int CLAppHttpd::snapToStream(bool debug) {
+    
+    if(!stream_client) return ESP_FAIL;
 
     int res = AppCam.snapToBufer();
 
     if(!res) {
 
         if(AppCam.isJPEGinBuffer()){
-            ws->binary(AppHttpd.getClientId(), AppCam.getBuffer(), AppCam.getBufferSize());
+            ws->binary(stream_client, AppCam.getBuffer(), AppCam.getBufferSize());
             if(debug) {
                 Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
             }
@@ -177,7 +190,12 @@ int CLAppHttpd::snapToStream(bool debug) {
 }
 
 int CLAppHttpd::startStream(uint32_t id) {
-    client_id = id;
+    
+    // if stream already started for a client id, return fail
+    if(stream_client)
+        return OS_FAIL; 
+    
+    stream_client = id;
 
     if(!snap_timer)
         return OS_FAIL;
@@ -194,14 +212,14 @@ int CLAppHttpd::startStream(uint32_t id) {
     }
     else if(streammode == CAPTURE_STILL) {
         Serial.println("Still image requested");
-        if(AppCam.isAutoLamp()){
-            AppCam.setLamp();
+        if(autoLamp){
+            setLamp();
             delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
         }
         int64_t fr_start = esp_timer_get_time();
     
         if (snapToStream(isDebugMode()) != OS_SUCCESS) {
-            if(AppCam.isAutoLamp()) AppCam.setLamp(0);
+            if(autoLamp) setLamp(0);
             return OS_FAIL;
         }
         
@@ -210,7 +228,7 @@ int CLAppHttpd::startStream(uint32_t id) {
             Serial.printf("B %ums\r\n", (uint32_t)((fr_end - fr_start)/1000));
         }
 
-        if(AppCam.isAutoLamp()) AppCam.setLamp(0);
+        if(autoLamp) setLamp(0);
 
         imagesServed++;
     }
@@ -220,9 +238,14 @@ int CLAppHttpd::startStream(uint32_t id) {
 }
 
 int CLAppHttpd::stopStream(uint32_t id) {
-    client_id = 0;
+
     if(!snap_timer)
         return OS_FAIL;
+
+    if(stream_client != id)
+        return OS_FAIL;
+
+    stream_client = 0;    
     
     if(xTimerIsTimerActive(snap_timer))
         xTimerStop(snap_timer, 100);   
@@ -341,11 +364,11 @@ void onControl(AsyncWebServerRequest *request) {
         AppCam.setFrameRate(val);
         AppHttpd.updateSnapTimer(val);
     }
-    else if(variable ==  "autolamp" && AppCam.getLamp() != -1) {
-        AppCam.setAutoLamp(val);
+    else if(variable ==  "autolamp" && AppHttpd.getLamp() != -1) {
+        AppHttpd.setAutoLamp(val);
     }
-    else if(variable ==  "lamp" && AppCam.getLamp() != -1) {
-        AppCam.setLamp(constrain(val,0,100));
+    else if(variable ==  "lamp" && AppHttpd.getLamp() != -1) {
+        AppHttpd.setLamp(constrain(val,0,100));
     }
     else if(variable == "accesspoint") AppConn.setAccessPoint(val);
     else if(variable == "ap_channel") AppConn.setAPChannel(val);
@@ -356,7 +379,7 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable == "gmt_offset") AppConn.setGmtOffset_sec(val);
     else if(variable == "dst_offset") AppConn.setDaylightOffset_sec(val);
     else if(variable == "reboot") {
-        if (AppCam.getLamp() != -1) AppCam.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
+        if (AppHttpd.getLamp() != -1) AppHttpd.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
         esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
         esp_task_wdt_add(NULL);
         periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly
@@ -400,8 +423,9 @@ void onStatus(AsyncWebServerRequest *request) {
     response->print("{");
     if (!AppCam.getLastErr()) {
         sensor_t * s = AppCam.getSensor();
-        response->printf("\"lamp\":%d,", AppCam.getLamp());
-        response->printf("\"autolamp\":%d,", AppCam.isAutoLamp());
+        response->printf("\"lamp\":%d,", AppHttpd.getLamp());
+        response->printf("\"autolamp\":%d,", AppHttpd.isAutoLamp());
+        response->printf("\"flashlamp\":%d,", AppHttpd.getFlashLamp());
         response->printf("\"frame_rate\":%d,", AppCam.getFrameRate());
         response->printf("\"framesize\":%u,", s->status.framesize);
         response->printf("\"quality\":%u,", s->status.quality);
@@ -539,22 +563,52 @@ int CLAppHttpd::loadPrefs() {
     if(ret != OS_SUCCESS) {
         return ret;
     }
+    
+    json_obj_get_int(&jctx, (char*)"lamp", &lampVal);
+    json_obj_get_bool(&jctx, (char*)"autolamp", &autoLamp);
+    json_obj_get_int(&jctx, (char*)"flashlamp", &flashLamp);
+
+    int count = 0, pin = 0, freq = 0, resolution = 0;
+
+    if(json_obj_get_array(&jctx, (char*)"pwm", &count) == OS_SUCCESS) {
+
+        for(int i=0; i < count && i < MAX_SERVOS; i++) 
+            if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
+                if(json_obj_get_int(&jctx, (char*)"pin", &pin) == OS_SUCCESS &&
+                    json_obj_get_int(&jctx, (char*)"frequency", &freq) == OS_SUCCESS &&
+                    json_obj_get_int(&jctx, (char*)"resolution", &resolution) == OS_SUCCESS) {
+                    int index = attachPWM(pin, freq, resolution);
+                    if(index >= 0) 
+                        if(lampVal >= 0 && i == 0) {
+                            lamppin = pin;
+                            pwmMax = pow(2, resolution)-1;
+                            Serial.printf("Flash lamp activated on pin %d\r\n", lamppin);
+                        }
+                    else
+                        Serial.printf("Failed to attach PWM to pin %d\r\n", pin);
+                }
+                json_arr_leave_object(&jctx);
+            }
+
+        json_obj_leave_array(&jctx);
+    }
+    
 
     if (json_obj_get_array(&jctx, (char*)"mapping", &mappingCount) == OS_SUCCESS) {
-        if(mappingCount > 0) 
-            for(int i=0; i < mappingCount && i < MAX_URI_MAPPINGS; i++) {
-                if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
-                    UriMapping *um = (UriMapping*) malloc(sizeof(UriMapping));
-                    if(json_obj_get_string(&jctx, (char*)"uri", um->uri, sizeof(um->uri)) == OS_SUCCESS &&
-                       json_obj_get_string(&jctx, (char*)"path", um->path, sizeof(um->path)) == OS_SUCCESS ) {
-                        mappingList[i] = um;
-                    } 
-                    else {
-                        free(um);
-                    }
-                    json_arr_leave_object(&jctx);
-                }    
+
+        for(int i=0; i < mappingCount && i < MAX_URI_MAPPINGS; i++) {
+            if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
+                UriMapping *um = (UriMapping*) malloc(sizeof(UriMapping));
+                if(json_obj_get_string(&jctx, (char*)"uri", um->uri, sizeof(um->uri)) == OS_SUCCESS &&
+                    json_obj_get_string(&jctx, (char*)"path", um->path, sizeof(um->path)) == OS_SUCCESS ) {
+                    mappingList[i] = um;
+                } 
+                else {
+                    free(um);
+                }
+                json_arr_leave_object(&jctx);
             }    
+        }    
         json_obj_leave_array(&jctx);
     }
 
@@ -566,54 +620,154 @@ int CLAppHttpd::loadPrefs() {
     return ret;
 }
 
-int CLAppHttpd::attachServo(int pin) {
+int CLAppHttpd::savePrefs() {
+    // char * prefs_file = getPrefsFileName(true); 
+    // char buf[1024];
+    // json_gen_str_t jstr;
+    // json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
+    // json_gen_start_object(&jstr);
+    
+    // json_gen_obj_set_int(&jstr, (char*)"lamp", lampVal);
+    // json_gen_obj_set_bool(&jstr, (char*)"autolamp", autoLamp);
+    // json_gen_obj_set_int(&jstr, (char*)"flashlamp", flashLamp);
 
-    if(servoCount >= MAX_SERVOS) return OS_FAIL;
+    // if(pwmCount > 0) {
+    //     json_gen_push_array(&jstr, (char*)"pwm");
+    //     for(int i=0; i < pwmCount; i++) 
+    //         if(pwm[i]) {
+    //             json_gen_start_object(&jstr);
+    //             json_gen_obj_set_int(&jstr, (char*)"pin", pwm[i]->getPin());
+    //             json_gen_obj_set_int(&jstr, (char*)"freqquency", pwm[i]->readFreq());
+    //             json_gen_end_object(&jstr); (char*)"resolution", pwm[i]->resolutionBits);
+    //         }
+        
+    //     json_gen_pop_array(&jstr);
+    // }
 
-    for(int i=0; i<servoCount; i++) 
-        if(servos[i]->pin == pin) return OS_FAIL; // pin already used
+    // if(mappingCount > 0) {
+    //     json_gen_push_array(&jstr, (char*)"mapping");
+    //     for(int i=0; i < mappingCount; i++) {
+    //         json_gen_start_object(&jstr);
+            
+    //         json_gen_end_object(&jstr); 
+    //     }
+    //     json_gen_pop_array(&jstr);
+    // }
+    // json_gen_obj_set_bool(&jstr, (char*)"debug_mode", isDebugMode());
 
-    AppServo * newservo = (AppServo*) malloc(sizeof(AppServo));
-    newservo->pin = pin;
-    newservo->servo = new Servo();
-    if(!newservo->servo) {
-        Serial.println("Failed to create Servo"); 
-        free(newservo);
+    // json_gen_end_object(&jstr);
+    // json_gen_str_end(&jstr);
+
+    // File file = Storage.open(prefs_file, FILE_WRITE);
+    // if(file) {
+    //     file.print(buf);
+    //     file.close();
+    //     return OK;
+    // }
+    // else {
+    //     Serial.printf("Failed to save web server preferences to file %s\r\n", prefs_file);
+    //     return FAIL;
+    // }
+    return OS_SUCCESS;
+}
+
+int CLAppHttpd::attachPWM(uint8_t pin, double freq, uint8_t resolution_bits) {
+
+    if(pwmCount >= MAX_SERVOS) {
+        Serial.println("Number of available PWM channels exceeded");
+        return OS_FAIL;
+    }
+
+    for(int i=0; i<pwmCount; i++) 
+        if(pwm[i]->getPin() == pin) {
+            Serial.printf("Pin %d already utilized\r\n");
+            return OS_FAIL; // pin already used
+        }
+
+    ESP32PWM * newpwm = new ESP32PWM();
+    if(!newpwm) {
+        Serial.println("Failed to create PWM"); 
+        delete newpwm;
         return OS_FAIL;
     }
     
-    newservo->servo->attach(pin);
+    newpwm->attachPin(pin, freq, resolution_bits);
 
-    if(!newservo->servo->attached()) {
-        Serial.print("Failed to attach Servo on pin "); Serial.println(pin);
-        free(newservo->servo);
-        free(newservo);
+    if(!newpwm->attached()) {
+        Serial.print("Failed to attach PWM on pin "); Serial.println(pin);
+        delete newpwm;
         return OS_FAIL;
     }
 
-    Serial.print("Created a new servo on pin "); Serial.println(pin);
+    Serial.printf("Created a new PWM channel %d on pin %d\r\n", newpwm->getChannel(), pin);
 
-    servos[servoCount] = newservo;
+    pwm[pwmCount] = newpwm;
 
-    servoCount++;
+    pwmCount++;
 
-    return servoCount - 1; 
+    return pwmCount - 1; 
 }
 
-int CLAppHttpd::writeServo(int pin, int value) {
-    for(int i=0; i<servoCount; i++) {
-        if(servos[i] && servos[i]->pin == pin) {
-            Servo * servo = servos[i]->servo;
-            if(servo->attached()) {
-                servo->write(value);
+int CLAppHttpd::writePWM(uint8_t pin, int value, int min_v, int max_v) {
+    for(int i=0; i<pwmCount; i++) {
+        if(pwm[i] && pwm[i]->getPin() == pin) {
+            if(pwm[i]->attached()) {
+                if(min_v > 0) {
+                    // treat values less than MIN_PULSE_WIDTH (500) as angles in degrees 
+                    // (valid values in microseconds are handled as microseconds)
+                    if (value < MIN_PULSE_WIDTH)
+                    {
+                        if (value < 0)
+                            value = 0;
+                        else if (value > 180)
+                            value = 180;
+
+                        value = map(value, 0, 180, min_v, max_v);
+                    }
+                    if (value < min_v)          // ensure pulse width is valid
+                        value = min_v;
+                    else if (value > max_v)
+                        value = max_v;
+
+                    value = usToTicks(value);  // convert to ticks
+                }
+                // do the actual write
+                if(isDebugMode())
+                    Serial.printf("Write %d to PWM channel %d pin %d\r\n", 
+                                  value, pwm[i]->getChannel(), pwm[i]->getPin());
+                pwm[i]->write(value);
                 return OS_SUCCESS;
             }
-            else
+            else {
+                Serial.printf("PWM write failed: pin %d is not attached", pin);
                 return OS_FAIL;    
+            }
         }
     }
-
+    
+    Serial.printf("PWM write failed: pin %d is not found", pin);
     return OS_FAIL;
+}
+
+int CLAppHttpd::usToTicks(int usec)
+{
+    return (int)((double)usec / ((double)REFRESH_USEC / (double)pow(2, PWM_DEFAULT_FREQ))*(((double)PWM_DEFAULT_FREQ)/50.0));
+}
+
+// Lamp Control
+void CLAppHttpd::setLamp(int newVal) {
+
+    if(newVal == DEFAULT_FLASH) {
+        newVal = flashLamp;
+    }
+    lampVal = newVal;
+    
+    // Apply a logarithmic function to the scale.
+    if(lamppin) {
+        int brightness = round(lampVal * pwmMax/100.00);
+        writePWM(lamppin, brightness,0);
+    }
+
 }
 
 CLAppHttpd AppHttpd;

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lamp_5fdefault_0',['LAMP_DEFAULT',['../app__cam_8h.html#a8dcb31f6ec7707e22c63090318ca951f',1,'app_cam.h']]]
+  ['default_5fflash_0',['DEFAULT_FLASH',['../app__httpd_8h.html#a31c6807de63083a9717bbd5fde5089ed',1,'app_httpd.h']]]
 ];

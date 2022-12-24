@@ -21,7 +21,8 @@
     <body>
         <section class="main">
             <div id="logo">
-                <div><h1>ESP32CAM Network Setup</h1></div>
+                <button id="camera" style="float:left;" title="Open camera view">Camera</button>
+                <button id="monitor" style="float:left;" title="Monitor system parameters">System</button>
             </div>
             <div id="content">
                 <div id="sidebar">
@@ -39,6 +40,9 @@
 
             const header = document.getElementById('logo');
             const settings = document.getElementById('sidebar');
+
+            const cameraButton = document.getElementById('camera');
+            const monitorButton = document.getElementById('monitor');
 
 
             const addActions = (parent) => {
@@ -89,6 +93,14 @@
                             el.onchange = () => submitChanges(el);
 
                     });
+
+                cameraButton.onclick = () => {
+                    window.location.href = '/';
+                }
+
+                monitorButton.onclick = () => {
+                    window.open('/dump', "_blank");
+                }
 
                 show(settings);
 
