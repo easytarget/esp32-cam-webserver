@@ -81,6 +81,7 @@ Key features:</h2>
 <li>Using just one IP port, easy for proxying.</li>
 <li>Porting the web server to <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESP Async Web Server</a>.</li>
 <li>Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card or the built-in flash formatted as LittleFS). This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.</li>
+<li>Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors</li>
 <li>Compact size of the sketch and low memory utilization</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md18"></a>
@@ -185,18 +186,21 @@ Network Configuration (/conn.json)</h3>
 HTTP server configuration (/httpd.json)</h3>
 <div class="fragment"><div class="line">{</div>
 <div class="line">    &quot;my_name&quot;: &quot;MY_NAME&quot;,</div>
+<div class="line">    &quot;lamp&quot;:0,</div>
+<div class="line">    &quot;autolamp&quot;:true,</div>
+<div class="line">    &quot;flashlamp&quot;:100,</div>
+<div class="line">    &quot;pwm&quot;: [{&quot;pin&quot;:4, &quot;frequency&quot;:50000, &quot;resolution&quot;:9, &quot;default&quot;:0}],</div>
 <div class="line">    &quot;mapping&quot;:[ {&quot;uri&quot;:&quot;/dump&quot;, &quot;path&quot;: &quot;/www/dump.html&quot;},</div>
-<div class="line">            {&quot;uri&quot;:&quot;/img&quot;, &quot;path&quot;: &quot;/www/img&quot;},</div>
-<div class="line">            {&quot;uri&quot;:&quot;/css&quot;, &quot;path&quot;: &quot;/www/css&quot;},</div>
-<div class="line">            {&quot;uri&quot;:&quot;/js&quot;, &quot;path&quot;: &quot;/www/js&quot;}],</div>
+<div class="line">                {&quot;uri&quot;:&quot;/img&quot;, &quot;path&quot;: &quot;/www/img&quot;},</div>
+<div class="line">                {&quot;uri&quot;:&quot;/css&quot;, &quot;path&quot;: &quot;/www/css&quot;},</div>
+<div class="line">                {&quot;uri&quot;:&quot;/js&quot;, &quot;path&quot;: &quot;/www/js&quot;}],</div>
 <div class="line">    &quot;debug_mode&quot;: false</div>
 <div class="line">}</div>
-</div><!-- fragment --><p >The parameter <code>mapping</code> allows to configure folders with static content for the web server.</p>
+</div><!-- fragment --><p> The parameter <code>pwm</code> allows to configure PWM out, which can be used in various applications (for example, to control PTZ camera servo motors)</p>
+<p >The parameter <code>mapping</code> allows to configure folders with static content for the web server.</p>
 <h3><a class="anchor" id="autotoc_md31"></a>
 Camera Configuration (/cam.json):</h3>
 <div class="fragment"><div class="line">{   </div>
-<div class="line">    &quot;lamp&quot;:-1,</div>
-<div class="line">    &quot;autolamp&quot;:0,</div>
 <div class="line">    &quot;framesize&quot;:8,</div>
 <div class="line">    &quot;quality&quot;:12,</div>
 <div class="line">    &quot;xclk&quot;:8,</div>
@@ -246,6 +250,7 @@ Contributing</h1>
 <h1><a class="anchor" id="autotoc_md35"></a>
 Future plans</h1>
 <ol type="1">
+<li>Support HTTPS and user credential when accessing the Web UI, Websocket and API</li>
 <li>Support of other boards and cameras.</li>
 <li>Explore how to improve the video quality and further reduce requirements to resources. </li>
 </ol>

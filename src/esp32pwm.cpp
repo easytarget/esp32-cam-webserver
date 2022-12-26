@@ -203,7 +203,7 @@ void ESP32PWM::adjustFrequency(double freq, double dutyScaled) {
 	}
 }
 
-uint32_t ESP32PWM::read() {
+uint32_t ESP32PWM::getDuty() {
 	return ledcRead(getChannel());
 }
 

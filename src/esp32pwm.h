@@ -19,7 +19,6 @@
 
 #define MIN_PULSE_WIDTH       500     // the shortest pulse sent to a servo  
 #define MAX_PULSE_WIDTH      2500     // the longest pulse sent to a servo 
-#define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
 #define REFRESH_USEC        20000
 
 #define USABLE_ESP32_PWM (NUM_PWM-PWM_BASE_INDEX)
@@ -42,15 +41,22 @@ class ESP32PWM {
         void write(uint32_t duty);
         // Write a duty cycle to the PWM using a unit vector from 0.0-1.0
         void writeScaled(double duty);
+        // reset PWM to default
+        void reset() {write(default_duty);};
+
         //Adjust frequency
         void adjustFrequency(double freq, double dutyScaled=-1);
+        
 
         int usToTicks(int usec);
 
         // Read pwm data
-        uint32_t read();
-        
+        uint32_t getDuty();
         double getDutyScaled();
+
+        uint32_t getDefaultDuty() {return default_duty;}; 
+        void setDefaultDuty(uint32_t val) {default_duty = val;};
+
 
         //Timer data
         static int timerAndIndexToChannel(int timer, int index);
@@ -129,6 +135,7 @@ class ESP32PWM {
         int timerNum = -1;
         uint32_t myDuty = 0;
 
+        uint32_t default_duty = 0;
 
         int pwmChannel = 0;                         
         bool attachedState = false;

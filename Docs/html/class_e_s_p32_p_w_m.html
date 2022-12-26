@@ -89,14 +89,20 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab507681ffeb13399b0bcf5bc1f437632"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25bde08d298f780607b4bb93f1b438c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a25bde08d298f780607b4bb93f1b438c2">writeScaled</a> (double duty)</td></tr>
 <tr class="separator:a25bde08d298f780607b4bb93f1b438c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9c00a1b3bcb198a32b2c73d4d37d9cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#ac9c00a1b3bcb198a32b2c73d4d37d9cf">reset</a> ()</td></tr>
+<tr class="separator:ac9c00a1b3bcb198a32b2c73d4d37d9cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0dc79fd9bdc5da613887987352037e26"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a0dc79fd9bdc5da613887987352037e26">adjustFrequency</a> (double freq, double dutyScaled=-1)</td></tr>
 <tr class="separator:a0dc79fd9bdc5da613887987352037e26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19fcda5f42fc7adf0a15088687a12862"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a19fcda5f42fc7adf0a15088687a12862">usToTicks</a> (int usec)</td></tr>
 <tr class="separator:a19fcda5f42fc7adf0a15088687a12862"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6f0dd8edfc7bf16f4c480cdb682d554"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#ae6f0dd8edfc7bf16f4c480cdb682d554">read</a> ()</td></tr>
-<tr class="separator:ae6f0dd8edfc7bf16f4c480cdb682d554"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99936d17272114e166f17ea43f4ffb46"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a99936d17272114e166f17ea43f4ffb46">getDuty</a> ()</td></tr>
+<tr class="separator:a99936d17272114e166f17ea43f4ffb46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ee94538f12c577ebadf243efc89ec06"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a7ee94538f12c577ebadf243efc89ec06">getDutyScaled</a> ()</td></tr>
 <tr class="separator:a7ee94538f12c577ebadf243efc89ec06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc39738e9b80e14ca8b2490cb72be7dc"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#acc39738e9b80e14ca8b2490cb72be7dc">getDefaultDuty</a> ()</td></tr>
+<tr class="separator:acc39738e9b80e14ca8b2490cb72be7dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d658ed649070cd8cbf9c0e54b7d9a88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a5d658ed649070cd8cbf9c0e54b7d9a88">setDefaultDuty</a> (uint32_t val)</td></tr>
+<tr class="separator:a5d658ed649070cd8cbf9c0e54b7d9a88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7bcd211c37b0e835187fb0ac58705391"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a7bcd211c37b0e835187fb0ac58705391">getPin</a> ()</td></tr>
 <tr class="separator:a7bcd211c37b0e835187fb0ac58705391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a39411917c82dd1567ccf4b6aece0d3d9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_e_s_p32_p_w_m.html#a39411917c82dd1567ccf4b6aece0d3d9">getChannel</a> ()</td></tr>
@@ -535,6 +541,48 @@ Static Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="acc39738e9b80e14ca8b2490cb72be7dc" name="acc39738e9b80e14ca8b2490cb72be7dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc39738e9b80e14ca8b2490cb72be7dc">&#9670;&nbsp;</a></span>getDefaultDuty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t ESP32PWM::getDefaultDuty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a99936d17272114e166f17ea43f4ffb46" name="a99936d17272114e166f17ea43f4ffb46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99936d17272114e166f17ea43f4ffb46">&#9670;&nbsp;</a></span>getDuty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t ESP32PWM::getDuty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7ee94538f12c577ebadf243efc89ec06" name="a7ee94538f12c577ebadf243efc89ec06"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7ee94538f12c577ebadf243efc89ec06">&#9670;&nbsp;</a></span>getDutyScaled()</h2>
 
@@ -732,19 +780,53 @@ Static Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ae6f0dd8edfc7bf16f4c480cdb682d554" name="ae6f0dd8edfc7bf16f4c480cdb682d554"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6f0dd8edfc7bf16f4c480cdb682d554">&#9670;&nbsp;</a></span>read()</h2>
+<a id="ac9c00a1b3bcb198a32b2c73d4d37d9cf" name="ac9c00a1b3bcb198a32b2c73d4d37d9cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9c00a1b3bcb198a32b2c73d4d37d9cf">&#9670;&nbsp;</a></span>reset()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t ESP32PWM::read </td>
+          <td class="memname">void ESP32PWM::reset </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5d658ed649070cd8cbf9c0e54b7d9a88" name="a5d658ed649070cd8cbf9c0e54b7d9a88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d658ed649070cd8cbf9c0e54b7d9a88">&#9670;&nbsp;</a></span>setDefaultDuty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ESP32PWM::setDefaultDuty </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

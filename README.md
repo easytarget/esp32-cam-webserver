@@ -17,7 +17,8 @@ webcam use.
 * Using just one IP port, easy for proxying. 
 * Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
 * Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card
-or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system. 
+or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.
+* Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors 
 * Compact size of the sketch and low memory utilization
 
   
@@ -185,13 +186,19 @@ files is missing in the root folder of the storage used, default values will be 
 ```json
 {
     "my_name": "MY_NAME",
+    "lamp":0,
+    "autolamp":true,
+    "flashlamp":100,
+    "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}],
     "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
-            {"uri":"/img", "path": "/www/img"},
-            {"uri":"/css", "path": "/www/css"},
-            {"uri":"/js", "path": "/www/js"}],
+                {"uri":"/img", "path": "/www/img"},
+                {"uri":"/css", "path": "/www/css"},
+                {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
 }
 ```
+The parameter `pwm` allows to configure PWM out, which can be used in various applications (for example,
+to control PTZ camera servo motors)
 
 The parameter `mapping` allows to configure folders with static content for the web server. 
 
@@ -199,8 +206,6 @@ The parameter `mapping` allows to configure folders with static content for the 
 
 ```json
 {   
-    "lamp":-1,
-    "autolamp":0,
     "framesize":8,
     "quality":12,
     "xclk":8,
@@ -275,6 +280,7 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 ## Future plans
 
-1. Support of other boards and cameras.
-2. Explore how to improve the video quality and further reduce requirements to resources.
+1. Support HTTPS and user credential when accessing the Web UI, Websocket and API
+2. Support of other boards and cameras.
+3. Explore how to improve the video quality and further reduce requirements to resources.
 

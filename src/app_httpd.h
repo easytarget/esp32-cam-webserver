@@ -21,6 +21,8 @@
 
 #define DEFAULT_FLASH 0xFF
 
+#define RESET_ALL_PWM       0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -120,6 +122,13 @@ class CLAppHttpd : public CLAppComponent {
          * @return int 
          */
         int writePWM(uint8_t pin, int value, int min_v = DEFAULT_uS_LOW, int max_v = DEFAULT_uS_HIGH);
+
+        /**
+         * @brief Set all PWM to its default value. If the default was not defined, it will be reset to 0
+         * 
+         * @param pin 
+         */
+        void resetPWM(uint8_t pin = RESET_ALL_PWM);
 
     private:
 

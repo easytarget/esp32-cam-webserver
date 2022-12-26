@@ -85,6 +85,7 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
         AppHttpd.stopStream(client->id());        
         if(AppHttpd.getControlClient() == client->id()) {
             AppHttpd.setControlClient(0);
+            AppHttpd.resetPWM(RESET_ALL_PWM);
             AppHttpd.serialSendCommand("Disconnected");
         }
     }
@@ -294,8 +295,8 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable ==  "save_prefs") {
         if(value == "conn") 
             res = AppConn.savePrefs();
-        else if(value == "cam")
-            res = AppCam.savePrefs();
+        else if(value == "cam") 
+            res = AppCam.savePrefs() + AppHttpd.savePrefs(); 
         else {
             request->send(400);
             return;
@@ -308,9 +309,9 @@ void onControl(AsyncWebServerRequest *request) {
     }
     else if(variable ==  "remove_prefs") {
         if(value == "conn")
-            res = AppConn.savePrefs(); 
+            res = AppConn.removePrefs(); 
         else if(value == "cam")
-            res = AppCam.savePrefs();
+            res = AppCam.removePrefs();
         else {
             request->send(400);
             return;
@@ -574,7 +575,7 @@ int CLAppHttpd::loadPrefs() {
     json_obj_get_bool(&jctx, (char*)"autolamp", &autoLamp);
     json_obj_get_int(&jctx, (char*)"flashlamp", &flashLamp);
 
-    int count = 0, pin = 0, freq = 0, resolution = 0;
+    int count = 0, pin = 0, freq = 0, resolution = 0, def_val = 0;
 
     if(json_obj_get_array(&jctx, (char*)"pwm", &count) == OS_SUCCESS) {
 
@@ -589,6 +590,11 @@ int CLAppHttpd::loadPrefs() {
                             lamppin = pin;
                             pwmMax = pow(2, resolution)-1;
                             Serial.printf("Flash lamp activated on pin %d\r\n", lamppin);
+                        }
+
+                        if(json_obj_get_int(&jctx, (char*)"default", &def_val) == OS_SUCCESS)  {
+                            pwm[index]->setDefaultDuty(def_val);
+                            pwm[index]->reset();
                         }
                     }
                     else
@@ -628,54 +634,57 @@ int CLAppHttpd::loadPrefs() {
 }
 
 int CLAppHttpd::savePrefs() {
-    // char * prefs_file = getPrefsFileName(true); 
-    // char buf[1024];
-    // json_gen_str_t jstr;
-    // json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
-    // json_gen_start_object(&jstr);
+    char * prefs_file = getPrefsFileName(true); 
+    char buf[1024];
+    json_gen_str_t jstr;
+    json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
+    json_gen_start_object(&jstr);
     
-    // json_gen_obj_set_int(&jstr, (char*)"lamp", lampVal);
-    // json_gen_obj_set_bool(&jstr, (char*)"autolamp", autoLamp);
-    // json_gen_obj_set_int(&jstr, (char*)"flashlamp", flashLamp);
+    json_gen_obj_set_int(&jstr, (char*)"lamp", lampVal);
+    json_gen_obj_set_bool(&jstr, (char*)"autolamp", autoLamp);
+    json_gen_obj_set_int(&jstr, (char*)"flashlamp", flashLamp);
 
-    // if(pwmCount > 0) {
-    //     json_gen_push_array(&jstr, (char*)"pwm");
-    //     for(int i=0; i < pwmCount; i++) 
-    //         if(pwm[i]) {
-    //             json_gen_start_object(&jstr);
-    //             json_gen_obj_set_int(&jstr, (char*)"pin", pwm[i]->getPin());
-    //             json_gen_obj_set_int(&jstr, (char*)"freqquency", pwm[i]->getFreq());
-    //             json_gen_end_object(&jstr); (char*)"resolution", pwm[i]->getResolutionBits());
-    //         }
+    if(pwmCount > 0) {
+        json_gen_push_array(&jstr, (char*)"pwm");
+        for(int i=0; i < pwmCount; i++) 
+            if(pwm[i]) {
+                json_gen_start_object(&jstr);
+                json_gen_obj_set_int(&jstr, (char*)"pin", pwm[i]->getPin());
+                json_gen_obj_set_int(&jstr, (char*)"frequency", pwm[i]->getFreq());
+                json_gen_obj_set_int(&jstr, (char*)"resolution", pwm[i]->getResolutionBits());
+                if(pwm[i]->getDefaultDuty())
+                    json_gen_obj_set_int(&jstr, (char*)"default", pwm[i]->getDefaultDuty());
+                json_gen_end_object(&jstr); 
+            }
         
-    //     json_gen_pop_array(&jstr);
-    // }
+        json_gen_pop_array(&jstr);
+    }
 
-    // if(mappingCount > 0) {
-    //     json_gen_push_array(&jstr, (char*)"mapping");
-    //     for(int i=0; i < mappingCount; i++) {
-    //         json_gen_start_object(&jstr);
-            
-    //         json_gen_end_object(&jstr); 
-    //     }
-    //     json_gen_pop_array(&jstr);
-    // }
-    // json_gen_obj_set_bool(&jstr, (char*)"debug_mode", isDebugMode());
+    if(mappingCount > 0) {
+        json_gen_push_array(&jstr, (char*)"mapping");
+        for(int i=0; i < mappingCount; i++) {
+            json_gen_start_object(&jstr);
+            json_gen_obj_set_string(&jstr, (char*)"uri", mappingList[i]->uri);
+            json_gen_obj_set_string(&jstr, (char*)"path", mappingList[i]->path);
+            json_gen_end_object(&jstr); 
+        }
+        json_gen_pop_array(&jstr);
+    }
+    json_gen_obj_set_bool(&jstr, (char*)"debug_mode", isDebugMode());
 
-    // json_gen_end_object(&jstr);
-    // json_gen_str_end(&jstr);
+    json_gen_end_object(&jstr);
+    json_gen_str_end(&jstr);
 
-    // File file = Storage.open(prefs_file, FILE_WRITE);
-    // if(file) {
-    //     file.print(buf);
-    //     file.close();
-    //     return OK;
-    // }
-    // else {
-    //     Serial.printf("Failed to save web server preferences to file %s\r\n", prefs_file);
-    //     return FAIL;
-    // }
-    return OS_SUCCESS;
+    File file = Storage.open(prefs_file, FILE_WRITE);
+    if(file) {
+        file.print(buf);
+        file.close();
+        return OK;
+    }
+    else {
+        Serial.printf("Failed to save web server preferences to file %s\r\n", prefs_file);
+        return FAIL;
+    }
 }
 
 int CLAppHttpd::attachPWM(uint8_t pin, double freq, uint8_t resolution_bits) {
@@ -757,6 +766,13 @@ int CLAppHttpd::writePWM(uint8_t pin, int value, int min_v, int max_v) {
     
     Serial.printf("PWM write failed: pin %d is not found", pin);
     return OS_FAIL;
+}
+
+void CLAppHttpd::resetPWM(uint8_t pin) {
+    for(int i=0; i<pwmCount; i++) {
+        if(pwm[i]->getPin() == pin || pin == RESET_ALL_PWM)
+            pwm[i]->reset();
+    }
 }
 
 

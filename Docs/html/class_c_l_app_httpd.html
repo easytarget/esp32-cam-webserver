@@ -153,6 +153,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aae5c0baea3d57adb3334d8274794cd58"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58">writePWM</a> (uint8_t pin, int value, int min_v=<a class="el" href="app__httpd_8h.html#ae5c73e62b0f79ae4f83bb715f5fa89de">DEFAULT_uS_LOW</a>, int max_v=<a class="el" href="app__httpd_8h.html#a12e0b64b830ce153c3624bf7a8bdd311">DEFAULT_uS_HIGH</a>)</td></tr>
 <tr class="memdesc:aae5c0baea3d57adb3334d8274794cd58"><td class="mdescLeft">&#160;</td><td class="mdescRight">writes an angle value to PWM/Servo.  <a href="class_c_l_app_httpd.html#aae5c0baea3d57adb3334d8274794cd58">More...</a><br /></td></tr>
 <tr class="separator:aae5c0baea3d57adb3334d8274794cd58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad36b8d25c9e6b1ac2fc2a2502763998b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b">resetPWM</a> (uint8_t pin=<a class="el" href="app__httpd_8h.html#a7ebf99c5d4c689e701986b3514f11a62">RESET_ALL_PWM</a>)</td></tr>
+<tr class="memdesc:ad36b8d25c9e6b1ac2fc2a2502763998b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set all PWM to its default value. If the default was not defined, it will be reset to 0.  <a href="class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b">More...</a><br /></td></tr>
+<tr class="separator:ad36b8d25c9e6b1ac2fc2a2502763998b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_c_l_app_component"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_c_l_app_component')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_c_l_app_component.html">CLAppComponent</a></td></tr>
 <tr class="memitem:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5">start</a> ()</td></tr>
 <tr class="separator:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -694,6 +697,32 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad36b8d25c9e6b1ac2fc2a2502763998b" name="ad36b8d25c9e6b1ac2fc2a2502763998b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad36b8d25c9e6b1ac2fc2a2502763998b">&#9670;&nbsp;</a></span>resetPWM()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CLAppHttpd::resetPWM </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>pin</em> = <code><a class="el" href="app__httpd_8h.html#a7ebf99c5d4c689e701986b3514f11a62">RESET_ALL_PWM</a></code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set all PWM to its default value. If the default was not defined, it will be reset to 0. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pin</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
