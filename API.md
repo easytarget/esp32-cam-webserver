@@ -115,14 +115,14 @@ the `<key>` parameter.
 * Reboot the camera
   * `http://<IP-ADDRESS>/control?var=reboot&val=0`
 
-You can try these yourself in a browser address bar, from the commandline with `curl` 
-and co. or use them programatically from your scripting language of choice.
+You can try these yourself in a browser address bar, from the command line with `curl` 
+and co. or use them programmatically from your scripting language of choice.
 
 ## ESP32CAM WebSocket API
-This API is inteded for fast statefull communication between the server and the browser. You can think of a websocket as a state machine, which can be accessed and programmed from the client side, using JavaScript or any other language, which supports Webocket API. 
+This API is intended for fast stateful communication between the server and the browser. You can think of a websocket as a state machine, which can be accessed and programmed from the client side, using JavaScript or any other language, which supports Websocket API. 
 
 In order to use the WebSocket API, you need to open the Websocket first. The url of the websocket is always 
-`ws://<your-ip:your-port>/ws`. In Java Script, you simply need to add the followig lines to your page:
+`ws://<your-ip:your-port>/ws`. In Java Script, you simply need to add the following lines to your page:
 
 ```
 ws = new WebSocket(websocketURL);
@@ -156,26 +156,26 @@ Once the `ws` object is created successfully, you can handle its events on the p
    ```
 
 Once the websocket is open, you may also send commands and data to the server. Commands are sent with help of the `ws.send(command)` function where the `command` is to be a binary Uint8Array.  The first byte of this 
-array reflects the command code while the rest of bytes can host addtional parameters of the command.
+array reflects the command code while the rest of bytes can host additional parameters of the command.
 
 The following commands are supported:
 
-'s' - starts the stream. Once the comamand is issued, the server will start pushing the frames to the client
-      according to the camera settings. The server will switch to the video mode.
-'p' - similar to the previous command but there will be only one frame taken and pushed to the client. The
-      server will swicth to the photo mode.
-'u' - similar to the previous two commands. The server will either start stream or take a still photo, 
-      depending on the current mode of the server.
-'t' - terminates the stream. Only makes sense after 's' or 'u' commands.
-'c' - tells the server that this websocket will be used for PWM control commands. 
-'w' - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the
-      `command` array, as follows:
+- 's' - starts the stream. Once the command is issued, the server will start pushing the frames to the client
+        according to the camera settings. The server will switch to the video mode.
+- 'p' - similar to the previous command but there will be only one frame taken and pushed to the client. The
+        server will switch to the photo mode.
+- 'u' - similar to the previous two commands. The server will either start stream or take a still photo, 
+        depending on the current mode of the server.
+- 't' - terminates the stream. Only makes sense after 's' or 'u' commands.
+- 'c' - tells the server that this websocket will be used for PWM control commands. 
+- 'w' - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the
+        `command` array, as follows:
 
       byte0 - 'w' - code of the command
       byte1 - pin number. If you use the ESP32CAM-DEV board, the available pins are usually limited to 4,
               12, 13 and 33. The 4th pin is connected to the flash lamp so you can control the lamp brightness 
               by sending value to this pin via the websocket. Pin 33 is connected to the onboard LED. So, only
-              12 and 13 are the ones you can use, provided taht you also use the SD card for storage.
+              12 and 13 are the ones you can use, provided that you also use the SD card for storage.
               if you use the internal LittleFS for storage, you may be able to use other pins otherwise 
               utilized by the SD card interface.
       byte2 - send 1 for servo mode and 2 for any other PWM. 
@@ -205,10 +205,10 @@ GPIO pins used for PWM can be defined in the `/httpd.json`, in the `pwm` paramet
 The `pwm` parameter is defined as a JSON array where each object of the array is a definition of one PWM.
 Attributes of a pwm object are explained below:
 
-`pin`         - GPIO pin number
-`frequency`   - PWM frequency in Herz. 
-`resolution`  - precision of the PWM (number of bits).
-`default`     - initial value of the PWM. if this attribute is not defined,  0 will be used for default.
+- `pin`         - GPIO pin number
+- `frequency`   - PWM frequency in Herz. 
+- `resolution`  - precision of the PWM (number of bits).
+- `default`     - initial value of the PWM. if this attribute is not defined,  0 will be used for default.
 
 if the `lamp` parameter in the httpd config is greater or equal to 0, the 1st element of the pwm array
 will be used for definition of flash lamp PWM. In the example above, the lamp PWM is configured for pin 4

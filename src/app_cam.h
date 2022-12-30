@@ -36,7 +36,7 @@ class CLAppCam : public CLAppComponent {
         void setRotation(int val) {myRotation = val;};
         int getRotation() {return myRotation;};
 
-        int snapToBufer();
+        int snapToBuffer();
         uint8_t * getBuffer() {return fb->buf;};
         size_t getBufferSize() {return fb->len;};
         bool isJPEGinBuffer() {return fb->format == PIXFORMAT_JPEG;};

@@ -41,7 +41,7 @@ small antennas, older designs, congested airwaves and demanding users. The major
 disconnects, stutters and other communication problems are simply due to 'WiFi issues'. 
 
 The AI-THINKER camera module & esp32 combination is quite susceptible to power supply 
-problems affecting both WiFi conctivity and Video quality; short cabling and decent 
+problems affecting both WiFi connectivity and Video quality; short cabling and decent 
 power supplies are your friend here; also well cooled cases and, if you have the time, 
 decoupling capacitors on the power lines.
 
@@ -63,7 +63,7 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
 * The adapters **TX** line goes to the ESP32 **RX** pin
 * The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is 
   powered up to allow it to enter it's programming mode. This can be done with simple 
-  jumper cable connected at poweron, fitting a switch for this is useful if you 
+  jumper cable connected at power on, fitting a switch for this is useful if you 
   will be reprogramming a lot.
 * You will to supply 5v to the ESP32 in order to power it during programming; the FTDI 
   board alone fails to supply this sometimes. The ESP32 CAM board is very sensitive 
@@ -103,13 +103,13 @@ following line in the `src/app_config.h`:
 Re-build the sketch and upload it to the ESP32CAM board. Also upload the data folder using the 
 **ESP32 Sketch Data Upload** tool, which is invoked from the `Tools` menu of Arduino IDE.
 
-Provided that everything goes well, you shoudl be able to boot your ESP32 CAM Web Server from LittleFS.
+Provided that everything goes well, you should be able to boot your ESP32 CAM Web Server from LittleFS.
 
 ### Initial configuration
 
 If the system has not been configured yet, it will start in Access Point mode by default. The SSID
 of the access point will be `esp32cam` and the password is `123456789`. if you have the Serial monitor
-connected to the ESP32CAM board, you shoudl see the following messages:
+connected to the ESP32CAM board, you should see the following messages:
 
 ```
 No known networks found, entering AccessPoint fallback mode
@@ -117,7 +117,7 @@ Setting up Access Point (channel=1)
   SSID     : esp32cam
   Password : 123456789
 IP address: 192.168.4.1
-Access Point init successfull
+Access Point init successful
 Starting Captive Portal
 OTA is disabled
 mDNS responder started
@@ -133,7 +133,7 @@ Switch the Access Point Mode off. The screen will change as follows:
 
 Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure you wifi router has this band enabled.
 
-Set up your preffered NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. 
+Set up your preferred NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. 
 If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not 
 leave it empty or default.
 
@@ -153,7 +153,7 @@ The system monitoring page is accessible at `http://<YOUR_IP_ADDRESS:YOUR_PORT>/
 
 ### Configuration files
 
-The web server stores its configuraion in JSON files. The format of the files is below. If any of these
+The web server stores its configuration in JSON files. The format of the files is below. If any of these
 files is missing in the root folder of the storage used, default values will be loaded.
 
 #### Network Configuration (/conn.json)
@@ -247,7 +247,7 @@ cause the module to crash and reboot rather than updating if you use it.
 ![IDE board config](Docs/ota-board-selection.png)
 
 Make sure you select the `Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)` partition 
-cheme and turn `PSRAM` on.
+scheme and turn `PSRAM` on.
 
 The first time you program (or if OTA is failing) you need to compile and upload the 
 code from the IDE, and when the `Connecting...` appears in the console reboot the ESP32 
@@ -264,7 +264,7 @@ you should see it appearing in the `network ports` list of the IDE, and you can 
 wirelessly.
 
 If you have a status LED configured it will give a double flash when it begins 
-attempting to conenct to WiFi, and five short flashes once it has succeeded. It will 
+attempting to connect to WiFi, and five short flashes once it has succeeded. It will 
 also flash briefly when you access the camera to change settings.
 
 

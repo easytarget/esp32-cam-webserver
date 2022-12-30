@@ -114,7 +114,7 @@ class CLAppConn : public CLAppComponent {
         char ssid[64];
         char password[64];
 
-        char mdnsName[20];
+        char mdnsName[20]="";
 
         bool accesspoint = false;
         char apName[20];
@@ -144,7 +144,7 @@ class CLAppConn : public CLAppComponent {
         char otaPassword[20] = "";
 
         // NTP parameters
-        char ntpServer[20];
+        char ntpServer[20] = "";
         long  gmtOffset_sec;
         int  daylightOffset_sec;
 

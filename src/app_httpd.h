@@ -98,6 +98,7 @@ class CLAppHttpd : public CLAppComponent {
         void setAutoLamp(bool val) {autoLamp = val;};
         bool isAutoLamp() { return autoLamp;};   
         int getFlashLamp() {return flashLamp;}; 
+        void setFlashLamp(int newVal) {flashLamp = newVal;};
 
         void setLamp(int newVal = DEFAULT_FLASH);
         int getLamp() {return lampVal;};    
@@ -141,9 +142,9 @@ class CLAppHttpd : public CLAppComponent {
 
         // Name of the application used in web interface
         // Can be re-defined in the httpd.json file
-        char myName[20] = CAM_NAME;
+        char myName[32] = CAM_NAME;
 
-        char serialBuffer[64];
+        char serialBuffer[64]="";
 
         AsyncWebServer *server;
         AsyncWebSocket *ws; 

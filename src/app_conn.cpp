@@ -142,7 +142,7 @@ int CLAppConn::start() {
         }       
         
         ap_status = WL_CONNECTED;
-        Serial.println("Access Point init successfull");
+        Serial.println("Access Point init successful");
 
         // Start the DNS captive portal if requested
         if (ap_dhcp) {

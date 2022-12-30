@@ -30,7 +30,7 @@ var searchData=
   ['settag_27',['setTag',['../class_c_l_app_component.html#a75a706c37e31c3083c845d304e3a519b',1,'CLAppComponent']]],
   ['setup_28',['setup',['../class_e_s_p32_p_w_m.html#a2be6068904d3bec84211221148b21310',1,'ESP32PWM']]],
   ['setxclk_29',['setXclk',['../class_c_l_app_cam.html#a9ccd0763eb8eeb559b46e747df25d268',1,'CLAppCam']]],
-  ['snaptobufer_30',['snapToBufer',['../class_c_l_app_cam.html#a89a7a39bd89130cab06fd7139fc9b6d9',1,'CLAppCam']]],
+  ['snaptobufer_30',['snapToBuffer',['../class_c_l_app_cam.html#a89a7a39bd89130cab06fd7139fc9b6d9',1,'CLAppCam']]],
   ['snaptostream_31',['snapToStream',['../class_c_l_app_httpd.html#a4e52f72c1d20cf6420e2f17b0b521da4',1,'CLAppHttpd']]],
   ['ssid_32',['ssid',['../struct_station.html#ad635bfe5333139b2596ace399fe5054e',1,'Station']]],
   ['start_33',['start',['../class_c_l_app_httpd.html#aaf8a95884768b7ac3e1c04ea041ee514',1,'CLAppHttpd::start()'],['../class_c_l_app_conn.html#a75a0c8c0ab160691ecf58e3c4ad58951',1,'CLAppConn::start()'],['../class_c_l_app_cam.html#af277f42041c7c0a561bd8c8b087f4b3a',1,'CLAppCam::start()'],['../class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5',1,'CLAppComponent::start()']]],

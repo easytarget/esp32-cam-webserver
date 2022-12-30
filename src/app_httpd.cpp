@@ -175,7 +175,7 @@ int CLAppHttpd::snapToStream(bool debug) {
     
     if(!stream_client) return ESP_FAIL;
 
-    int res = AppCam.snapToBufer();
+    int res = AppCam.snapToBuffer();
 
     if(!res) {
 
@@ -185,7 +185,7 @@ int CLAppHttpd::snapToStream(bool debug) {
                 Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
             }
         } else {
-            // camera failed to aquire frame
+            // camera failed to acquire frame
             if(debug) 
                 Serial.println("Capture Error: Non-JPEG image returned by camera module");
             res = OS_FAIL;
@@ -211,11 +211,16 @@ int CLAppHttpd::startStream(uint32_t id) {
         xTimerStop(snap_timer, 100);
 
     if(streammode == CAPTURE_STREAM) {
+        if(autoLamp){
+            setLamp();
+            delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+        }
 
         Serial.print("Stream start, frame period = "); Serial.println(xTimerGetPeriod(snap_timer));
 
         xTimerStart(snap_timer, 0);
         streamCount=1;
+
     }
     else if(streammode == CAPTURE_STILL) {
         Serial.println("Still image requested");
@@ -245,6 +250,8 @@ int CLAppHttpd::startStream(uint32_t id) {
 }
 
 int CLAppHttpd::stopStream(uint32_t id) {
+
+    if(autoLamp) setLamp(0);
 
     if(!snap_timer)
         return OS_FAIL;
@@ -377,6 +384,9 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable ==  "lamp" && AppHttpd.getLamp() != -1) {
         AppHttpd.setLamp(constrain(val,0,100));
     }
+    else if(variable ==  "flashlamp" && AppHttpd.getLamp() != -1) {
+        AppHttpd.setFlashLamp(constrain(val,0,100));
+    }
     else if(variable == "accesspoint") AppConn.setAccessPoint(val);
     else if(variable == "ap_channel") AppConn.setAPChannel(val);
     else if(variable == "ap_dhcp") AppConn.setAPDHCP(val);
@@ -503,9 +513,9 @@ void dumpSystemStatusToJson(char * buf, size_t size) {
     buf += sprintf(buf,"\"captiveportal\":%s,", (AppConn.isCaptivePortal()?"true":"false"));
     buf += sprintf(buf,"\"ap_name\":\"%s\",", AppConn.getApName());
     buf += sprintf(buf,"\"ssid\":\"%s\",", AppConn.getSSID());
-    buf += sprintf(buf,"\"rssi\":%i,", WiFi.RSSI());
-    String bssid = WiFi.BSSIDstr();
-    buf += sprintf(buf,"\"bssid\":\"%s\",", bssid.c_str());
+
+    buf += sprintf(buf,"\"rssi\":%i,", (!AppConn.isAccessPoint()?WiFi.RSSI():0));
+    buf += sprintf(buf,"\"bssid\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.BSSIDstr().c_str():""));
     buf += sprintf(buf,"\"dhcp\":%i,", (AppConn.isDHCPEnabled()? 1:0 ));
     buf += sprintf(buf,"\"ip_address\":\"%s\",", (AppConn.isAccessPoint()?WiFi.softAPIP().toString():WiFi.localIP().toString()));
     buf += sprintf(buf,"\"subnet\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.subnetMask().toString():""));
@@ -525,7 +535,7 @@ void dumpSystemStatusToJson(char * buf, size_t size) {
     byte mac[6];
     WiFi.macAddress(mac);
     buf += sprintf(buf,"\"mac_address\":\"%02X:%02X:%02X:%02X:%02X:%02X\",", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    buf += sprintf(buf,"\"local_time\":\"%s\",", AppConn.getLocalTimeStr());
+    buf += sprintf(buf,"\"local_time\":\"%s\",", (!AppConn.isAccessPoint()?AppConn.getLocalTimeStr():""));
     buf += sprintf(buf,"\"up_time\":\"%s\",", AppConn.getUpTimeStr());
     buf += sprintf(buf,"\"ntp_server\":\"%s\",", AppConn.getNTPServer());
     buf += sprintf(buf,"\"gmt_offset\":%li,", AppConn.getGmtOffset_sec());
@@ -640,6 +650,8 @@ int CLAppHttpd::savePrefs() {
     json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
     json_gen_start_object(&jstr);
     
+    json_gen_obj_set_string(&jstr, (char*)"my_name", myName);
+
     json_gen_obj_set_int(&jstr, (char*)"lamp", lampVal);
     json_gen_obj_set_bool(&jstr, (char*)"autolamp", autoLamp);
     json_gen_obj_set_int(&jstr, (char*)"flashlamp", flashLamp);

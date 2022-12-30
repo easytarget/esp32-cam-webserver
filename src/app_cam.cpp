@@ -199,7 +199,7 @@ int CLAppCam::savePrefs(){
 
 }
 
-int CLAppCam::snapToBufer() {
+int CLAppCam::snapToBuffer() {
     fb = esp_camera_fb_get();
 
     return (fb?ESP_OK:ESP_FAIL);

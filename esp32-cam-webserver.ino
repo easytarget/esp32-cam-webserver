@@ -62,7 +62,7 @@ void setup() {
         }
         else {
             // Flash the LED to show we are connected
-            notifyConect();
+            notifyConnect();
         }
     }
 
@@ -114,7 +114,7 @@ void loop() {
 
             //attempt to reconnect
             if(AppConn.start() == WL_CONNECTED) {
-                notifyConect();
+                notifyConnect();
             }
             
         }
@@ -153,7 +153,7 @@ void handleSerial() {
     }
 }
 
-void notifyConect() {
+void notifyConnect() {
     for (int i = 0; i < 5; i++) {
         flashLED(150);
         delay(50);
