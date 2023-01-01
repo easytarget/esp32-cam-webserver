@@ -108,7 +108,7 @@ int ESP32PWM::allocatenext(double freq) {
 		return pwmChannel;
 	}
 	Serial.println(
-			"ERROR All PWM timers allocated! Can't accomodate " + String(freq)
+			"ERROR All PWM timers allocated! Can't accommodate " + String(freq)
 					+ "Hz\r\nHalting...");
 	while (1)
 		;
@@ -212,11 +212,11 @@ void ESP32PWM::attachPin(uint8_t pin) {
 		ledcAttachPin(pin, getChannel());
 	} else {
 		Serial.println(
-				"ERROR PWM channel unavailible on pin requested! " + String(pin)
+				"ERROR PWM channel unavailable on pin requested! " + String(pin)
 #if defined(ARDUINO_ESP32S2_DEV)
-						+ "\r\nPWM availible on: 1-21,26,33-42"
+						+ "\r\nPWM available on: 1-21,26,33-42"
 #else
-						+ "\r\nPWM availible on: 2,4,5,12-19,21-23,25-27,32-33"
+						+ "\r\nPWM available on: 2,4,5,12-19,21-23,25-27,32-33"
 #endif
 		);
 		return;

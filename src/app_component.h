@@ -8,7 +8,7 @@
 #include "storage.h"
 
 /**
- * @brief Abstract root class for the appication components.
+ * @brief Abstract root class for the application components.
  * 
  */
 class CLAppComponent {
@@ -43,6 +43,9 @@ class CLAppComponent {
         int readJsonIntVal(jparse_ctx_t *jctx, const char* token);
 
         int parsePrefs(jparse_ctx_t *jctx);
+
+        int urlDecode(char * decoded, char * source, size_t len); 
+        int urlEncode(char * encoded, char * source, size_t len);
 
 
     private:

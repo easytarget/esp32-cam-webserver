@@ -21,13 +21,21 @@ int CLAppHttpd::start() {
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         if(AppConn.isConfigured())
-            request->send(Storage.getFS(), "/www/index.html", "", false, processor);
+            request->redirect("/index");
         else
             request->redirect("/setup");
     });
 
+    server->on("/index", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(Storage.getFS(), "/www/index.html", "", false, processor);
+    });  
+
     server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
+    });    
+
+    server->on("/dump", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(Storage.getFS(), "/www/dump.html", "", false, processor);
     });    
 
     server->on("/view", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -286,6 +294,12 @@ void onControl(AsyncWebServerRequest *request) {
 
     String variable = request->arg("var");
     String value = request->arg("val");
+
+    if(AppHttpd.isDebugMode()) {
+        Serial.print("Command: var="); Serial.print(variable); 
+        Serial.print(", val="); Serial.println(value);
+    }
+
     int res = 0;
     long val = value.toInt();
     sensor_t * s = AppCam.getSensor();
@@ -329,6 +343,22 @@ void onControl(AsyncWebServerRequest *request) {
         else
             request->send(500);
         return;
+    }
+    else if(variable == "reboot") {
+        request->send(200);
+        if (AppHttpd.getLamp() != -1) AppHttpd.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
+        Storage.getFS().end();      // close file storage
+        esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
+        esp_task_wdt_add(NULL);
+        periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly
+        periph_module_disable(PERIPH_I2C1_MODULE);
+        periph_module_reset(PERIPH_I2C0_MODULE);
+        periph_module_reset(PERIPH_I2C1_MODULE);
+        Serial.print("REBOOT requested");
+        while(true) {
+          delay(200);
+          Serial.print('.');
+        }
     }
     else if(variable == "ssid") {AppConn.setSSID(value.c_str());AppConn.setPassword("");}
     else if(variable == "password") AppConn.setPassword(value.c_str());
@@ -395,20 +425,6 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable == "ota_enabled") AppConn.setOTAEnabled(val);
     else if(variable == "gmt_offset") AppConn.setGmtOffset_sec(val);
     else if(variable == "dst_offset") AppConn.setDaylightOffset_sec(val);
-    else if(variable == "reboot") {
-        if (AppHttpd.getLamp() != -1) AppHttpd.setLamp(0); // kill the lamp; otherwise it can remain on during the soft-reboot
-        esp_task_wdt_init(3,true);  // schedule a a watchdog panic event for 3 seconds in the future
-        esp_task_wdt_add(NULL);
-        periph_module_disable(PERIPH_I2C0_MODULE); // try to shut I2C down properly
-        periph_module_disable(PERIPH_I2C1_MODULE);
-        periph_module_reset(PERIPH_I2C0_MODULE);
-        periph_module_reset(PERIPH_I2C1_MODULE);
-        Serial.print("REBOOT requested");
-        while(true) {
-          delay(200);
-          Serial.print('.');
-        }
-    }
     else {
         res = -1;
     }

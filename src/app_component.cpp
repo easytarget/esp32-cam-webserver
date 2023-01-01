@@ -71,3 +71,65 @@ int CLAppComponent::parsePrefs(jparse_ctx_t *jctx) {
 
   return ret;
 }
+
+int CLAppComponent::urlDecode(char * decoded, char * source, size_t len) {
+  char temp[] = "0x00";
+  int i=0;
+  char * ptr = decoded;
+  while (i < len){
+    char decodedChar;
+    char encodedChar = *(source+i);
+    i++;
+    if ((encodedChar == '%') && (i + 1 < len)){
+      temp[2] = *(source+i); i++;
+      temp[3] = *(source+i); i++;
+      decodedChar = strtol(temp, NULL, 16);
+    } else if (encodedChar == '+') {
+      decodedChar = ' ';
+    } else {
+      decodedChar = encodedChar;  // normal ascii char
+    }
+    *ptr = decodedChar;
+    ptr++;
+    if(decodedChar == '\0') break;
+  }
+  return OS_SUCCESS;
+}
+
+int CLAppComponent::urlEncode(char * encoded, char * source, size_t len) {
+  char c, code0, code1, code2;
+
+  char * ptr = encoded;
+
+  for(int i=0; i < len; i++) {
+    c = *(source+i);
+    if(c == '\0') {
+      break;
+    }
+    else if(c == ' ') {
+      *ptr = '+'; ptr++;
+    }
+    else if(isalnum(c)) {
+      *ptr = c; ptr++;
+    }
+    else {
+
+        code1 = (c & 0xf)+'0';
+        if ((c & 0xf) > 9) {
+            code1 = (c & 0xf) - 10 + 'A';
+        }
+        c = (c >> 4) & 0xf;
+        code0 = c + '0';
+        if (c > 9) {
+            code0 = c - 10 + 'A';
+        }
+
+        *ptr = '%'; ptr++;
+        *ptr = code0; ptr++;
+        *ptr = code1; ptr++;
+
+    }
+  }
+  *ptr = '\0';
+  return OS_SUCCESS;
+}

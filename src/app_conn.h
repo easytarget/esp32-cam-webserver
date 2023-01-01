@@ -96,8 +96,7 @@ class CLAppConn : public CLAppComponent {
         void updateTimeStr();
 
         void printLocalTime(bool extraData=false);
-    
-        
+
     private:
         int getSSIDIndex();
         void calcURLs();

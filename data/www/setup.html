@@ -85,17 +85,25 @@
                                 if(submitChanges(el)) {
                                     if(el.id == "reboot") {
                                         hide(settings);
-                                        header.innerHTML = '<h1>Rebooting!</h1>';
+                                        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+                                    }
+                                    else if(el.id == "save_prefs") {
+                                        rebootBtn = document.getElementById("reboot");
+                                        portField = document.getElementById("port");
+                                        if(rebootBtn && portField) {
+                                            rebootUrl = location.protocol + '//' + location.hostname + ':' + portField.value + '/';
+                                            rebootBtn.setAttribute("data-reboot_to", rebootUrl);
+                                        }
                                     }
                                 }
                             }
-                        else
+                        else {
                             el.onchange = () => submitChanges(el);
-
+                        }    
                     });
 
                 cameraButton.onclick = () => {
-                    window.location.href = '/';
+                    window.location.href = '/index';
                 }
 
                 monitorButton.onclick = () => {

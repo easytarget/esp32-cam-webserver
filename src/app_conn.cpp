@@ -201,6 +201,8 @@ int CLAppConn::loadPrefs() {
         json_obj_get_bool(&jctx, (char*)"dhcp", &dhcp);
     }
 
+    char dbuf[192];
+
     if (ret == OS_SUCCESS && json_obj_get_array(&jctx, (char*)"stations", &stationCount) == OS_SUCCESS) {
         Serial.print("Known external SSIDs: ");
         if(stationCount>0)
@@ -209,8 +211,9 @@ int CLAppConn::loadPrefs() {
                 if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
                     Station *s = (Station*) malloc(sizeof(Station));
                     if(json_obj_get_string(&jctx, (char*)"ssid", s->ssid, sizeof(s->ssid)) == OS_SUCCESS &&
-                       json_obj_get_string(&jctx, (char*)"pass", s->password, sizeof(s->password)) == OS_SUCCESS) {
+                       json_obj_get_string(&jctx, (char*)"pass", dbuf, sizeof(dbuf)) == OS_SUCCESS) {
                         Serial.printf("%s\r\n", s->ssid);
+                        urlDecode(s->password, dbuf, sizeof(dbuf));
                         stationList[i] = s;
                     } 
                     else {
@@ -236,7 +239,8 @@ int CLAppConn::loadPrefs() {
     }
 
     json_obj_get_string(&jctx, (char*)"ap_ssid", apName, sizeof(apName));
-    json_obj_get_string(&jctx, (char*)"ap_pass", apPass, sizeof(apPass));
+    json_obj_get_string(&jctx, (char*)"ap_pass", dbuf, sizeof(dbuf));
+    urlDecode(apPass, dbuf, sizeof(dbuf));
     if(json_obj_get_int(&jctx, (char*)"ap_channel", &ap_channel) != OS_SUCCESS)
         ap_channel = 1;
     if(json_obj_get_bool(&jctx, (char*)"ap_dhcp", &ap_dhcp) != OS_SUCCESS)
@@ -251,7 +255,8 @@ int CLAppConn::loadPrefs() {
 
     // OTA
     json_obj_get_bool(&jctx, (char*)"ota_enabled", &otaEnabled);   
-    json_obj_get_string(&jctx, (char*)"ota_password", otaPassword, sizeof(otaPassword)); 
+    json_obj_get_string(&jctx, (char*)"ota_password", dbuf, sizeof(dbuf)); 
+    urlDecode(otaPassword, dbuf, sizeof(dbuf));
 
     // NTP
     json_obj_get_string(&jctx, (char*)"ntp_server", ntpServer, sizeof(ntpServer)); 
@@ -305,23 +310,29 @@ int CLAppConn::savePrefs() {
     if(index < 0 && count == MAX_KNOWN_STATIONS) {
         count--;
     }
-    
+    char ebuf[192]; 
+
     if(index < 0 || count > 0) {
         json_gen_push_array(&jstr, "stations");
         if(index < 0) {
             json_gen_start_object(&jstr);
             json_gen_obj_set_string(&jstr, "ssid", ssid);
-            json_gen_obj_set_string(&jstr, "pass", password);
+            urlEncode(ebuf, password, sizeof(password));
+            json_gen_obj_set_string(&jstr, "pass", ebuf);
             json_gen_end_object(&jstr);
         }
  
         for(int i=0; i < count; i++) {
             json_gen_start_object(&jstr);
             json_gen_obj_set_string(&jstr, "ssid", stationList[i]->ssid);
-            if(index >= 0 && i == index)
-                json_gen_obj_set_string(&jstr, "pass", password);
-            else
-                json_gen_obj_set_string(&jstr, "pass", stationList[i]->password);
+            if(index >= 0 && i == index) {
+                urlEncode(ebuf, password, sizeof(password));
+                json_gen_obj_set_string(&jstr, "pass", ebuf);
+            }
+            else {
+                urlEncode(ebuf, stationList[i]->password, sizeof(stationList[i]->password));
+                json_gen_obj_set_string(&jstr, "pass", ebuf);
+            }
             json_gen_end_object(&jstr);
         }
         json_gen_pop_array(&jstr);
@@ -337,10 +348,13 @@ int CLAppConn::savePrefs() {
     json_gen_pop_object(&jstr);    
     json_gen_obj_set_int(&jstr, "http_port", httpPort);
     json_gen_obj_set_bool(&jstr, "ota_enabled", otaEnabled);
-    json_gen_obj_set_string(&jstr, "ota_password", otaPassword);
+    urlEncode(ebuf, otaPassword, sizeof(otaPassword));
+    Serial.println(ebuf);
+    json_gen_obj_set_string(&jstr, "ota_password", ebuf);
     
     json_gen_obj_set_string(&jstr, "ap_ssid", apName);
-    json_gen_obj_set_string(&jstr, "ap_pass", apPass);
+    urlEncode(ebuf, apPass, sizeof(apPass));
+    json_gen_obj_set_string(&jstr, "ap_pass", ebuf);
     json_gen_obj_set_bool(&jstr, "ap_dhcp", ap_dhcp);
     json_gen_push_object(&jstr, "ap_ip");
     if(apIP.ip) json_gen_obj_set_string(&jstr, "ip", apIP.ip->toString().c_str());
@@ -482,6 +496,5 @@ int CLAppConn::getSSIDIndex() {
     }
     return -1;
 }
-
 
 CLAppConn AppConn;

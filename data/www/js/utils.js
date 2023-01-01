@@ -211,6 +211,10 @@ const addTextInput = (parent, field) => {
       input.setAttribute("placeholder", "xxx.xxx.xxx.xxx");
       input.classList.add("ipv4");
     }
+    else if(field.type == "password") {
+      input.setAttribute("type", field.type);
+      input.setAttribute("autocomplete", "off");
+    }
     else {
       input.setAttribute("type", field.type);
     }
@@ -371,9 +375,13 @@ function submitChanges (el) {
     }
 
     if(el.id == "reboot") {
-      setTimeout(function() {
-        location.replace(document.URL);
-      }, 30000);
+      var rebootToUrl = el.getAttribute("data-reboot_to");
+      if(!rebootToUrl) {
+        rebootToUrl = document.URL;
+      }
+      setTimeout(function(url) {
+        location.replace(url);
+      }, 30000, rebootToUrl);
     } 
   }
   else if(el.type == "range") {
@@ -381,7 +389,7 @@ function submitChanges (el) {
   }
 
   let host = document.location.origin;
-  let value = refreshControl(el);
+  let value = encodeURIComponent(refreshControl(el));
 
   const query = `${host}/control?var=${el.id}&val=${value}`;
 

@@ -3,8 +3,7 @@
     "autolamp":true,
     "flashlamp":100,
     "pwm": [{"pin":4, "frequency":50000, "resolution":9}],
-    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
-                {"uri":"/img", "path": "/www/img"},
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
                 {"uri":"/css", "path": "/www/css"},
                 {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
