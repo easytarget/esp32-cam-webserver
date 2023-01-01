@@ -1,6 +1,8 @@
 #ifndef app_cam_h
 #define app_cam_h
 
+#define CAM_DUMP_BUFFER_SIZE   640
+
 #include <esp_camera.h>
 #include <esp_int_wdt.h>
 #include <esp_task_wdt.h>
@@ -41,6 +43,8 @@ class CLAppCam : public CLAppComponent {
         size_t getBufferSize() {return fb->len;};
         bool isJPEGinBuffer() {return fb->format == PIXFORMAT_JPEG;};
         void releaseBuffer(); 
+
+        void dumpStatusToJson(json_gen_str_t * jstr, bool full_status = true);
 
     private:
         // Camera config structure

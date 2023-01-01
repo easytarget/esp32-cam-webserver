@@ -61,8 +61,8 @@ class ESP32PWM {
         //Timer data
         static int timerAndIndexToChannel(int timer, int index);
         /**
-         * allocateTimer
-         * @param a timer number 0-3 indicating which timer to allocate in this library
+         * Allocate a timer
+         * @param timerNumber timer number 0-3 indicating which timer to allocate in this library
          * Switch to explicate allocation mode
          *
          */

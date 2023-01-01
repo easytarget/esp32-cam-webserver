@@ -3,7 +3,7 @@
 
 
 /* Give the camera a name for the web interface */
-#define CAM_NAME "ESP32 CAM Webserver"
+#define CAM_NAME "ESP32 CAM Web Server"
 
 /* Base application version */
 #define BASE_VERSION "5.0"
@@ -14,7 +14,7 @@
 /*
  * Wifi Watchdog defines how long we spend waiting for a connection before retrying,
  * and how often we check to see if we are still connected, milliseconds
- * You may wish to increase this if your WiFi is slow at conencting.
+ * You may wish to increase this if your WiFi is slow at connecting.
  */
 #define WIFI_WATCHDOG 15000
 
@@ -36,7 +36,7 @@
 // #define USE_LittleFS
 
 /*
- * Camera Hardware Selectiom
+ * Camera Hardware Selection
  *
  * You must uncomment one, and only one, of the lines below to select your board model.
  * Remember to also select the board in the Boards Manager

@@ -1,4 +1,4 @@
-# ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
+# ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](assets/logo.svg)</span>
 
 This sketch is a fully customizable webcam server based on ESP32-based board with camera. 
 It can be used as a starting point for your own webcam solution. 
@@ -57,7 +57,7 @@ the first steam will freeze.
 ### Wiring for AI-THINKER Boards (and similar clone-alikes)
 
 Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below.
-![Hoockup](Docs/hookup.png)
+![Hoockup](https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/hookup.png)
 
 * Connect the **RX** line from the serisal adapter to the **TX** pin on ESP32
 * The adapters **TX** line goes to the ESP32 **RX** pin
@@ -83,7 +83,7 @@ can be either a micro SD flash memory card or the built-in flash memory with Lit
 #### Using micro SD flash memory card
 You will need a blank SD card, which must be formatted as FAT32. Insert it into the micro SD slot of your computer and copy all the files from the **data** folder. The structure of files on the SD card should be 
 like this: 
-![Data Folder](Docs/data-folder.png)
+![Data Folder](https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/data-folder.png)
 
 After that, insert the card in the slot of your ESP32CAM board and restart it. The Server should start normally.
 
@@ -126,10 +126,14 @@ Connected
 ```
 
 Connected to the access point and open the url http://192.168.4.1/. You should see the following page: 
-![WiFi AP Setup](Docs/wifi-setup-ap.png)
+<div align="center">
+<img src="https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/wifi-setup-ap.png" width="250">
+</div>
 
 Switch the Access Point Mode off. The screen will change as follows: 
-![WiFi Setup](Docs/wifi-setup.png)
+<div align="center">
+<img src="https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/wifi-setup.png" width="250">
+</div>
 
 Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure you wifi router has this band enabled.
 
@@ -143,7 +147,7 @@ and connect to your wifi automatically. The assigned IP address can be seen in t
 Open the browser and navigate to http://<YOUR_IP_ADDRESS:YOUR_PORT>/ (for example, http://192.168.0.2:8080)
 
 You should see the following screen: 
-![Index](Docs/index.png). 
+![Index](https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/index.png). 
 
 Here you can take still images or start the video streaming from the camera installed on ESP32CAM.
 
@@ -244,7 +248,7 @@ Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` 
 will appear in the ESP32 Arduino section of the boards list. Select this (do not use 
 the `AI-THINKER` entry listed in the boiards menu, it is not OTA compatible, and will 
 cause the module to crash and reboot rather than updating if you use it.
-![IDE board config](Docs/ota-board-selection.png)
+![IDE board config](https://github.com/abratchik/esp32-cam-webserver/blob/master/assets/ota-board-selection.png)
 
 Make sure you select the `Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)` partition 
 scheme and turn `PSRAM` on.
@@ -272,7 +276,7 @@ also flash briefly when you access the camera to change settings.
 The communications between the web browser and the camera module can also be used to 
 send commands directly to the camera (eg to automate it, etc) and form, in effect, 
 an API for the camera.
-* [ESP32 Camera Web Server JSON API](API.md).
+* [ESP32 Camera Web Server API](API.md).
 
 ## Contributing
 

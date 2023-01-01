@@ -292,7 +292,7 @@ void onControl(AsyncWebServerRequest *request) {
 
     if(variable == "cmdout") {
         if(AppHttpd.isDebugMode()) {
-            Serial.print("cmmdout=");
+            Serial.print("cmdout=");
             Serial.println(value.c_str());
         }
         AppHttpd.serialSendCommand(value.c_str());
@@ -426,58 +426,24 @@ void CLAppHttpd::updateSnapTimer(int tps) {
 
 void onInfo(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
-    response->print("{");
-    response->printf("\"cam_name\":\"%s\",", AppHttpd.getName());
-    response->printf("\"rotate\":\"%d\",", AppCam.getRotation());
-    response->printf("\"stream_url\":\"%s\"", AppConn.getStreamUrl());
-    response->print("}");
-    request->send(response);    
+
+    char buf[CAM_DUMP_BUFFER_SIZE];
+
+    AppHttpd.dumpCameraStatusToJson(buf, sizeof(buf), false);
+
+    response->print(buf);
+    request->send(response); 
 }
 
 void onStatus(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     // Do not get attempt to get sensor when in error; causes a panic..
-    response->print("{");
-    if (!AppCam.getLastErr()) {
-        sensor_t * s = AppCam.getSensor();
-        response->printf("\"lamp\":%d,", AppHttpd.getLamp());
-        response->printf("\"autolamp\":%d,", AppHttpd.isAutoLamp());
-        response->printf("\"flashlamp\":%d,", AppHttpd.getFlashLamp());
-        response->printf("\"frame_rate\":%d,", AppCam.getFrameRate());
-        response->printf("\"framesize\":%u,", s->status.framesize);
-        response->printf("\"quality\":%u,", s->status.quality);
-        response->printf("\"xclk\":%u,", AppCam.getXclk());
-        response->printf("\"brightness\":%d,", s->status.brightness);
-        response->printf("\"contrast\":%d,", s->status.contrast);
-        response->printf("\"saturation\":%d,", s->status.saturation);
-        response->printf("\"sharpness\":%d,", s->status.sharpness);
-        response->printf("\"special_effect\":%u,", s->status.special_effect);
-        response->printf("\"wb_mode\":%u,", s->status.wb_mode);
-        response->printf("\"awb\":%u,", s->status.awb);
-        response->printf("\"awb_gain\":%u,", s->status.awb_gain);
-        response->printf("\"aec\":%u,", s->status.aec);
-        response->printf("\"aec2\":%u,", s->status.aec2);
-        response->printf("\"ae_level\":%d,", s->status.ae_level);
-        response->printf("\"aec_value\":%u,", s->status.aec_value);
-        response->printf("\"agc\":%u,", s->status.agc);
-        response->printf("\"agc_gain\":%u,", s->status.agc_gain);
-        response->printf("\"gainceiling\":%u,", s->status.gainceiling);
-        response->printf("\"bpc\":%u,", s->status.bpc);
-        response->printf("\"wpc\":%u,", s->status.wpc);
-        response->printf("\"raw_gma\":%u,", s->status.raw_gma);
-        response->printf("\"lenc\":%u,", s->status.lenc);
-        response->printf("\"vflip\":%u,", s->status.vflip);
-        response->printf("\"hmirror\":%u,", s->status.hmirror);
-        response->printf("\"dcw\":%u,", s->status.dcw);
-        response->printf("\"colorbar\":%u,", s->status.colorbar);
-        response->printf("\"cam_pid\":%u,", s->id.PID);
-        response->printf("\"cam_ver\":%u,", s->id.VER);
-        response->printf("\"cam_name\":\"%s\",", AppHttpd.getName());
-        response->printf("\"code_ver\":\"%s\",", AppHttpd.getVersion().c_str());
-        response->printf("\"rotate\":\"%d\",", AppCam.getRotation());
-        response->printf("\"stream_url\":\"%s\"", AppConn.getStreamUrl());
-    }
-    response->print("}");
+
+    char buf[CAM_DUMP_BUFFER_SIZE];
+
+    AppHttpd.dumpCameraStatusToJson(buf, sizeof(buf));
+
+    response->print(buf);
     request->send(response);
 }
 
@@ -485,8 +451,7 @@ void onSystemStatus(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
 
     char buf[1280];
-    char * buf_ptr = buf;
-    dumpSystemStatusToJson(buf_ptr, sizeof(buf));
+    AppHttpd.dumpSystemStatusToJson(buf, sizeof(buf));
     
     response->print(buf);
 
@@ -499,74 +464,111 @@ void onSystemStatus(AsyncWebServerRequest *request) {
     request->send(response);
 }
 
-void dumpSystemStatusToJson(char * buf, size_t size) {
+void CLAppHttpd::dumpCameraStatusToJson(char * buf, size_t size, bool full_status) {
+    
+    json_gen_str_t jstr;
+    json_gen_str_start(&jstr, buf, size, NULL, NULL);
+    json_gen_start_object(&jstr);
 
-    buf += sprintf(buf, "{");
-    buf += sprintf(buf,"\"cam_name\":\"%s\",", AppHttpd.getName());
-    buf += sprintf(buf,"\"code_ver\":\"%s\",", AppHttpd.getVersion().c_str());
-    buf += sprintf(buf,"\"base_version\":\"%s\",", BASE_VERSION);
-    buf += sprintf(buf,"\"sketch_size\":%u,", AppHttpd.getSketchSize());
-    buf += sprintf(buf,"\"sketch_space\":%u,", AppHttpd.getSketchSpace());
-    buf += sprintf(buf,"\"sketch_md5\":\"%s\",", AppHttpd.getSketchMD5().c_str());
-    buf += sprintf(buf,"\"esp_sdk\":\"%s\",", ESP.getSdkVersion());
-    buf += sprintf(buf,"\"accesspoint\":%s,", (AppConn.isAccessPoint()?"true":"false"));
-    buf += sprintf(buf,"\"captiveportal\":%s,", (AppConn.isCaptivePortal()?"true":"false"));
-    buf += sprintf(buf,"\"ap_name\":\"%s\",", AppConn.getApName());
-    buf += sprintf(buf,"\"ssid\":\"%s\",", AppConn.getSSID());
+    json_gen_obj_set_string(&jstr, (char*)"cam_name", getName());
+    json_gen_obj_set_string(&jstr, (char*)"stream_url", AppConn.getStreamUrl());
+    json_gen_obj_set_string(&jstr, (char*)"code_ver", getVersion());    
+    json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
+    json_gen_obj_set_bool(&jstr, (char*)"autolamp", isAutoLamp());
+    json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
+    json_gen_obj_set_int(&jstr, (char*)"flashlamp", getFlashLamp());
 
-    buf += sprintf(buf,"\"rssi\":%i,", (!AppConn.isAccessPoint()?WiFi.RSSI():0));
-    buf += sprintf(buf,"\"bssid\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.BSSIDstr().c_str():""));
-    buf += sprintf(buf,"\"dhcp\":%i,", (AppConn.isDHCPEnabled()? 1:0 ));
-    buf += sprintf(buf,"\"ip_address\":\"%s\",", (AppConn.isAccessPoint()?WiFi.softAPIP().toString():WiFi.localIP().toString()));
-    buf += sprintf(buf,"\"subnet\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.subnetMask().toString():""));
-    buf += sprintf(buf,"\"gateway\":\"%s\",", (!AppConn.isAccessPoint()?WiFi.gatewayIP().toString():""));
-    buf += sprintf(buf,"\"st_ip\":\"%s\",", (AppConn.getStaticIP()->ip?AppConn.getStaticIP()->ip->toString():""));
-    buf += sprintf(buf,"\"st_subnet\":\"%s\",", (AppConn.getStaticIP()->netmask?AppConn.getStaticIP()->netmask->toString():""));
-    buf += sprintf(buf,"\"st_gateway\":\"%s\",", (AppConn.getStaticIP()->gateway?AppConn.getStaticIP()->gateway->toString():""));
-    buf += sprintf(buf,"\"dns1\":\"%s\",", (AppConn.getStaticIP()->dns1?AppConn.getStaticIP()->dns1->toString():""));
-    buf += sprintf(buf,"\"dns2\":\"%s\",", (AppConn.getStaticIP()->dns1?AppConn.getStaticIP()->dns2->toString():""));
-    buf += sprintf(buf,"\"ap_ip\":\"%s\",", (AppConn.getAPIP()->ip?AppConn.getAPIP()->ip->toString():""));
-    buf += sprintf(buf,"\"ap_subnet\":\"%s\",", (AppConn.getAPIP()->netmask?AppConn.getAPIP()->netmask->toString():""));
-    buf += sprintf(buf,"\"ap_channel\":\"%i\",", AppConn.getAPChannel());
-    buf += sprintf(buf,"\"ap_dhcp\":\"%i\",", AppConn.getAPDHCP());
+    AppCam.dumpStatusToJson(&jstr, full_status);
 
-    buf += sprintf(buf,"\"mdns_name\":\"%s\",", AppConn.getMDNSname());
-    buf += sprintf(buf,"\"port\":%i,", AppConn.getPort());
+    json_gen_end_object(&jstr);
+    json_gen_str_end(&jstr);
+}
+
+void CLAppHttpd::dumpSystemStatusToJson(char * buf, size_t size) {
+
+    json_gen_str_t jstr;
+    json_gen_str_start(&jstr, buf, size, NULL, NULL);
+    json_gen_start_object(&jstr);
+
+    json_gen_obj_set_string(&jstr, (char*)"cam_name", getName());
+    json_gen_obj_set_string(&jstr, (char*)"code_ver", getVersion());
+    json_gen_obj_set_string(&jstr, (char*)"base_version", BASE_VERSION);
+    json_gen_obj_set_int(&jstr, (char*)"sketch_size", getSketchSize());
+    json_gen_obj_set_int(&jstr, (char*)"sketch_space", getSketchSpace());
+    json_gen_obj_set_string(&jstr, (char*)"sketch_md5", getSketchMD5());
+    json_gen_obj_set_string(&jstr, (char*)"esp_sdk", ESP.getSdkVersion());
+    
+    json_gen_obj_set_bool(&jstr,(char*)"accesspoint", AppConn.isAccessPoint());
+    json_gen_obj_set_bool(&jstr,(char*)"accesspoint", AppConn.isCaptivePortal());
+    json_gen_obj_set_string(&jstr, (char*)"ap_name", AppConn.getApName());
+    json_gen_obj_set_string(&jstr, (char*)"ssid", AppConn.getSSID());
+
+    json_gen_obj_set_int(&jstr, (char*)"rssi", (!AppConn.isAccessPoint()?WiFi.RSSI():0));
+    json_gen_obj_set_string(&jstr, (char*)"bssid", (!AppConn.isAccessPoint()?WiFi.BSSIDstr().c_str():(char*)""));
+    json_gen_obj_set_int(&jstr, (char*)"dhcp", AppConn.isDHCPEnabled());
+    
+    json_gen_obj_set_string(&jstr, (char*)"ip_address", (AppConn.isAccessPoint()?WiFi.softAPIP().toString().c_str():WiFi.localIP().toString().c_str()));
+    json_gen_obj_set_string(&jstr, (char*)"subnet", (!AppConn.isAccessPoint()?WiFi.subnetMask().toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"gateway", (!AppConn.isAccessPoint()?WiFi.gatewayIP().toString().c_str():(char*)""));
+
+    json_gen_obj_set_string(&jstr, (char*)"st_ip", (AppConn.getStaticIP()->ip?AppConn.getStaticIP()->ip->toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"st_subnet", (AppConn.getStaticIP()->netmask?AppConn.getStaticIP()->netmask->toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"st_gateway", (AppConn.getStaticIP()->gateway?AppConn.getStaticIP()->gateway->toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"dns1", (AppConn.getStaticIP()->dns1?AppConn.getStaticIP()->dns1->toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"dns2", (AppConn.getStaticIP()->dns2?AppConn.getStaticIP()->dns2->toString().c_str():(char*)""));
+
+    json_gen_obj_set_string(&jstr, (char*)"ap_ip", (AppConn.getAPIP()->ip?AppConn.getAPIP()->ip->toString().c_str():(char*)""));
+    json_gen_obj_set_string(&jstr, (char*)"ap_subnet", (AppConn.getAPIP()->netmask?AppConn.getAPIP()->netmask->toString().c_str():(char*)""));
+
+    json_gen_obj_set_int(&jstr, (char*)"ap_channel", AppConn.getAPChannel());
+    json_gen_obj_set_int(&jstr, (char*)"ap_dhcp", AppConn.getAPDHCP());
+
+    json_gen_obj_set_string(&jstr, (char*)"mdns_name", AppConn.getMDNSname());
+    json_gen_obj_set_int(&jstr, (char*)"port", AppConn.getPort());
+
     byte mac[6];
     WiFi.macAddress(mac);
-    buf += sprintf(buf,"\"mac_address\":\"%02X:%02X:%02X:%02X:%02X:%02X\",", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    buf += sprintf(buf,"\"local_time\":\"%s\",", (!AppConn.isAccessPoint()?AppConn.getLocalTimeStr():""));
-    buf += sprintf(buf,"\"up_time\":\"%s\",", AppConn.getUpTimeStr());
-    buf += sprintf(buf,"\"ntp_server\":\"%s\",", AppConn.getNTPServer());
-    buf += sprintf(buf,"\"gmt_offset\":%li,", AppConn.getGmtOffset_sec());
-    buf += sprintf(buf,"\"dst_offset\":%i,", AppConn.getDaylightOffset_sec());
-    buf += sprintf(buf,"\"active_streams\":%i,", AppHttpd.getStreamCount());
-    buf += sprintf(buf,"\"prev_streams\":%lu,", AppHttpd.getStreamsServed());
-    buf += sprintf(buf,"\"img_captured\":%lu,", AppHttpd.getImagesServed());
-    buf += sprintf(buf,"\"ota_enabled\":%i,", (AppConn.isOTAEnabled()? 1:0 ));
+    char mac_buf[18];
+    snprintf(mac_buf, sizeof(mac_buf), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    json_gen_obj_set_string(&jstr, (char*)"mac_address", mac_buf);
 
-    buf += sprintf(buf,"\"cpu_freq\":%i,", ESP.getCpuFreqMHz());
-    buf += sprintf(buf,"\"xclk\":%i,", AppCam.getXclk());
-    buf += sprintf(buf,"\"num_cores\":%i,", ESP.getChipCores());
+    AppConn.updateTimeStr();
+    json_gen_obj_set_string(&jstr, (char*)"local_time", AppConn.getLocalTimeStr());
+    json_gen_obj_set_string(&jstr, (char*)"up_time", AppConn.getUpTimeStr());
+    json_gen_obj_set_string(&jstr, (char*)"ntp_server", AppConn.getNTPServer());
+    json_gen_obj_set_int(&jstr, (char*)"gmt_offset", AppConn.getGmtOffset_sec());
+    json_gen_obj_set_int(&jstr, (char*)"dst_offset", AppConn.getDaylightOffset_sec());
+    
+    json_gen_obj_set_int(&jstr, (char*)"active_streams", AppHttpd.getStreamCount());
+    json_gen_obj_set_int(&jstr, (char*)"prev_streams", AppHttpd.getStreamsServed());
+    json_gen_obj_set_int(&jstr, (char*)"img_captured", AppHttpd.getImagesServed());
 
-    int McuTf = temprature_sens_read(); // fahrenheit
-    buf += sprintf(buf,"\"esp_temp\":%i,", McuTf);
-    buf += sprintf(buf,"\"heap_avail\":%i,", ESP.getHeapSize());
-    buf += sprintf(buf,"\"heap_free\":%i,", ESP.getFreeHeap());
-    buf += sprintf(buf,"\"heap_min_free\":%i,", ESP.getMinFreeHeap());
-    buf += sprintf(buf,"\"heap_max_bloc\":%i,", ESP.getMaxAllocHeap());
+    json_gen_obj_set_int(&jstr, (char*)"ota_enabled", AppConn.isOTAEnabled());
 
-    buf += sprintf(buf,"\"psram_found\":%s,", (psramFound()?"true":"false"));
-    buf += sprintf(buf,"\"psram_size\":%i,", (psramFound()?ESP.getPsramSize():0));
-    buf += sprintf(buf,"\"psram_free\":%i,", (psramFound()?ESP.getFreePsram():0));
-    buf += sprintf(buf,"\"psram_min_free\":%i,", (psramFound()?ESP.getMinFreePsram():0));
-    buf += sprintf(buf,"\"psram_max_bloc\":%i,", (psramFound()?ESP.getMaxAllocPsram():0));
+    json_gen_obj_set_int(&jstr, (char*)"cpu_freq", ESP.getCpuFreqMHz());
+    json_gen_obj_set_int(&jstr, (char*)"num_cores", ESP.getChipCores());
+    json_gen_obj_set_int(&jstr, (char*)"esp_temp", temprature_sens_read()); // fahrenheit
+    json_gen_obj_set_int(&jstr, (char*)"heap_avail", ESP.getHeapSize());
+    json_gen_obj_set_int(&jstr, (char*)"heap_free", ESP.getFreeHeap());
+    json_gen_obj_set_int(&jstr, (char*)"heap_min_free", ESP.getMinFreeHeap());
+    json_gen_obj_set_int(&jstr, (char*)"heap_max_bloc", ESP.getMaxAllocHeap());
 
-    buf += sprintf(buf,"\"storage_size\":%i,", Storage.getSize());
-    buf += sprintf(buf,"\"storage_used\":%i,", Storage.getUsed());
-    buf += sprintf(buf,"\"storage_units\":\"%s\",", (Storage.capacityUnits()==STORAGE_UNITS_MB?"MB":""));
-    buf += sprintf(buf,"\"serial_buf\":\"%s\"", AppHttpd.getSerialBuffer());
-    buf += sprintf(buf, "}");
+    json_gen_obj_set_bool(&jstr, (char*)"psram_found", psramFound());
+    json_gen_obj_set_int(&jstr, (char*)"psram_size", (psramFound()?ESP.getPsramSize():0));
+    json_gen_obj_set_int(&jstr, (char*)"psram_free", (psramFound()?ESP.getFreePsram():0));
+    json_gen_obj_set_int(&jstr, (char*)"psram_min_free", (psramFound()?ESP.getMinFreePsram():0));
+    json_gen_obj_set_int(&jstr, (char*)"psram_max_bloc", (psramFound()?ESP.getMaxAllocPsram():0));
+
+    json_gen_obj_set_int(&jstr, (char*)"xclk", AppCam.getXclk());
+
+    json_gen_obj_set_int(&jstr, (char*)"storage_size", Storage.getSize());
+    json_gen_obj_set_int(&jstr, (char*)"storage_used", Storage.getUsed());
+    json_gen_obj_set_string(&jstr, (char*)"storage_units", (Storage.capacityUnits()==STORAGE_UNITS_MB?(char*)"MB":(char*)""));
+
+    json_gen_obj_set_string(&jstr, (char*)"serial_buf", getSerialBuffer());
+
+    json_gen_end_object(&jstr);
+    json_gen_str_end(&jstr);
 }
 
 void CLAppHttpd::serialSendCommand(const char *cmd) {

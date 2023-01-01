@@ -151,7 +151,7 @@ Once the `ws` object is created successfully, you can handle its events on the p
       var arrayBufferView = new Uint8Array(event.data);
       var blob = new Blob([arrayBufferView], {type: "image/jpeg"});
       var imageUrl = urlCreator.createObjectURL(blob);
-      video.src = imageUrl; // "video" here represents an <img> element on the page where frames are displayed
+      video.src = imageUrl; // "video" here represents an img element on the page where frames are displayed
     }
    ```
 

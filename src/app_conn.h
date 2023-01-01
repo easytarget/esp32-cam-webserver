@@ -21,7 +21,7 @@
 struct Station { char ssid[64]; char password[64]; };
 
 /**
- * @brief Static IP strcuture for configuring AP and WiFi parameters
+ * @brief Static IP structure for configuring AP and WiFi parameters
  * 
  */
 struct StaticIP { IPAddress *ip; IPAddress *netmask; IPAddress *gateway; IPAddress *dns1; IPAddress *dns2; };
@@ -91,10 +91,12 @@ class CLAppConn : public CLAppComponent {
 
         bool isCaptivePortal() {return captivePortal;};
 
-        char * getLocalTimeStr();
-        char * getUpTimeStr();
-        void printLocalTime(bool extraData=false);
+        char * getLocalTimeStr() {return localTimeString;};
+        char * getUpTimeStr() {return upTimeString;};
+        void updateTimeStr();
 
+        void printLocalTime(bool extraData=false);
+    
         
     private:
         int getSSIDIndex();
@@ -147,6 +149,9 @@ class CLAppConn : public CLAppComponent {
         char ntpServer[20] = "";
         long  gmtOffset_sec;
         int  daylightOffset_sec;
+
+        char localTimeString[50];
+        char upTimeString[50];
 
 };
 

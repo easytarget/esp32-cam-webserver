@@ -447,32 +447,31 @@ void CLAppConn::configNTP() {
 }
 
 void CLAppConn::printLocalTime(bool extraData) {
-    Serial.println(getLocalTimeStr());
+    updateTimeStr();
+    Serial.println(localTimeString);
     if (extraData) {
         Serial.printf("NTP Server: %s, GMT Offset: %li(s), DST Offset: %i(s)\r\n", 
                       ntpServer, gmtOffset_sec , daylightOffset_sec);
     }
 }
 
-char * CLAppConn::getLocalTimeStr() {
-    struct tm timeinfo;
-    static char timeStringBuff[50];
-    if(getLocalTime(&timeinfo)) {
-        strftime(timeStringBuff, sizeof(timeStringBuff), "%H:%M:%S, %A, %B %d %Y", &timeinfo);
-    }
-    
-    return timeStringBuff;
-}
 
-char * CLAppConn::getUpTimeStr() {
+
+void CLAppConn::updateTimeStr() {
+    if(!accesspoint) {
+       tm timeinfo; 
+       if(getLocalTime(&timeinfo)) 
+            strftime(localTimeString, sizeof(localTimeString), "%H:%M:%S, %A, %B %d %Y", &timeinfo);
+    }
+    else {
+        snprintf(localTimeString, sizeof(localTimeString), "N/A");
+    }
     int64_t sec = esp_timer_get_time() / 1000000;
     int64_t upDays = int64_t(floor(sec/86400));
     int upHours = int64_t(floor(sec/3600)) % 24;
     int upMin = int64_t(floor(sec/60)) % 60;
     int upSec = sec % 60;
-    static char timeStringBuff[50];
-    sprintf(timeStringBuff,"%" PRId64 ":%02i:%02i:%02i (d:h:m:s)", upDays, upHours, upMin, upSec);
-    return timeStringBuff;
+    snprintf(upTimeString, sizeof(upTimeString),  "%" PRId64 ":%02i:%02i:%02i (d:h:m:s)", upDays, upHours, upMin, upSec);
 }
 
 int CLAppConn::getSSIDIndex() {

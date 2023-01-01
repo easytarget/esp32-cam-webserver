@@ -19,12 +19,6 @@ int ESP32PWM::timerCount[4] = { 0, 0, 0, 0 };
 // The ChannelUsed array elements are 0 if never used, 1 if in use, and -1 if used and disposed
 // (i.e., available for reuse)
 
-/**
- * allocateTimer
- * @param a timer number 0-3 indicating which timer to allocate in this library
- * Switch to explicate allocation mode
- *
- */
 void ESP32PWM::allocateTimer(int timerNumber){
 	if(timerNumber<0 || timerNumber>3)
 		return;

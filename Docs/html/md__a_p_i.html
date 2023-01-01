@@ -177,14 +177,14 @@ Examples</h1>
 <li>Returns: <div class="fragment"><div class="line">* Reboot the camera</div>
 <div class="line">  * `http://&lt;IP-ADDRESS&gt;/control?var=reboot&amp;val=0`</div>
 <div class="line"> </div>
-<div class="line">You can try these yourself in a browser address bar, from the commandline with `curl` </div>
-<div class="line">and co. or use them programatically from your scripting language of choice.</div>
+<div class="line">You can try these yourself in a browser address bar, from the command line with `curl` </div>
+<div class="line">and co. or use them programmatically from your scripting language of choice.</div>
 <div class="line"> </div>
 <div class="line">## ESP32CAM WebSocket API</div>
-<div class="line">This API is inteded for fast statefull communication between the server and the browser. You can think of a websocket as a state machine, which can be accessed and programmed from the client side, using JavaScript or any other language, which supports Webocket API. </div>
+<div class="line">This API is intended for fast stateful communication between the server and the browser. You can think of a websocket as a state machine, which can be accessed and programmed from the client side, using JavaScript or any other language, which supports Websocket API. </div>
 <div class="line"> </div>
 <div class="line">In order to use the WebSocket API, you need to open the Websocket first. The url of the websocket is always </div>
-<div class="line">`ws://&lt;your-ip:your-port&gt;/ws`. In Java Script, you simply need to add the followig lines to your page:</div>
+<div class="line">`ws://&lt;your-ip:your-port&gt;/ws`. In Java Script, you simply need to add the following lines to your page:</div>
 </div><!-- fragment --> ws = new WebSocket(websocketURL); ws.binaryType = 'arraybuffer'; // <div class="fragment"><div class="line">Once the `ws` object is created successfully, you can handle its events on the page and do whatever is necessary in response. The following key events are supported:</div>
 <div class="line"> </div>
 <div class="line">- `onopen()`</div>
@@ -198,27 +198,27 @@ Examples</h1>
 <div class="line">- `onmessage()`</div>
 <div class="line">   This event is usually processed on the streaming websocket client. Once the stream is started, the server will be pushing the image frames and they need to be processed on the client. Here is a simple example</div>
 <div class="line">   of the handler for this message:</div>
-</div><!-- fragment --> ws.onmessage = function(event) { var arrayBufferView = new Uint8Array(event.data); var blob = new Blob([arrayBufferView], {type: "image/jpeg"}); var imageUrl = urlCreator.createObjectURL(blob); video.src = imageUrl; // "video" here represents an  element on the page where frames are displayed } <div class="fragment"><div class="line">Once the websocket is open, you may also send commands and data to the server. Commands are sent with help of the `ws.send(command)` function where the `command` is to be a binary Uint8Array.  The first byte of this </div>
-<div class="line">array reflects the command code while the rest of bytes can host addtional parameters of the command.</div>
+</div><!-- fragment --> ws.onmessage = function(event) { var arrayBufferView = new Uint8Array(event.data); var blob = new Blob([arrayBufferView], {type: "image/jpeg"}); var imageUrl = urlCreator.createObjectURL(blob); video.src = imageUrl; // "video" here represents an img element on the page where frames are displayed } <div class="fragment"><div class="line">Once the websocket is open, you may also send commands and data to the server. Commands are sent with help of the `ws.send(command)` function where the `command` is to be a binary Uint8Array.  The first byte of this </div>
+<div class="line">array reflects the command code while the rest of bytes can host additional parameters of the command.</div>
 <div class="line"> </div>
 <div class="line">The following commands are supported:</div>
 <div class="line"> </div>
-<div class="line">&#39;s&#39; - starts the stream. Once the comamand is issued, the server will start pushing the frames to the client</div>
-<div class="line">      according to the camera settings. The server will switch to the video mode.</div>
-<div class="line">&#39;p&#39; - similar to the previous command but there will be only one frame taken and pushed to the client. The</div>
-<div class="line">      server will swicth to the photo mode.</div>
-<div class="line">&#39;u&#39; - similar to the previous two commands. The server will either start stream or take a still photo, </div>
-<div class="line">      depending on the current mode of the server.</div>
-<div class="line">&#39;t&#39; - terminates the stream. Only makes sense after &#39;s&#39; or &#39;u&#39; commands.</div>
-<div class="line">&#39;c&#39; - tells the server that this websocket will be used for PWM control commands. </div>
-<div class="line">&#39;w&#39; - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the</div>
-<div class="line">      `command` array, as follows:</div>
+<div class="line">- &#39;s&#39; - starts the stream. Once the command is issued, the server will start pushing the frames to the client</div>
+<div class="line">        according to the camera settings. The server will switch to the video mode.</div>
+<div class="line">- &#39;p&#39; - similar to the previous command but there will be only one frame taken and pushed to the client. The</div>
+<div class="line">        server will switch to the photo mode.</div>
+<div class="line">- &#39;u&#39; - similar to the previous two commands. The server will either start stream or take a still photo, </div>
+<div class="line">        depending on the current mode of the server.</div>
+<div class="line">- &#39;t&#39; - terminates the stream. Only makes sense after &#39;s&#39; or &#39;u&#39; commands.</div>
+<div class="line">- &#39;c&#39; - tells the server that this websocket will be used for PWM control commands. </div>
+<div class="line">- &#39;w&#39; - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the</div>
+<div class="line">        `command` array, as follows:</div>
 <div class="line"> </div>
 <div class="line">      byte0 - &#39;w&#39; - code of the command</div>
 <div class="line">      byte1 - pin number. If you use the ESP32CAM-DEV board, the available pins are usually limited to 4,</div>
 <div class="line">              12, 13 and 33. The 4th pin is connected to the flash lamp so you can control the lamp brightness </div>
 <div class="line">              by sending value to this pin via the websocket. Pin 33 is connected to the onboard LED. So, only</div>
-<div class="line">              12 and 13 are the ones you can use, provided taht you also use the SD card for storage.</div>
+<div class="line">              12 and 13 are the ones you can use, provided that you also use the SD card for storage.</div>
 <div class="line">              if you use the internal LittleFS for storage, you may be able to use other pins otherwise </div>
 <div class="line">              utilized by the SD card interface.</div>
 <div class="line">      byte2 - send 1 for servo mode and 2 for any other PWM. </div>
@@ -233,10 +233,10 @@ Examples</h1>
 </div><!-- fragment --> { "my_name": "ESP32 Web Server", "lamp":0, "autolamp":true, "flashlamp":100, "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}], "mapping":[ {"uri":"/dump", "path": "/www/dump.html"}, {"uri":"/img", "path": "/www/img"}, {"uri":"/css", "path": "/www/css"}, {"uri":"/js", "path": "/www/js"}], "debug_mode": false } <div class="fragment"><div class="line">The `pwm` parameter is defined as a JSON array where each object of the array is a definition of one PWM.</div>
 <div class="line">Attributes of a pwm object are explained below:</div>
 <div class="line"> </div>
-<div class="line">`pin`         - GPIO pin number</div>
-<div class="line">`frequency`   - PWM frequency in Herz. </div>
-<div class="line">`resolution`  - precision of the PWM (number of bits).</div>
-<div class="line">`default`     - initial value of the PWM. if this attribute is not defined,  0 will be used for default.</div>
+<div class="line">- `pin`         - GPIO pin number</div>
+<div class="line">- `frequency`   - PWM frequency in Herz. </div>
+<div class="line">- `resolution`  - precision of the PWM (number of bits).</div>
+<div class="line">- `default`     - initial value of the PWM. if this attribute is not defined,  0 will be used for default.</div>
 <div class="line"> </div>
 <div class="line">if the `lamp` parameter in the httpd config is greater or equal to 0, the 1st element of the pwm array</div>
 <div class="line">will be used for definition of flash lamp PWM. In the example above, the lamp PWM is configured for pin 4</div>

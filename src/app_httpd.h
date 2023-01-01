@@ -41,7 +41,6 @@ void onControl(AsyncWebServerRequest *request);
 void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 void onSnapTimer(TimerHandle_t pxTimer);
 
-void dumpSystemStatusToJson(char * buf, size_t size);
 
 
 /**
@@ -71,7 +70,7 @@ class CLAppHttpd : public CLAppComponent {
         int8_t getStreamCount() {return streamCount;};
         long getStreamsServed() {return streamsServed;};
         unsigned long getImagesServed() {return imagesServed;};
-        int getpwmCount() {return pwmCount;};
+        int getPwmCount() {return pwmCount;};
         void incImagesServed(){imagesServed++;};
 
         void setStreamMode(capture_mode mode) {streammode = mode;};
@@ -87,9 +86,10 @@ class CLAppHttpd : public CLAppComponent {
 
         int getSketchSize(){ return sketchSize;};
         int getSketchSpace() {return sketchSpace;};
-        String getSketchMD5() {return sketchMD5;};
+        
+        const char * getSketchMD5() {return sketchMD5.c_str();};
 
-        String getVersion() {return version;};
+        const char * getVersion() {return version.c_str();};
 
         char * getName() {return myName;};
 
@@ -102,6 +102,9 @@ class CLAppHttpd : public CLAppComponent {
 
         void setLamp(int newVal = DEFAULT_FLASH);
         int getLamp() {return lampVal;};    
+
+        void dumpSystemStatusToJson(char * buf, size_t size);
+        void dumpCameraStatusToJson(char * buf, size_t size, bool full = true);
 
         /**
          * @brief attaches a new PWM/servo and returns its ID in case of success, or OS_FAIL otherwise
@@ -155,7 +158,7 @@ class CLAppHttpd : public CLAppComponent {
         TimerHandle_t snap_timer = NULL;
         
         // Flash LED lamp parameters.
-        // shoudl be defined in the 1st line of the pwm collection in the httpd prefs (httpd.json)
+        // should be defined in the 1st line of the pwm collection in the httpd prefs (httpd.json)
         bool autoLamp = false;         // Automatic lamp (auto on while camera running)
         int lampVal = -1;              // Lamp brightness
         int flashLamp = 80;            // Flash brightness when taking still images
