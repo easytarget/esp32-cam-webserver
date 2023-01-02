@@ -83,6 +83,7 @@ class CLAppConn : public CLAppComponent {
 
         bool isAccessPoint() {return accesspoint;};
         void setAccessPoint(bool val) {accesspoint = val;};
+        void setLoadAsAP(bool val) {load_as_ap = val;}
         bool getAPDHCP() {return ap_dhcp;};
         void setAPDHCP(bool val) {ap_dhcp = val;};
         StaticIP * getAPIP() {return &apIP;};
@@ -118,6 +119,8 @@ class CLAppConn : public CLAppComponent {
         char mdnsName[20]="";
 
         bool accesspoint = false;
+        bool load_as_ap = false;
+
         char apName[20];
         char apPass[20];
         int ap_channel=1;

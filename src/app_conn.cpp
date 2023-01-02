@@ -26,6 +26,8 @@ int CLAppConn::start() {
     char bestSSID[65] = "";
     uint8_t bestBSSID[6];
 
+    accesspoint = load_as_ap;
+
     if (!accesspoint) {
         if(stationCount > 0) {
             // We have a list to scan
@@ -201,24 +203,27 @@ int CLAppConn::loadPrefs() {
         json_obj_get_bool(&jctx, (char*)"dhcp", &dhcp);
     }
 
+    char sbuf[64];
     char dbuf[192];
+    int count;
+    stationCount = 0;
 
-    if (ret == OS_SUCCESS && json_obj_get_array(&jctx, (char*)"stations", &stationCount) == OS_SUCCESS) {
+    if (ret == OS_SUCCESS && json_obj_get_array(&jctx, (char*)"stations", &count) == OS_SUCCESS) {
         Serial.print("Known external SSIDs: ");
-        if(stationCount>0)
-            for(int i=0; i < stationCount && i < MAX_KNOWN_STATIONS; i++) {
+        if(count>0)
+            for(int i=0; i < count && i < MAX_KNOWN_STATIONS; i++) {
 
                 if(json_arr_get_object(&jctx, i) == OS_SUCCESS) {
-                    Station *s = (Station*) malloc(sizeof(Station));
-                    if(json_obj_get_string(&jctx, (char*)"ssid", s->ssid, sizeof(s->ssid)) == OS_SUCCESS &&
-                       json_obj_get_string(&jctx, (char*)"pass", dbuf, sizeof(dbuf)) == OS_SUCCESS) {
-                        Serial.printf("%s\r\n", s->ssid);
+                    if(json_obj_get_string(&jctx, (char*)"ssid", sbuf, sizeof(sbuf)) == OS_SUCCESS &&
+                       json_obj_get_string(&jctx, (char*)"pass", dbuf, sizeof(dbuf)) == OS_SUCCESS && 
+                       strcmp(sbuf, "") != 0) {
+                        Station *s = (Station*) malloc(sizeof(Station));
+                        snprintf(s->ssid, sizeof(s->ssid), sbuf);
                         urlDecode(s->password, dbuf, sizeof(dbuf));
+                        Serial.println(s->ssid);
                         stationList[i] = s;
+                        stationCount++;
                     } 
-                    else {
-                        free(s);
-                    }
                     json_arr_leave_object(&jctx);
                 }
                 
@@ -238,6 +243,7 @@ int CLAppConn::loadPrefs() {
         json_obj_leave_object(&jctx);
     }
 
+    json_obj_get_bool(&jctx, (char*)"accesspoint", &load_as_ap);
     json_obj_get_string(&jctx, (char*)"ap_ssid", apName, sizeof(apName));
     json_obj_get_string(&jctx, (char*)"ap_pass", dbuf, sizeof(dbuf));
     urlDecode(apPass, dbuf, sizeof(dbuf));
@@ -298,7 +304,7 @@ int CLAppConn::savePrefs() {
     } else {
         Serial.printf("Creating %s\r\n", prefs_file);
     }
-    
+
     char buf[1024];
     json_gen_str_t jstr;
     json_gen_str_start(&jstr, buf, sizeof(buf), NULL, NULL);
@@ -310,11 +316,12 @@ int CLAppConn::savePrefs() {
     if(index < 0 && count == MAX_KNOWN_STATIONS) {
         count--;
     }
-    char ebuf[192]; 
+
+    char ebuf[254]; 
 
     if(index < 0 || count > 0) {
         json_gen_push_array(&jstr, "stations");
-        if(index < 0) {
+        if(index < 0 && strcmp(ssid, "") != 0) {
             json_gen_start_object(&jstr);
             json_gen_obj_set_string(&jstr, "ssid", ssid);
             urlEncode(ebuf, password, sizeof(password));
@@ -322,7 +329,7 @@ int CLAppConn::savePrefs() {
             json_gen_end_object(&jstr);
         }
  
-        for(int i=0; i < count; i++) {
+        for(int i=0; i < count && stationList[i]; i++) {
             json_gen_start_object(&jstr);
             json_gen_obj_set_string(&jstr, "ssid", stationList[i]->ssid);
             if(index >= 0 && i == index) {
@@ -330,6 +337,7 @@ int CLAppConn::savePrefs() {
                 json_gen_obj_set_string(&jstr, "pass", ebuf);
             }
             else {
+                Serial.println(ebuf);
                 urlEncode(ebuf, stationList[i]->password, sizeof(stationList[i]->password));
                 json_gen_obj_set_string(&jstr, "pass", ebuf);
             }
@@ -349,9 +357,9 @@ int CLAppConn::savePrefs() {
     json_gen_obj_set_int(&jstr, "http_port", httpPort);
     json_gen_obj_set_bool(&jstr, "ota_enabled", otaEnabled);
     urlEncode(ebuf, otaPassword, sizeof(otaPassword));
-    Serial.println(ebuf);
     json_gen_obj_set_string(&jstr, "ota_password", ebuf);
     
+    json_gen_obj_set_bool(&jstr, "accesspoint", load_as_ap);
     json_gen_obj_set_string(&jstr, "ap_ssid", apName);
     urlEncode(ebuf, apPass, sizeof(apPass));
     json_gen_obj_set_string(&jstr, "ap_pass", ebuf);
@@ -373,6 +381,7 @@ int CLAppConn::savePrefs() {
     if(file) {
         file.print(buf);
         file.close();
+        Serial.printf("File %s updated\r\n", prefs_file);
         return OK;
     }
     else {
@@ -490,7 +499,8 @@ void CLAppConn::updateTimeStr() {
 
 int CLAppConn::getSSIDIndex() {
     for(int i=0; i < stationCount; i++) {
-        if(!strcmp(ssid, stationList[i]->ssid)) {
+        if(!stationList[i]) break;
+        if(strcmp(ssid, stationList[i]->ssid) == 0) {
             return i;
         }
     }

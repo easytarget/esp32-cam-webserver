@@ -21,9 +21,9 @@ int CLAppHttpd::start() {
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         if(AppConn.isConfigured())
-            request->redirect("/index");
+            request->send(Storage.getFS(), "/www/index.html", "", false, processor);
         else
-            request->redirect("/setup");
+            request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
     });
 
     server->on("/index", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -417,7 +417,7 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable ==  "flashlamp" && AppHttpd.getLamp() != -1) {
         AppHttpd.setFlashLamp(constrain(val,0,100));
     }
-    else if(variable == "accesspoint") AppConn.setAccessPoint(val);
+    else if(variable == "accesspoint") AppConn.setLoadAsAP(val);
     else if(variable == "ap_channel") AppConn.setAPChannel(val);
     else if(variable == "ap_dhcp") AppConn.setAPDHCP(val);
     else if(variable == "dhcp") AppConn.setDHCPEnabled(val);
@@ -515,7 +515,7 @@ void CLAppHttpd::dumpSystemStatusToJson(char * buf, size_t size) {
     json_gen_obj_set_string(&jstr, (char*)"esp_sdk", ESP.getSdkVersion());
     
     json_gen_obj_set_bool(&jstr,(char*)"accesspoint", AppConn.isAccessPoint());
-    json_gen_obj_set_bool(&jstr,(char*)"accesspoint", AppConn.isCaptivePortal());
+    json_gen_obj_set_bool(&jstr,(char*)"captiveportal", AppConn.isCaptivePortal());
     json_gen_obj_set_string(&jstr, (char*)"ap_name", AppConn.getApName());
     json_gen_obj_set_string(&jstr, (char*)"ssid", AppConn.getSSID());
 

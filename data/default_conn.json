@@ -3,6 +3,7 @@
     "http_port":80,
     "ota_enabled":false,
     "ota_password":"changeit!",
+    "accesspoint":false,
     "ap_ssid":"esp32cam",
     "ap_pass":"123456789",
     "ap_ip": {"ip":"192.168.4.1", "netmask":"255.255.255.0"},
