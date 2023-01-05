@@ -491,7 +491,7 @@ void WifiSetup() {
                 Serial.printf("%3i : [%s] %s (%i)", i + 1, thisBSSID.c_str(), thisSSID.c_str(), thisRSSI);
                 // Scan our list of known external stations
                 for (int sta = firstStation; sta < stationCount; sta++) {
-                    if ((strcmp(stationList[sta].ssid, thisSSID.c_str()) == 0) ||
+                    if ((strncmp(stationList[sta].ssid, thisSSID.c_str(), strlen(stationList[sta].ssid) ) == 0) ||
                     (strcmp(stationList[sta].ssid, thisBSSID.c_str()) == 0)) {
                         Serial.print("  -  Known!");
                         // Chose the strongest RSSI seen
