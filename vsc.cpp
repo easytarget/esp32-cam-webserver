@@ -142,7 +142,7 @@ char tb_url[128] = "";
 void handleThingsBoard(void) {
   if (dht_type && camera_data_index >= 0 && dht_interval) {            
     dht_curMs = millis();
-    if (dht_curMs - dht_prevMs >= dht_interval * 1000) {
+    if (dht_prevMs == 0 || dht_curMs - dht_prevMs >= dht_interval * 1000) {
       dht_prevMs = dht_curMs;
       gettemperature();
 
