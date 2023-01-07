@@ -239,6 +239,8 @@ const addReadOnly = (parent, field) => {
   var div_val = document.createElement("div");
   div_val.setAttribute("id", field.id);
   div_val.setAttribute("class", field.classes);
+  if(field.show) div_val.setAttribute("data-show", field.show);
+  if(field.hide) div_val.setAttribute("data-hide", field.hide);
   div_group.appendChild(div_val);
 
   parent.appendChild(div_group);
@@ -251,8 +253,10 @@ const createButton = (id, name, title, confirm, val) => {
     btn.setAttribute("id", id);
     btn.setAttribute("title", title);
     btn.setAttribute("class", "default-action");
-    btn.setAttribute("data-ask", confirm)
-    btn.setAttribute("data-value", val);
+    if(confirm)
+      btn.setAttribute("data-ask", confirm);
+    if(val)
+      btn.setAttribute("data-value", val);
     btn.innerHTML = name;
 
     return btn;
@@ -335,6 +339,8 @@ function refreshControl(el) {
     default:
       if(el.nodeName == "DIV") {
         el.innerHTML = el.value;
+        showhide(el.getAttribute("data-show"), (el.value === ""), el.id);
+        showhide(el.getAttribute("data-hide"), !(el.value===""), el.id);
       }
       break;
     } 

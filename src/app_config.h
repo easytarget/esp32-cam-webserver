@@ -26,6 +26,10 @@
 // Uncomment to disable the notification LED on the module
 // #define LED_DISABLE
 
+// Uncomment to enable MJPEG streaming support
+// This mode is still under development and is not very stable / not recommended
+// #define STREAM_MJPEG
+
 // Uncomment this line to use LittleFS instead of SD. 
 // NOTE!
 // LittleFS is still experimental, not recommended. The 'official' library installed from the Library Manager 

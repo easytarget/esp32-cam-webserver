@@ -3,138 +3,159 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Patriot Crawler - Status</title>
+        <title>ESP32-CAM Dump</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
         <link rel="stylesheet" type="text/css" href="/css/style.css">
     </head>
-    <body onload="fetchData()">
-        <img src="/img/logo.svg" style="position: relative; float: right;">
-        <h1>ESP32 Cam Webserver</h1>
-        <div id="content"></div>
-        <div class="input-group">
-            <button title="Instant Refresh; the page reloads every minute anyway" 
-                    onclick="fetchData()">Refresh</button>
-            <!-- <button title="Force-stop all active streams on the camera module" 
-                    onclick="let throwaway = fetch('stop');setTimeout(function(){
-                    location.replace(document.URL);
-                    }, 200);">Kill Stream</button> -->
-            <button title="Close this page" onclick="javascript:window.close()">Close</button>
+    <body>
+        <section class="main">
+            <div id="logo"> 
+                <label for="nav-toggle-cb" id="nav-toggle" >&#9776;&nbsp;&nbsp;Dump&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <button id="camera" style="float:left;" title="Open camera view">Camera</button>
+                <button id="nw-setup" style="float:left;" title="Configure network parameters">Setup</button>
+                <button id ="refresh" style="float:left;" title="Instant Refresh; the page reloads every minute anyway"">Refresh</button>
+            </div>
+        <div id="content">
+            <img src="/img/logo.svg" style="position: relative; float: right;">
         </div>
+        </section>
     </body>
     <script>
+        document.addEventListener('DOMContentLoaded', function (event) {;
 
-        setInterval(function(){
-            fetchData();
-        }, 5000);
+            const cameraButton = document.getElementById('camera');
+            const setupButton = document.getElementById('nw-setup');
+            const refreshButton = document.getElementById('refresh');
 
-        function fetchData() {
-            console.log('Query serial');
-            fetch('/control?var=cmdout&val=P')
-                .then(response => {
-                    if(!response.ok) {
-                        throw new Error(`Failed to retrieve serial data: ${response.status}`);
+            function fetchData() {
+                console.log('Query serial');
+                fetch('/control?var=cmdout&val=P')
+                    .then(response => {
+                        if(!response.ok) {
+                            throw new Error(`Failed to retrieve serial data: ${response.status}`);
+                        }
+                        return response.text;
+                    })
+                    .catch(error=> console.log(error));
+
+                console.log('Start fetching data');
+                fetch('/system')
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        updatePage(data);
+                    })
+                    .catch(function (err) {
+                        console.log('error: ' + err);
+                    });
+
+            }
+
+            function updatePage(data) {
+                console.log('Data received, rendering');
+
+                document.title = data['cam_name'] + ' Dump';
+
+                var contentBody = document.getElementById("content");
+                var bodyHtml = '<h2>General Info</h2>';
+
+                bodyHtml += 'Name: ' + data.cam_name + '<br>';
+                bodyHtml += 'Firmware: ' + data.code_ver + '<br>';
+                var ss_util = (100 * data.sketch_size / data.sketch_space).toFixed(0);
+                bodyHtml += 'Sketch Size: ' + data.sketch_size + ' (total: ' + data.sketch_space + ', ' + ss_util + '% used)<br>';
+                bodyHtml += 'MD5: ' + data.sketch_md5 + '<br>';
+                bodyHtml += 'ESP SDK: ' + data.esp_sdk + '<br>';
+
+                bodyHtml += '<h2>Network</h2>';
+                if(data.accesspoint) {
+                    if(data.captiveportal) {
+                        bodyHtml += 'WiFi Mode: Access Point with captive portal<br>';
                     }
-                    return response.text;
-                })
-                .catch(error=> console.log(error));
-
-            console.log('Start fetching data');
-            fetch('/system')
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (data) {
-                    updatePage(data);
-                })
-                .catch(function (err) {
-                    console.log('error: ' + err);
-                });
-
-        }
-
-        function updatePage(data) {
-            console.log('Data received, rendering');
-
-            var contentBody = document.getElementById("content");
-            var bodyHtml = '';
-
-            bodyHtml += 'Name: ' + data.cam_name + '<br>';
-            bodyHtml += 'Firmware: ' + data.code_ver + '<br>';
-            var ss_util = (100 * data.sketch_size / data.sketch_space).toFixed(0);
-            bodyHtml += 'Sketch Size: ' + data.sketch_size + ' (total: ' + data.sketch_space + ', ' + ss_util + '% used)<br>';
-            bodyHtml += 'MD5: ' + data.sketch_md5 + '<br>';
-            bodyHtml += 'ESP SDK: ' + data.esp_sdk + '<br>';
-
-            bodyHtml += '<h2>Network</h2>';
-            if(data.accesspoint) {
-                if(data.captiveportal) {
-                    bodyHtml += 'WiFi Mode: Access Point with captive portal<br>';
+                    else {
+                        bodyHtml += 'WiFi Mode: Access Point<br>';
+                    }
+                    bodyHtml += 'SSID: ' + data.ap_name + '<br>';
                 }
                 else {
-                    bodyHtml += 'WiFi Mode: Access Point<br>';
+                    bodyHtml += 'Mode: Client<br>';
+                    bodyHtml += 'SSID: ' + data.ssid + '<br>';
+                    bodyHtml += 'Rssi: ' + data.rssi + '<br>';
+                    bodyHtml += 'BSSID: ' + data.bssid + '<br>';
                 }
-                bodyHtml += 'SSID: ' + data.ap_name + '<br>';
-            }
-            else {
-                bodyHtml += 'Mode: Client<br>';
-                bodyHtml += 'SSID: ' + data.ssid + '<br>';
-                bodyHtml += 'Rssi: ' + data.rssi + '<br>';
-                bodyHtml += 'BSSID: ' + data.bssid + '<br>';
-            }
-            bodyHtml += 'Local IP: ' + data.ip_address + '<br>';
-            bodyHtml += 'Netmask: ' + data.subnet + '<br>';
-            bodyHtml += 'Gateway: ' + data.gateway + '<br>';
-            bodyHtml += 'Port: ' + data.port + '<br>';
-            bodyHtml += 'MAC: ' + data.mac_address + '<br>';
+                bodyHtml += 'Local IP: ' + data.ip_address + '<br>';
+                bodyHtml += 'Netmask: ' + data.subnet + '<br>';
+                bodyHtml += 'Gateway: ' + data.gateway + '<br>';
+                bodyHtml += 'Port: ' + data.port + '<br>';
+                bodyHtml += 'MAC: ' + data.mac_address + '<br>';
 
-            bodyHtml += '<h2>System</h2>';
-            bodyHtml += 'Time: ' + data.local_time + '<br>';
-            bodyHtml += 'Up Time: ' + data.up_time + '<br>';
-            bodyHtml += 'NTP Server: ' + data.ntp_server + '<br>';
-            var tmz = (data.gmt_offset / 3600).toFixed(0);
-            bodyHtml += 'Time Zone: GMT +' + tmz + ' hrs, ';
-            bodyHtml += 'DST: ' + data.dst_offset + '<br>';
-            
-            bodyHtml += 'Active Streams: ' + data.active_streams + 
-                        ', Streams Served: ' + data.prev_streams + 
-                        ', Images Captured: ' + data.img_captured + '<br>';
-            
-            bodyHtml += 'Up Time: ' + data.up_time + '<br>';
-            bodyHtml += 'CPU Freq: ' + data.cpu_freq + ' MHz, Xclk: ' + data.xclk + 
-                        ', Cores: ' + data.num_cores + '<br>';
-            
-            var temp_c = ((data.esp_temp - 32) / 1.8).toFixed(0);  
-            bodyHtml += 'MCU Temp: ' + temp_c + ' &deg;C, ' + data.esp_temp + ' &deg;F<br>';
+                bodyHtml += '<h2>System</h2>';
+                bodyHtml += 'Time: ' + data.local_time + '<br>';
+                bodyHtml += 'Up Time: ' + data.up_time + '<br>';
+                bodyHtml += 'NTP Server: ' + data.ntp_server + '<br>';
+                var tmz = (data.gmt_offset / 3600).toFixed(0);
+                bodyHtml += 'Time Zone: GMT +' + tmz + ' hrs, ';
+                bodyHtml += 'DST: ' + data.dst_offset + '<br>';
+                
+                bodyHtml += 'Active Streams: ' + data.active_streams + 
+                            ', Streams Served: ' + data.prev_streams + 
+                            ', Images Captured: ' + data.img_captured + '<br>';
+                
+                bodyHtml += 'Up Time: ' + data.up_time + '<br>';
+                bodyHtml += 'CPU Freq: ' + data.cpu_freq + ' MHz, Xclk: ' + data.xclk + 
+                            ', Cores: ' + data.num_cores + '<br>';
+                
+                var temp_c = ((data.esp_temp - 32) / 1.8).toFixed(0);  
+                bodyHtml += 'MCU Temp: ' + temp_c + ' &deg;C, ' + data.esp_temp + ' &deg;F<br>';
 
-            bodyHtml += 'Heap: ' + data.heap_avail + 
-                        ', free: ' + data.heap_free + 
-                        ', min free: ' + data.heap_min_free + 
-                        ', max block: ' + data.heap_max_bloc + '<br>';
-            
-            if(data.psram_found) {
-                bodyHtml += 'Psram: ' + data.psram_size + 
-                            ', free: ' + data.psram_free + 
-                            ', min free: ' + data.psram_min_free + 
-                            ', max block: ' + data.psram_max_bloc + '<br>';
+                bodyHtml += 'Heap: ' + data.heap_avail + 
+                            ', free: ' + data.heap_free + 
+                            ', min free: ' + data.heap_min_free + 
+                            ', max block: ' + data.heap_max_bloc + '<br>';
+                
+                if(data.psram_found) {
+                    bodyHtml += 'Psram: ' + data.psram_size + 
+                                ', free: ' + data.psram_free + 
+                                ', min free: ' + data.psram_min_free + 
+                                ', max block: ' + data.psram_max_bloc + '<br>';
+                }
+                else {
+                    bodyHtml += 'Psram: not found, please check your board configuration.<br>';
+                }
+
+                bodyHtml += 'Filesystem: ' + data.storage_size + data.storage_units +  
+                            ', used: ' + data.storage_used + data.storage_units + '<br>';
+
+                if(data.serial_buf != "") {
+                    bodyHtml += '<h2>Serial</h2>';
+                    bodyHtml += data.serial_buf;
+                }
+                bodyHtml += '<br><br>';
+                            
+                contentBody.innerHTML = bodyHtml;
+                console.log('Rendering complete');
+
             }
-            else {
-                bodyHtml += 'Psram: not found, please check your board configuration.<br>';
-            }
 
-            bodyHtml += 'Filesystem: ' + data.storage_size + data.storage_units +  
-                        ', used: ' + data.storage_used + data.storage_units + '<br>';
+            setInterval(function(){
+                fetchData();
+            }, 5000);
 
-            if(data.serial_buf != "") {
-                bodyHtml += '<h2>Serial</h2>';
-                bodyHtml += data.serial_buf;
-            }
-            bodyHtml += '<br><br>';
-                        
-            contentBody.innerHTML = bodyHtml;
-            console.log('Rendering complete');
+            cameraButton.onclick = () => {
+                    window.location.href = '/camera';
+                };
 
-        }
+            setupButton.onclick = () => {
+                window.location.href = '/setup';
+            };
+
+            refreshButton.onclick = () => {
+                fetchData();
+            };
+
+            fetchData();
+        });
     </script>
 </html>
     

@@ -7,12 +7,12 @@ ws.binaryType = 'arraybuffer';
 
 ws.onmessage = function(event) {
   var arrayBufferView = new Uint8Array(event.data);
-  var prev_src = video.src;
+  var prev_url = stream.src;
   var blob = new Blob([arrayBufferView], {type: "image/jpeg"});
   var imageUrl = urlCreator.createObjectURL(blob);
-  video.src = imageUrl;
+  stream.src = imageUrl;
+  urlCreator.revokeObjectURL(prev_url);
 
-  urlCreator.revokeObjectURL(prev_src);
 }
 
 ws.onopen = function(event) {

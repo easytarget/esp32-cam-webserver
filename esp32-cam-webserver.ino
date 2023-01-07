@@ -158,7 +158,7 @@ void notifyConnect() {
         flashLED(150);
         delay(50);
     }
-    Serial.println("Connected");
+    AppHttpd.serialSendCommand("Connected");
 }
 
 void notifyDisconnect() {

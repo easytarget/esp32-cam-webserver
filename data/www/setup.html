@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>ESP32CAM Network Setup</title>
+        <title>ESP32-CAM Setup</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
         <link rel="stylesheet" type="text/css" href="/css/style.css">
@@ -21,8 +22,10 @@
     <body>
         <section class="main">
             <div id="logo">
+                <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Setup&nbsp;&nbsp;&nbsp;&nbsp;</label>
                 <button id="camera" style="float:left;" title="Open camera view">Camera</button>
-                <button id="monitor" style="float:left;" title="Monitor system parameters">System</button>
+                <button id="monitor" style="float:left;" title="Monitor system parameters">Dump</button>
+                <br>
             </div>
             <div id="content">
                 <div id="sidebar">
@@ -65,6 +68,7 @@
                 return response.json();
             })
             .then(function (state) {
+                document.title = state['cam_name'] + ' Setup'
                 var menu = document.getElementById("menu")
                 addFormFields(menu, networkFormFields, selectOptions);
                 addActions(menu);
@@ -103,11 +107,11 @@
                     });
 
                 cameraButton.onclick = () => {
-                    window.location.href = '/index';
+                    window.location.href = '/camera';
                 }
 
                 monitorButton.onclick = () => {
-                    window.open('/dump', "_blank");
+                    window.location.href = '/dump';
                 }
 
                 show(settings);

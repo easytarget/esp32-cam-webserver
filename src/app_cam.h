@@ -39,9 +39,9 @@ class CLAppCam : public CLAppComponent {
         int getRotation() {return myRotation;};
 
         int snapToBuffer();
-        uint8_t * getBuffer() {return fb->buf;};
-        size_t getBufferSize() {return fb->len;};
-        bool isJPEGinBuffer() {return fb->format == PIXFORMAT_JPEG;};
+        uint8_t * getBuffer() {return (fb?fb->buf:nullptr);};
+        size_t getBufferSize() {return (fb?fb->len:0);};
+        bool isJPEGinBuffer() {return (fb?fb->format == PIXFORMAT_JPEG:false);};
         void releaseBuffer(); 
 
         void dumpStatusToJson(json_gen_str_t * jstr, bool full_status = true);

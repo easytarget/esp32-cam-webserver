@@ -51,7 +51,7 @@
           window.document.title = value;
           stream.setAttribute("title", value + "\n(doubleclick for fullscreen)");
           console.log('Name set to: ' + value);
-        } else if(el.id === "rotate"){
+        } else if(el.id === "rotate") {
           rotate.value = value;
           console.log('Rotate recieved: ' + rotate.value);
         } 
@@ -70,12 +70,20 @@
             updateValue(el, state[el.id], false)
           })
         spinner.style.display = `none`;
+        var stream_url = state['stream_url']
         applyRotation();
-        startStream();
+        if(stream_url.includes('/stream'))
+          startStream(stream_url);
+        else
+          startStream();
       })
 
-    const startStream = () => {
-      ws.send('u');
+    const startStream = (stream_url) => {
+      if(stream_url) {
+        stream.src = stream_url;
+      }
+      else
+        ws.send('u');
       stream.style.display = `block`;
     }
 

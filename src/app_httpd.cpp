@@ -21,13 +21,13 @@ int CLAppHttpd::start() {
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         if(AppConn.isConfigured())
-            request->send(Storage.getFS(), "/www/index.html", "", false, processor);
+            request->send(Storage.getFS(), "/www/camera.html", "", false, processor);
         else
             request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
     });
 
-    server->on("/index", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(Storage.getFS(), "/www/index.html", "", false, processor);
+    server->on("/camera", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(Storage.getFS(), "/www/camera.html", "", false, processor);
     });  
 
     server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -45,8 +45,9 @@ int CLAppHttpd::start() {
                 AppHttpd.setStreamMode((request->arg("mode") == "stream"? CAPTURE_STREAM:CAPTURE_STILL));
                 request->send(Storage.getFS(), "/www/view.html", "", false, processor);
             }
-            else
+            else {
                 request->send(Storage.getFS(), "/www/error.html", "", false, processor);
+            }
         }
         else
             request->send(400);
@@ -56,7 +57,10 @@ int CLAppHttpd::start() {
     for(int i=0; i<mappingCount; i++) {
         server->serveStatic(mappingList[i]->uri, Storage.getFS(), mappingList[i]->path);
     }
-    
+
+#ifdef STREAM_MJPEG 
+    server->on("/stream", HTTP_GET, onStream);    
+#endif    
     server->on("/control", HTTP_GET, onControl);
     server->on("/status", HTTP_GET, onStatus);
     server->on("/system", HTTP_GET, onSystemStatus);
@@ -179,6 +183,65 @@ String processor(const String& var) {
     return String();
 }
 
+#ifdef STREAM_MJPEG
+void onStream(AsyncWebServerRequest *request) {
+    AppHttpd.setStreamMode(CAPTURE_STREAM);
+    int res = AppHttpd.startStream(1);
+
+    if(res!=0) {
+        Serial.print("Stream failed to start, err code=");Serial.println(res);
+        request->send(409);
+        return;
+    }
+
+    Serial.println("MJPEG stream started");
+
+    
+    request->sendChunked(AppHttpd.getStreamContentType(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+            
+            // if stream terminated, close connect
+            if(AppHttpd.getStreamCount() == 0) 
+                return 0;
+
+            size_t bytes_sent = AppHttpd.getFrameBytesSent();
+
+            if(AppHttpd.getChunkType()==STREAM_HEADER) {
+                Serial.print("MJPEG header about to be sent, maxLen="); Serial.println(maxLen);
+                AppHttpd.setChunkType(STREAM_FRAME_BEGIN);
+                return snprintf((char*)buffer, maxLen, AppHttpd.getStreamBoundary());
+            }
+            else if(AppCam.isJPEGinBuffer()) {
+                if(AppHttpd.getChunkType() == STREAM_FRAME_BEGIN) {
+                    AppHttpd.setChunkType(STREAM_FRAME_BODY);
+                    AppHttpd.setFrameBytesSent(0); // reset the byte counter
+                    return snprintf((char*)buffer, maxLen, AppHttpd.getStreamPart());
+                }
+                else if(AppHttpd.getChunkType() == STREAM_FRAME_BODY){
+                    size_t total_frame_bytes = AppCam.getBufferSize();
+                    size_t len = min(total_frame_bytes - bytes_sent, maxLen);
+                    if(len + bytes_sent == total_frame_bytes) {
+                        // we are sending last body chunk
+                        AppHttpd.setChunkType(STREAM_FRAME_END);
+                    }
+                    else
+                        AppHttpd.setFrameBytesSent(len + bytes_sent);
+                    memcpy(buffer, AppCam.getBuffer() + bytes_sent, len);
+                    return len;
+                }
+                else {
+                    AppCam.releaseBuffer();
+                    AppHttpd.setChunkType(STREAM_FRAME_BEGIN); // we expect next frame
+                    return snprintf((char*)buffer, maxLen, AppHttpd.getStreamBoundary());
+                    
+                }
+            }
+            else
+                return RESPONSE_TRY_AGAIN;
+        });
+
+}
+#endif
+
 int CLAppHttpd::snapToStream(bool debug) {
     
     if(!stream_client) return ESP_FAIL;
@@ -188,7 +251,14 @@ int CLAppHttpd::snapToStream(bool debug) {
     if(!res) {
 
         if(AppCam.isJPEGinBuffer()){
+#ifndef STREAM_MJPEG
             ws->binary(stream_client, AppCam.getBuffer(), AppCam.getBufferSize());
+#else
+            
+            // we do not clean the camera buffer when MJPEG mode is enabled, until frame is sent to the client!!
+            return res;
+
+#endif
             if(debug) {
                 Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
             }
@@ -273,6 +343,11 @@ int CLAppHttpd::stopStream(uint32_t id) {
         xTimerStop(snap_timer, 100);   
 
     if(streammode == CAPTURE_STREAM) {
+#ifdef STREAM_MJPEG
+        AppCam.releaseBuffer();
+        chunk_type = STREAM_HEADER;
+        frame_bytes_sent = 0;
+#endif
         Serial.println("Stream stopped");  
         streamsServed++;
         streamCount=0;

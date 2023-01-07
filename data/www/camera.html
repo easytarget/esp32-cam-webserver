@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>ESP32 Camera</title>
+    <title>ESP32-CAM Camera</title>
     <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
     <link rel="stylesheet" type="text/css" href="/css/style.css">
@@ -22,12 +22,11 @@
   <body>
     <section class="main">
       <div id="logo">
-        <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Settings&nbsp;&nbsp;&nbsp;&nbsp;</label>
-        <button id="swap-viewer" style="float:left;">Simple</button>
-        <button id="nw-setup" style="float:left;" title="Configure network parameters">Network</button>
-        <button id="monitor" style="float:left;" title="Monitor system parameters">System</button>
-        <button id="get-still" style="float:left;" title="Capture a still image">Get Still</button>
-        <button id="toggle-stream" style="float:left;" class="hidden">Start Stream</button>
+        <label for="nav-toggle-cb" id="nav-toggle" >&#9776;&nbsp;&nbsp;Camera&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <button id="nw-setup" style="float:left;" title="Configure network parameters">Setup</button>
+        <button id="monitor" style="float:left;" title="Monitor system parameters">Dump</button>
+        <button id="get-still" style="float:left;" title="Capture a still image">Picture</button>
+        <button id="toggle-stream" style="float:left;" class="hidden">Video</button>
         <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
       </div>
       <div id="content">
@@ -67,17 +66,17 @@
     const streamButton = document.getElementById('toggle-stream');
     const closeButton = document.getElementById('close-stream');
 
-    const swapButton = document.getElementById('swap-viewer');
 
     const networkButton = document.getElementById('nw-setup');
     const monitorButton = document.getElementById('monitor');
 
     const toggleViewMode = () => {
+      const swapButton = document.getElementById('swap-viewer');
       if(viewMode.checked) {
-        swapButton.innerHTML = "Full";
+        swapButton.innerHTML = 'More <i class="fa fa-caret-down"></i>';
       }
       else {
-        swapButton.innerHTML = "Simple";
+        swapButton.innerHTML = 'Less <i class="fa fa-caret-up"></i>';
       }
 
       toggleMenuVisible(false);
@@ -110,18 +109,22 @@
 
     const stopStream = () => {
       viewFrame.src = '';
-      streamButton.innerHTML = 'Start Stream';
+      streamButton.innerHTML = 'Video';
       streamButton.setAttribute("title", `Start the stream`);
+      setLightSlider(false);
       hide(viewContainer);
     }
 
     const startStream = () => {
       viewFrame.src = '/view?mode=stream';
       view.scrollIntoView(false);
-      streamButton.innerHTML = 'Stop Stream';
+      streamButton.innerHTML = 'Stop';
       streamButton.setAttribute("title", `Stop the stream`);
+      setLightSlider(true);
       show(viewContainer);
     }
+
+
 
     const applyRotation = (el) => {
       rot = el.value;
@@ -161,6 +164,7 @@
       div_group.appendChild(createButton("save_prefs", "Save", "Save preferences on camera module", "true", "cam"));
       div_group.appendChild(createButton("remove_prefs", "Erase", "Erase saved preferences on camera module", "true", "cam"));
       div_group.appendChild(createButton("reboot", "Reboot", "Reboot the camera module", "true"));
+      div_group.appendChild(createButton("swap-viewer", "More","Show more controls"));
 
       parent.appendChild(div_group);
     };
@@ -179,7 +183,7 @@
         return response.json();
       })
       .then(function (state) {
-        document.title = state['cam_name'];
+        document.title = state['cam_name'] + ' Camera';
         var cam_model = cameraTypes.find(item => item.pid == state['cam_pid']);
         if(cam_model)
           console.log("Camera " + cam_model.name + " detected");
@@ -209,7 +213,7 @@
         }
 
         monitorButton.onclick = () => {
-          window.open('/dump', "_blank");
+          window.location.href = '/dump';
         }
         
         stillButton.onclick = () => {
@@ -225,7 +229,7 @@
           };
 
         streamButton.onclick = () => {
-            const streamEnabled = streamButton.innerHTML === 'Stop Stream'
+            const streamEnabled = streamButton.innerHTML === 'Stop'
             if (streamEnabled) {
               stopStream();
             } else {
@@ -233,12 +237,6 @@
             }
           };
         
-        viewSettings.onchange = () => {
-          if(viewSettings.checked)
-            show(swapButton);
-          else
-            hide(swapButton);
-        };
 
         // Attach default on change action
         document
@@ -246,13 +244,19 @@
           .forEach(el => {
             if(el.type == "submit")
               el.onclick = () =>  {
-                if(submitChanges(el)) {
-                    if(el.id == "reboot") {
-                      hide(settings);
-                      hide(viewContainer);
-                      header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
-                    }
+                if(el.id == "swap-viewer") {
+                  var value = viewMode.checked ? 1 : 0;
+                  viewMode.checked = !value;
+                  toggleViewMode();
                 }
+                else
+                  if(submitChanges(el)) {
+                      if(el.id == "reboot") {
+                        hide(settings);
+                        hide(viewContainer);
+                        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+                      }
+                  }
               }
             else {
               el.onchange = () => {
@@ -270,13 +274,6 @@
           .forEach(el => {
             el.oninput = () => updateRangeConfig(el)
           });
-
-
-        swapButton.onclick = () => {
-          var value = viewMode.checked ? 1 : 0;
-          viewMode.checked = !value;
-            toggleViewMode();
-          };
           
         toggleMenuVisible(true);
       });  

@@ -30,7 +30,7 @@ section.main {
   display: none;
   flex-wrap: nowrap;
   color: #EFEFEF;
-  width: 380px;
+  width: 400px;
   background: #363636;
   padding: 8px;
   border-radius: 4px;
@@ -72,7 +72,8 @@ section#buttons {
 
 #nav-toggle {
   cursor: pointer;
-  display: block
+  float:left;
+  width:100px
 }
 
 #nav-toggle-cb {
@@ -88,6 +89,15 @@ section#buttons {
 
 #quality {
     transform: rotateY(180deg);
+}
+
+#sidebar {
+  margin-top: 0px;
+}
+
+#logo {
+  align-items: center;
+  display: flex;
 }
 
 .input-group {
@@ -120,6 +130,7 @@ button {
   line-height: 28px;
   cursor: pointer;
   color: #fff;
+  width: 90px;
   background: #ff3034;
   border-radius: 5px;
   font-size: 16px;
@@ -244,7 +255,7 @@ input[type=text], input[type=password] {
 }
 
 .gmt_offset {
-  width: 175px;
+  width: 180px;
 }
 
 input[type=number] {
@@ -279,6 +290,22 @@ input[type=number] {
   border-radius: 22px;
   cursor: pointer;
   background-color: grey
+}
+
+.fa {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fa-caret-down::before {
+  content: ">";
+}
+.fa-caret-up::before {
+  content: "<";
 }
 
 .slider,.slider:before {

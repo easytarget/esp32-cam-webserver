@@ -174,11 +174,19 @@ void CLAppConn::calcURLs() {
             strcpy(hostName, WiFi.localIP().toString().c_str());
     }
     if (httpPort != 80) {
-        sprintf(httpURL, "http://%s:%d/", hostName, httpPort);
-        sprintf(streamURL, "ws://%s:%d/ws", hostName, httpPort);
+        snprintf(httpURL, sizeof(httpURL), "http://%s:%d/", hostName, httpPort);
+#ifndef STREAM_MJPEG
+        snprintf(streamURL, sizeof(streamURL), "http://%s:%d/view?mode=stream", hostName, httpPort);
+#else
+        snprintf(streamURL, sizeof(streamURL), "http://%s:%d/stream", hostName, httpPort);
+#endif
     } else {
-        sprintf(httpURL, "http://%s/", hostName);
-        sprintf(streamURL, "ws://%s/ws", hostName);
+        snprintf(httpURL, sizeof(httpURL), "http://%s/", hostName);
+#ifndef STREAM_MJPEG
+        snprintf(streamURL, sizeof(streamURL), "http://%s/view?mode=stream", hostName);
+#else
+        snprintf(streamURL, sizeof(streamURL), "http://%s/stream", hostName);
+#endif
     }
     
 
