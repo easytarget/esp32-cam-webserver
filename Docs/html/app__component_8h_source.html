@@ -109,23 +109,26 @@ $(function() {
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        <span class="keywordtype">int</span> <a class="code hl_function" href="class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319">parsePrefs</a>(jparse_ctx_t *jctx);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">private</span>:</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="comment">// prefix for forming preference file name of this class</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keyword">const</span> <span class="keywordtype">char</span> * tag;   </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keywordtype">bool</span> configured = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordtype">bool</span> debug_mode = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="comment">// error code of the last error</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keywordtype">int</span> last_err = 0;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        <span class="keywordtype">int</span> <a class="code hl_function" href="class_c_l_app_component.html#ae4b3984804c6f9ddd39e4dfb5ee0f34f">urlDecode</a>(<span class="keywordtype">char</span> * decoded, <span class="keywordtype">char</span> * source, <span class="keywordtype">size_t</span> len); </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="keywordtype">int</span> <a class="code hl_function" href="class_c_l_app_component.html#ab3c5cec31a6b77d3c33da84d037e9ef1">urlEncode</a>(<span class="keywordtype">char</span> * encoded, <span class="keywordtype">char</span> * source, <span class="keywordtype">size_t</span> len);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keyword">private</span>:</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="comment">// prefix for forming preference file name of this class</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">const</span> <span class="keywordtype">char</span> * tag;   </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keywordtype">bool</span> configured = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        <span class="keywordtype">bool</span> debug_mode = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keywordtype">char</span> prefs[20] = <span class="stringliteral">&quot;prefs.json&quot;</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>};</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="comment">// error code of the last error</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordtype">int</span> last_err = 0;</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordtype">char</span> prefs[20] = <span class="stringliteral">&quot;prefs.json&quot;</span>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>};</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aapp__config_8h_html"><div class="ttname"><a href="app__config_8h.html">app_config.h</a></div></div>
-<div class="ttc" id="aclass_c_l_app_component_html"><div class="ttname"><a href="class_c_l_app_component.html">CLAppComponent</a></div><div class="ttdoc">Abstract root class for the appication components.</div><div class="ttdef"><b>Definition:</b> app_component.h:14</div></div>
+<div class="ttc" id="aclass_c_l_app_component_html"><div class="ttname"><a href="class_c_l_app_component.html">CLAppComponent</a></div><div class="ttdoc">Abstract root class for the application components.</div><div class="ttdef"><b>Definition:</b> app_component.h:14</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_a0c99f78f5ea7090785c70864b8fd9101"><div class="ttname"><a href="class_c_l_app_component.html#a0c99f78f5ea7090785c70864b8fd9101">CLAppComponent::getLastErr</a></div><div class="ttdeci">int getLastErr()</div><div class="ttdef"><b>Definition:</b> app_component.h:30</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_a300c0d2775ed4a082f63449826ee3b98"><div class="ttname"><a href="class_c_l_app_component.html#a300c0d2775ed4a082f63449826ee3b98">CLAppComponent::loadPrefs</a></div><div class="ttdeci">int loadPrefs()</div><div class="ttdef"><b>Definition:</b> app_component.h:19</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_a31a25b7869113a15e18f34b2c690189a"><div class="ttname"><a href="class_c_l_app_component.html#a31a25b7869113a15e18f34b2c690189a">CLAppComponent::savePrefs</a></div><div class="ttdeci">int savePrefs()</div><div class="ttdef"><b>Definition:</b> app_component.h:20</div></div>
@@ -136,9 +139,11 @@ $(function() {
 <div class="ttc" id="aclass_c_l_app_component_html_a7e64a4c55bd1f3216c507101835392b5"><div class="ttname"><a href="class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5">CLAppComponent::start</a></div><div class="ttdeci">int start()</div><div class="ttdef"><b>Definition:</b> app_component.h:18</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_a9565596ad1c588c05e349d92b2476e40"><div class="ttname"><a href="class_c_l_app_component.html#a9565596ad1c588c05e349d92b2476e40">CLAppComponent::setErr</a></div><div class="ttdeci">void setErr(int err_code)</div><div class="ttdef"><b>Definition:</b> app_component.h:37</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_a9ab4a575691522178eb10d9bffcff5b7"><div class="ttname"><a href="class_c_l_app_component.html#a9ab4a575691522178eb10d9bffcff5b7">CLAppComponent::setDebugMode</a></div><div class="ttdeci">void setDebugMode(bool val)</div><div class="ttdef"><b>Definition:</b> app_component.h:27</div></div>
+<div class="ttc" id="aclass_c_l_app_component_html_ab3c5cec31a6b77d3c33da84d037e9ef1"><div class="ttname"><a href="class_c_l_app_component.html#ab3c5cec31a6b77d3c33da84d037e9ef1">CLAppComponent::urlEncode</a></div><div class="ttdeci">int urlEncode(char *encoded, char *source, size_t len)</div><div class="ttdef"><b>Definition:</b> app_component.cpp:99</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_ace751d352eba4d957eb06cd9de726e2f"><div class="ttname"><a href="class_c_l_app_component.html#ace751d352eba4d957eb06cd9de726e2f">CLAppComponent::isConfigured</a></div><div class="ttdeci">bool isConfigured()</div><div class="ttdef"><b>Definition:</b> app_component.h:32</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_ad90151113ffbbcc630e347580b3ee9fe"><div class="ttname"><a href="class_c_l_app_component.html#ad90151113ffbbcc630e347580b3ee9fe">CLAppComponent::dumpPrefs</a></div><div class="ttdeci">void dumpPrefs()</div><div class="ttdef"><b>Definition:</b> app_component.cpp:19</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_ada7959a912692cd2c03bd950faa8c5bc"><div class="ttname"><a href="class_c_l_app_component.html#ada7959a912692cd2c03bd950faa8c5bc">CLAppComponent::getPrefsFileName</a></div><div class="ttdeci">char * getPrefsFileName(bool forsave=false)</div><div class="ttdef"><b>Definition:</b> app_component.cpp:3</div></div>
+<div class="ttc" id="aclass_c_l_app_component_html_ae4b3984804c6f9ddd39e4dfb5ee0f34f"><div class="ttname"><a href="class_c_l_app_component.html#ae4b3984804c6f9ddd39e4dfb5ee0f34f">CLAppComponent::urlDecode</a></div><div class="ttdeci">int urlDecode(char *decoded, char *source, size_t len)</div><div class="ttdef"><b>Definition:</b> app_component.cpp:75</div></div>
 <div class="ttc" id="aclass_c_l_app_component_html_af763174f3eed76761a2eeab9aa845e6a"><div class="ttname"><a href="class_c_l_app_component.html#af763174f3eed76761a2eeab9aa845e6a">CLAppComponent::removePrefs</a></div><div class="ttdeci">int removePrefs()</div><div class="ttdef"><b>Definition:</b> app_component.cpp:40</div></div>
 <div class="ttc" id="astorage_8h_html"><div class="ttname"><a href="storage_8h.html">storage.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

@@ -111,7 +111,10 @@ the `<key>` parameter.
     format.
   * `http://<IP-ADDRESS>/status`
   * Returns:
-    ```  {"frame_rate":0,"framesize":9,"quality":10,"xclk":8,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":204,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":1,"hmirror":1,"dcw":1,"colorbar":0,"cam_name":"ESP32 test camera","code_ver":"Mar 10 2022 @ 14:00:45","rotate":"0"}```
+
+    ```json  
+    {"cam_name":"ESP32 CAM Web Server","stream_url":"http://<ip:port>/view?mode=stream","code_ver":"Jan  7 2023 @ 19:16:55","lamp":0,"autolamp":false,"lamp":0,"flashlamp":0,"rotate":0,"xclk":8,"frame_rate":12,"framesize":8,"quality":12,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"denoise":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":204,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":0,"hmirror":0,"dcw":1,"colorbar":0,"cam_pid":38,"cam_ver":66,"debug_mode":false}
+    ```
 * Reboot the camera
   * `http://<IP-ADDRESS>/control?var=reboot&val=0`
 
@@ -187,15 +190,15 @@ The following commands are supported:
 
 ## Attaching PWM to the GPIO pins
 GPIO pins used for PWM can be defined in the `/httpd.json`, in the `pwm` parameter:
-```
+
+```json
 {
     "my_name": "ESP32 Web Server",
     "lamp":0,
     "autolamp":true,
     "flashlamp":100,
     "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}],
-    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
-                {"uri":"/img", "path": "/www/img"},
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
                 {"uri":"/css", "path": "/www/css"},
                 {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
@@ -216,7 +219,7 @@ will be used for definition of flash lamp PWM. In the example above, the lamp PW
 
 Here is another example of the PWM configuration, used for the popular SG90 servo motor on pin 12:
 
-```
+```json
 {
     "my_name": "ESP32 Web Server",
     "lamp":0,
@@ -224,8 +227,7 @@ Here is another example of the PWM configuration, used for the popular SG90 serv
     "flashlamp":100,
     "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0},
             {"pin":12, "frequency":50, "resolution":10, "default": 42}],
-    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
-                {"uri":"/img", "path": "/www/img"},
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
                 {"uri":"/css", "path": "/www/css"},
                 {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false

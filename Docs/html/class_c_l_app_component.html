@@ -71,7 +71,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Abstract root class for the appication components.  
+<p>Abstract root class for the application components.  
  <a href="class_c_l_app_component.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="app__component_8h_source.html">app_component.h</a>&gt;</code></p>
@@ -121,9 +121,13 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:a71c8d2c309383c0a5c05fbf6de90f1c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b23015c89977efd202896a19e7ca319"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319">parsePrefs</a> (jparse_ctx_t *jctx)</td></tr>
 <tr class="separator:a7b23015c89977efd202896a19e7ca319"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4b3984804c6f9ddd39e4dfb5ee0f34f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#ae4b3984804c6f9ddd39e4dfb5ee0f34f">urlDecode</a> (char *decoded, char *source, size_t len)</td></tr>
+<tr class="separator:ae4b3984804c6f9ddd39e4dfb5ee0f34f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3c5cec31a6b77d3c33da84d037e9ef1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#ab3c5cec31a6b77d3c33da84d037e9ef1">urlEncode</a> (char *encoded, char *source, size_t len)</td></tr>
+<tr class="separator:ab3c5cec31a6b77d3c33da84d037e9ef1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p >Abstract root class for the appication components. </p>
+<div class="textblock"><p >Abstract root class for the application components. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="ad90151113ffbbcc630e347580b3ee9fe" name="ad90151113ffbbcc630e347580b3ee9fe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad90151113ffbbcc630e347580b3ee9fe">&#9670;&nbsp;</a></span>dumpPrefs()</h2>
@@ -471,6 +475,90 @@ Protected Member Functions</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae4b3984804c6f9ddd39e4dfb5ee0f34f" name="ae4b3984804c6f9ddd39e4dfb5ee0f34f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4b3984804c6f9ddd39e4dfb5ee0f34f">&#9670;&nbsp;</a></span>urlDecode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int CLAppComponent::urlDecode </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>decoded</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab3c5cec31a6b77d3c33da84d037e9ef1" name="ab3c5cec31a6b77d3c33da84d037e9ef1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3c5cec31a6b77d3c33da84d037e9ef1">&#9670;&nbsp;</a></span>urlEncode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int CLAppComponent::urlEncode </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>encoded</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

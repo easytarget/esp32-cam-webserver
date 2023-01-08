@@ -15,7 +15,7 @@ var networkFormFields =  [
                            {"id": "password", "name": "Password", "control": "text", "type": "password",
                            "title":"WiFi Network Password", 
                            "classes": "default-action"},
-                           {"id": "dhcp", "name": "Obtain IP Automatically", "control": "switch",
+                           {"id": "dhcp", "name": "DHCP", "control": "switch",
                             "default_value": "true",
                            "classes": "default-action",
                            "show":"ip_address subnet gateway",

@@ -11,7 +11,7 @@ webcam use.
 * Extended options for default network and camera settings
 * Configuration through the web browser, including intial WiFi setup
 * Save and restore settings in JSON configuration files
-* Dedicated standalone stream viewer
+* Dedicated stream viewer
 * Over The Air firmware updates
 * Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
 * Using just one IP port, easy for proxying. 
@@ -70,7 +70,7 @@ Is pretty simple, You just need jumper wires, no soldering really required, see 
   to the quality of power source. Decoupling capacitors are very much recommended.
 
 ### Download the Sketch, Unpack and compile
-Download the latest release of the sketch this repository. Once you have done that you 
+Download the latest release of the sketch from this repository. Once you have done that you 
 can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and 
 selecting `esp32-cam-webserver.ino`. Compile it and upload to your board.
 
@@ -135,7 +135,8 @@ Switch the Access Point Mode off. The screen will change as follows:
 <img src="assets/wifi-setup.png" width="350">
 </div>
 
-Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure you wifi router has this band enabled.
+Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure 
+your wifi router has this band enabled.
 
 Set up your preferred NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. 
 If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not 
@@ -147,20 +148,26 @@ and connect to your wifi automatically. The assigned IP address can be seen in t
 Open the browser and navigate to http://<YOUR_IP_ADDRESS:YOUR_PORT>/ (for example, http://192.168.0.2:8080)
 
 You should see the following screen: 
-![Index](assets/index.png). 
+
+![Camera](assets/camera.png). 
 
 Here you can take still images or start the video streaming from the camera installed on ESP32CAM.
 
 The WiFi configuration page is available at the address `http://<YOUR_IP_ADDRESS:YOUR_PORT>/setup`.
 
-The system monitoring page is accessible at `http://<YOUR_IP_ADDRESS:YOUR_PORT>/dump`
+The system monitoring page is accessible at `http://<YOUR_IP_ADDRESS:YOUR_PORT>/dump`:
+
+![Dump](assets/dump.png). 
 
 ### Configuration files
 
 The web server stores its configuration in JSON files. The format of the files is below. If any of these
-files is missing in the root folder of the storage used, default values will be loaded.
+files is missing in the root folder of the storage used, default values will be loaded. Almost all parameters of 
+the configuration files can be updated using the Web UI so you don't have to update them manually for most of the cases.
 
 #### Network Configuration (/conn.json)
+The sample network config file is shown below. Please ensure you update it with parameters specific to your network. 
+This file can be also updated via the Web UI.
 
 ```json
 {   
@@ -174,6 +181,7 @@ files is missing in the root folder of the storage used, default values will be 
     "http_port":80,
     "ota_enabled":true,
     "ota_password":"YOUR_OTA_PASSWORD",
+    "accesspoint":false,
     "ap_ssid":"esp32cam",
     "ap_pass":"123456789",
     "ap_ip": {"ip":"192.168.4.1", "netmask":"255.255.255.0"},
@@ -194,8 +202,7 @@ files is missing in the root folder of the storage used, default values will be 
     "autolamp":true,
     "flashlamp":100,
     "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}],
-    "mapping":[ {"uri":"/dump", "path": "/www/dump.html"},
-                {"uri":"/img", "path": "/www/img"},
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
                 {"uri":"/css", "path": "/www/css"},
                 {"uri":"/js", "path": "/www/js"}],
     "debug_mode": false
@@ -209,15 +216,13 @@ The parameter `mapping` allows to configure folders with static content for the 
 #### Camera Configuration (/cam.json):
 
 ```json
-{   
+{
     "framesize":8,
     "quality":12,
     "xclk":8,
-    "frame_rate":25,
+    "frame_rate":12,
     "brightness":0,
     "contrast":0,
-    "sharpness":0,
-    "denoise":0,
     "saturation":0,
     "special_effect":0,
     "wb_mode":0,"awb":1,
@@ -266,10 +271,6 @@ it has been assigned.
 Once you have the initial upload done and the board is connected to the wifi network 
 you should see it appearing in the `network ports` list of the IDE, and you can upload 
 wirelessly.
-
-If you have a status LED configured it will give a double flash when it begins 
-attempting to connect to WiFi, and five short flashes once it has succeeded. It will 
-also flash briefly when you access the camera to change settings.
 
 
 ### API

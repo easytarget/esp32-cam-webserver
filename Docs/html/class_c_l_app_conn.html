@@ -80,7 +80,7 @@ Inheritance diagram for CLAppConn:</div>
  <div class="center">
   <img src="class_c_l_app_conn.png" usemap="#CLAppConn_map" alt=""/>
   <map id="CLAppConn_map" name="CLAppConn_map">
-<area href="class_c_l_app_component.html" title="Abstract root class for the appication components." alt="CLAppComponent" shape="rect" coords="0,0,114,24"/>
+<area href="class_c_l_app_component.html" title="Abstract root class for the application components." alt="CLAppComponent" shape="rect" coords="0,0,114,24"/>
   </map>
 </div></div>
 <table class="memberdecls">
@@ -162,6 +162,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a80277e357f23e4dd2de431aecdc326ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1db9c6f8701153716f59f16d92d2d4aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a1db9c6f8701153716f59f16d92d2d4aa">setAccessPoint</a> (bool val)</td></tr>
 <tr class="separator:a1db9c6f8701153716f59f16d92d2d4aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd6919057b81c679d72faae045b98e96"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#abd6919057b81c679d72faae045b98e96">setLoadAsAP</a> (bool val)</td></tr>
+<tr class="separator:abd6919057b81c679d72faae045b98e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aefad8b5f1aeabcda89f10606f5c5e0d3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#aefad8b5f1aeabcda89f10606f5c5e0d3">getAPDHCP</a> ()</td></tr>
 <tr class="separator:aefad8b5f1aeabcda89f10606f5c5e0d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80a61e3b633ba6484a069a3bec4cf94f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a80a61e3b633ba6484a069a3bec4cf94f">setAPDHCP</a> (bool val)</td></tr>
@@ -216,6 +218,10 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a71c8d2c309383c0a5c05fbf6de90f1c8 inherit pro_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b23015c89977efd202896a19e7ca319 inherit pro_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a7b23015c89977efd202896a19e7ca319">parsePrefs</a> (jparse_ctx_t *jctx)</td></tr>
 <tr class="separator:a7b23015c89977efd202896a19e7ca319 inherit pro_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4b3984804c6f9ddd39e4dfb5ee0f34f inherit pro_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#ae4b3984804c6f9ddd39e4dfb5ee0f34f">urlDecode</a> (char *decoded, char *source, size_t len)</td></tr>
+<tr class="separator:ae4b3984804c6f9ddd39e4dfb5ee0f34f inherit pro_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3c5cec31a6b77d3c33da84d037e9ef1 inherit pro_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#ab3c5cec31a6b77d3c33da84d037e9ef1">urlEncode</a> (char *encoded, char *source, size_t len)</td></tr>
+<tr class="separator:ab3c5cec31a6b77d3c33da84d037e9ef1 inherit pro_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p >Connection Manager This class manages everything related to connectivity of the application: WiFi, OTA etc. </p>
@@ -1045,6 +1051,32 @@ Additional Inherited Members</h2></td></tr>
           <td>(</td>
           <td class="paramtype">long&#160;</td>
           <td class="paramname"><em>sec</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abd6919057b81c679d72faae045b98e96" name="abd6919057b81c679d72faae045b98e96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd6919057b81c679d72faae045b98e96">&#9670;&nbsp;</a></span>setLoadAsAP()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CLAppConn::setLoadAsAP </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
           <td></td>
         </tr>
       </table>

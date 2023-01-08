@@ -30,7 +30,7 @@ section.main {
   display: none;
   flex-wrap: nowrap;
   color: #EFEFEF;
-  width: 400px;
+  width: 370px;
   background: #363636;
   padding: 8px;
   border-radius: 4px;
@@ -110,7 +110,7 @@ section#buttons {
 .input-group>label {
   display: inline-block;
   padding-right: 10px;
-  min-width: 47%
+  min-width: 45%
 }
 
 .input-group input,.input-group select {
@@ -251,7 +251,7 @@ input[type=text], input[type=password] {
   margin: 1px;
   outline: 0;
   border-radius: 5px;
-  width: 180px;
+  width: 185px;
 }
 
 .gmt_offset {
