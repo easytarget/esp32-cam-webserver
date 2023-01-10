@@ -338,7 +338,9 @@ function refreshControl(el) {
       break;
     default:
       if(el.nodeName == "DIV") {
-        el.innerHTML = el.value;
+        if(el.value)
+          el.innerHTML = el.value;
+        value = el.innerHTML;
         showhide(el.getAttribute("data-show"), (el.value === ""), el.id);
         showhide(el.getAttribute("data-hide"), !(el.value===""), el.id);
       }

@@ -164,12 +164,9 @@ array reflects the command code while the rest of bytes can host additional para
 The following commands are supported:
 
 - 's' - starts the stream. Once the command is issued, the server will start pushing the frames to the client
-        according to the camera settings. The server will switch to the video mode.
-- 'p' - similar to the previous command but there will be only one frame taken and pushed to the client. The
-        server will switch to the photo mode.
-- 'u' - similar to the previous two commands. The server will either start stream or take a still photo, 
-        depending on the current mode of the server.
-- 't' - terminates the stream. Only makes sense after 's' or 'u' commands.
+        according to the camera settings. 
+- 'p' - similar to the previous command but there will be only one frame taken and pushed to the client. 
+- 't' - terminates the stream. Only makes sense after 's' commands.
 - 'c' - tells the server that this websocket will be used for PWM control commands. 
 - 'w' - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the
         `command` array, as follows:

@@ -15,6 +15,7 @@ webcam use.
 * Over The Air firmware updates
 * Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
 * Using just one IP port, easy for proxying. 
+* Multi-streaming support (display video in two or more browser sessions)
 * Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
 * Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card
 or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.
@@ -45,9 +46,9 @@ problems affecting both WiFi connectivity and Video quality; short cabling and d
 power supplies are your friend here; also well cooled cases and, if you have the time, 
 decoupling capacitors on the power lines.
 
-A basic limitation of the sketch is that it can can only support one stream at a time. 
-If you try to connect to a cam that is already streaming (or attempting to stream, 
-the first steam will freeze. 
+This implementation does not support MJPEG video stream format and there is no plans to 
+support it in future. Video streaming is implemented with help of WebSocket API,
+please read [documentation](API.md) for more details.
 
 ## Setup:
 
@@ -272,6 +273,16 @@ Once you have the initial upload done and the board is connected to the wifi net
 you should see it appearing in the `network ports` list of the IDE, and you can upload 
 wirelessly.
 
+### Accessing the video stream
+If you need to access the video stream or take still images in a full screen mode (without 
+the camera controls), the following URLs can be used:
+
+* `http://<your_ip:your_port>/view?mode=still` - still image is displayed
+* `http://<your_ip:your_port>/view?mode=stream` - video stream is displayed
+
+The number of parallel video streams is  limited to 2 (two) by default.  If you need more 
+parallel video streams supported, you can change the `MAX_VIDEO_STREAMS` parameter in the 
+**app_config.h** and re-build/upload the sketch to the board. 
 
 ### API
 The communications between the web browser and the camera module can also be used to 

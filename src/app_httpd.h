@@ -23,11 +23,6 @@
 
 #define RESET_ALL_PWM       0
 
-#ifdef STREAM_MJPEG
-#define PART_BOUNDARY "123456789000000000000987654321"
-void onStream(AsyncWebServerRequest *request);
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,8 +31,14 @@ uint8_t temprature_sens_read();
 }
 #endif
 
-enum capture_mode {CAPTURE_STILL, CAPTURE_STREAM};
-enum stream_chunk {STREAM_HEADER, STREAM_FRAME_BEGIN, STREAM_FRAME_BODY, STREAM_FRAME_END};
+enum CaptureModeEnum {CAPTURE_STILL, CAPTURE_STREAM};
+enum StreamResponseEnum {STREAM_SUCCESS, 
+                         STREAM_NUM_EXCEEDED, 
+                         STREAM_CLIENT_REGISTER_FAILED,
+                         STREAM_TIMER_NOT_INITIALIZED,
+                         STREAM_MODE_NOT_SUPPORTED, 
+                         STREAM_IMAGE_CAPTURE_FAILED,
+                         STREAM_CLIENT_NOT_FOUND};
 
 String processor(const String& var);
 void onSystemStatus(AsyncWebServerRequest *request);
@@ -69,7 +70,10 @@ class CLAppHttpd : public CLAppComponent {
         int loadPrefs();
         int savePrefs();
 
-        uint32_t getStreamClient() {return stream_client;};
+        // register a client streaming video
+        int addStreamClient(uint32_t client_id);
+        int removeStreamClient(uint32_t client_id);
+
         uint32_t getControlClient() {return control_client;};
         void setControlClient(uint32_t id) {control_client = id;};
 
@@ -78,13 +82,13 @@ class CLAppHttpd : public CLAppComponent {
         unsigned long getImagesServed() {return imagesServed;};
         int getPwmCount() {return pwmCount;};
         void incImagesServed(){imagesServed++;};
-
-        void setStreamMode(capture_mode mode) {streammode = mode;};
-        capture_mode getStreamMode() {return streammode;};
-
+        
+        // capture image and send it to the clients
         int snapToStream(bool debug = false);
-        int startStream(uint32_t id);
-        int stopStream(uint32_t id);
+        // start stream
+        StreamResponseEnum startStream(uint32_t id, CaptureModeEnum stream_mode);
+        //terminate stream
+        StreamResponseEnum stopStream(uint32_t id);
 
         void updateSnapTimer(int frameRate);
 
@@ -139,19 +143,7 @@ class CLAppHttpd : public CLAppComponent {
          * @param pin 
          */
         void resetPWM(uint8_t pin = RESET_ALL_PWM);
-
-#ifdef STREAM_MJPEG
-
-        const char * getStreamContentType() {return stream_content_type;};
-        const char * getStreamBoundary() {return stream_boundary;};
-        const char * getStreamPart() {return stream_part;};
-
-        int getChunkType() {return chunk_type;};
-        void setChunkType(stream_chunk mode) {chunk_type = mode;};
-
-        size_t getFrameBytesSent() {return frame_bytes_sent;};
-        void setFrameBytesSent(size_t bytes_sent) {frame_bytes_sent = bytes_sent;};
-#endif        
+        
 
     private:
 
@@ -171,7 +163,9 @@ class CLAppHttpd : public CLAppComponent {
         AsyncWebServer *server;
         AsyncWebSocket *ws; 
         
-        uint32_t stream_client;
+        // array of clients currently streaming video 
+        uint32_t stream_clients[MAX_VIDEO_STREAMS];
+
         uint32_t control_client;
         
         TimerHandle_t snap_timer = NULL;
@@ -180,17 +174,15 @@ class CLAppHttpd : public CLAppComponent {
         // should be defined in the 1st line of the pwm collection in the httpd prefs (httpd.json)
         bool autoLamp = false;         // Automatic lamp (auto on while camera running)
         int lampVal = -1;              // Lamp brightness
-        int flashLamp = 80;            // Flash brightness when taking still images
+        int flashLamp = 80;            // Flash brightness when taking still images or capturing streams
         uint8_t lamppin = 0;           // Lamp pin, not defined by default
         int pwmMax = 1;                // pwmMax = pow(2,pwmresolution)-1;
 
         int8_t streamCount=0;
+
         
         long streamsServed=0;
-        unsigned long imagesServed;
-
-        // mode of the image capture
-        capture_mode streammode = CAPTURE_STILL;
+        long imagesServed=0;
         
         // Sketch Info
         int sketchSize ;
@@ -198,16 +190,6 @@ class CLAppHttpd : public CLAppComponent {
         String sketchMD5;
 
         const String version = __DATE__ " @ " __TIME__;
-
-#ifdef STREAM_MJPEG
-        const char* stream_content_type = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
-        const char* stream_boundary = "\r\n--" PART_BOUNDARY "\r\n";
-        const char* stream_part = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
-        stream_chunk chunk_type = STREAM_HEADER;
-
-        size_t frame_bytes_sent = 0;
-        
-#endif
 
 };
 

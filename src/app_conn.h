@@ -116,7 +116,7 @@ class CLAppConn : public CLAppComponent {
         char ssid[64];
         char password[64];
 
-        char mdnsName[20]="";
+        char mdnsName[32];
 
         bool accesspoint = false;
         bool load_as_ap = false;
@@ -134,7 +134,7 @@ class CLAppConn : public CLAppComponent {
         bool captivePortal = false;
 
         // HOST_NAME
-        char hostName[64]="";
+        char hostName[64];
 
         // The app and stream URLs (initialized during WiFi setup)
         char httpURL[64];

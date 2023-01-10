@@ -43,14 +43,12 @@ var searchData=
   ['getsketchspace_40',['getSketchSpace',['../class_c_l_app_httpd.html#a4be3e20152216b606c83ae09e74c3840',1,'CLAppHttpd']]],
   ['getssid_41',['getSSID',['../class_c_l_app_conn.html#a71dcb95711f410222bacc42527fe837c',1,'CLAppConn']]],
   ['getstaticip_42',['getStaticIP',['../class_c_l_app_conn.html#a8c4d060e34c26f9a3e96015226c1e8e1',1,'CLAppConn']]],
-  ['getstreamclient_43',['getStreamClient',['../class_c_l_app_httpd.html#a9d5f397fcb14cbc95e93a90df4d10a5e',1,'CLAppHttpd']]],
-  ['getstreamcount_44',['getStreamCount',['../class_c_l_app_httpd.html#a5f8f1b5b6e4a1da9dbc9788a4442e00c',1,'CLAppHttpd']]],
-  ['getstreammode_45',['getStreamMode',['../class_c_l_app_httpd.html#aeef90f323bd91eba9d00d0b464177c82',1,'CLAppHttpd']]],
-  ['getstreamsserved_46',['getStreamsServed',['../class_c_l_app_httpd.html#a2b63e9eb18e2d67fc3f352fec0b66cd9',1,'CLAppHttpd']]],
-  ['getstreamurl_47',['getStreamUrl',['../class_c_l_app_conn.html#a3b240d40a51a7d76f22be73b2563b412',1,'CLAppConn']]],
-  ['gettimer_48',['getTimer',['../class_e_s_p32_p_w_m.html#ac756839276b3d623d20b10fba0247ff6',1,'ESP32PWM']]],
-  ['getuptimestr_49',['getUpTimeStr',['../class_c_l_app_conn.html#a05b74d2731b9c2220c431e354b1b55a5',1,'CLAppConn']]],
-  ['getused_50',['getUsed',['../class_c_l_storage.html#a9effb4148704bbc571acce5214e5dd74',1,'CLStorage']]],
-  ['getversion_51',['getVersion',['../class_c_l_app_httpd.html#a90f2e9504cac2da977017fc217edc82b',1,'CLAppHttpd']]],
-  ['getxclk_52',['getXclk',['../class_c_l_app_cam.html#a8e19e1d337c7d7406d713a42615005aa',1,'CLAppCam']]]
+  ['getstreamcount_43',['getStreamCount',['../class_c_l_app_httpd.html#a5f8f1b5b6e4a1da9dbc9788a4442e00c',1,'CLAppHttpd']]],
+  ['getstreamsserved_44',['getStreamsServed',['../class_c_l_app_httpd.html#a2b63e9eb18e2d67fc3f352fec0b66cd9',1,'CLAppHttpd']]],
+  ['getstreamurl_45',['getStreamUrl',['../class_c_l_app_conn.html#a3b240d40a51a7d76f22be73b2563b412',1,'CLAppConn']]],
+  ['gettimer_46',['getTimer',['../class_e_s_p32_p_w_m.html#ac756839276b3d623d20b10fba0247ff6',1,'ESP32PWM']]],
+  ['getuptimestr_47',['getUpTimeStr',['../class_c_l_app_conn.html#a05b74d2731b9c2220c431e354b1b55a5',1,'CLAppConn']]],
+  ['getused_48',['getUsed',['../class_c_l_storage.html#a9effb4148704bbc571acce5214e5dd74',1,'CLStorage']]],
+  ['getversion_49',['getVersion',['../class_c_l_app_httpd.html#a90f2e9504cac2da977017fc217edc82b',1,'CLAppHttpd']]],
+  ['getxclk_50',['getXclk',['../class_c_l_app_cam.html#a8e19e1d337c7d7406d713a42615005aa',1,'CLAppCam']]]
 ];

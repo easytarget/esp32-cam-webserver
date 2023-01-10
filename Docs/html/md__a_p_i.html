@@ -209,10 +209,9 @@ ESP32CAM WebSocket API</h1>
 <p >Once the websocket is open, you may also send commands and data to the server. Commands are sent with help of the <code>ws.send(command)</code> function where the <code>command</code> is to be a binary Uint8Array. The first byte of this array reflects the command code while the rest of bytes can host additional parameters of the command.</p>
 <p >The following commands are supported:</p>
 <ul>
-<li>'s' - starts the stream. Once the command is issued, the server will start pushing the frames to the client according to the camera settings. The server will switch to the video mode.</li>
-<li>'p' - similar to the previous command but there will be only one frame taken and pushed to the client. The server will switch to the photo mode.</li>
-<li>'u' - similar to the previous two commands. The server will either start stream or take a still photo, depending on the current mode of the server.</li>
-<li>'t' - terminates the stream. Only makes sense after 's' or 'u' commands.</li>
+<li>'s' - starts the stream. Once the command is issued, the server will start pushing the frames to the client according to the camera settings.</li>
+<li>'p' - similar to the previous command but there will be only one frame taken and pushed to the client.</li>
+<li>'t' - terminates the stream. Only makes sense after 's' commands.</li>
 <li>'c' - tells the server that this websocket will be used for PWM control commands.</li>
 <li><p class="startli">'w' - writes the PWM duty value to the pin. This command has additional parameters passed in the bytes of the <code>command</code> array, as follows:</p>
 <p class="startli">byte0 - 'w' - code of the command byte1 - pin number. If you use the ESP32CAM-DEV board, the available pins are usually limited to 4, 12, 13 and 33. The 4th pin is connected to the flash lamp so you can control the lamp brightness by sending value to this pin via the websocket. Pin 33 is connected to the onboard LED. So, only 12 and 13 are the ones you can use, provided that you also use the SD card for storage. if you use the internal LittleFS for storage, you may be able to use other pins otherwise utilized by the SD card interface. byte2 - send 1 for servo mode and 2 for any other PWM. byte3 - number of bytes in the PWM duty value, which will be written to the pin. Can be either 1 or 2 bytes (either 8bit or 16bit value). byte4 - duty value to be written to the PWM (lo-byte). For servo it can be either an angle (0-180) or a byte5 value in seconds (500-2500), which will require byte5 for hi-byte of the value.</p>

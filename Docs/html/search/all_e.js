@@ -7,7 +7,8 @@ var searchData=
   ['releasebuffer_4',['releaseBuffer',['../class_c_l_app_cam.html#aaf9c6d7306c5122eb6766011b8fc4c4c',1,'CLAppCam']]],
   ['remove_5',['remove',['../class_c_l_storage.html#afa5139f3590aba42b3de2c8e1786a43b',1,'CLStorage']]],
   ['removeprefs_6',['removePrefs',['../class_c_l_app_component.html#af763174f3eed76761a2eeab9aa845e6a',1,'CLAppComponent']]],
-  ['reset_7',['reset',['../class_e_s_p32_p_w_m.html#ac9c00a1b3bcb198a32b2c73d4d37d9cf',1,'ESP32PWM']]],
-  ['reset_5fall_5fpwm_8',['RESET_ALL_PWM',['../app__httpd_8h.html#a7ebf99c5d4c689e701986b3514f11a62',1,'app_httpd.h']]],
-  ['resetpwm_9',['resetPWM',['../class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b',1,'CLAppHttpd']]]
+  ['removestreamclient_7',['removeStreamClient',['../class_c_l_app_httpd.html#ae332523260d4aa6ca7ff5ff53df4e373',1,'CLAppHttpd']]],
+  ['reset_8',['reset',['../class_e_s_p32_p_w_m.html#ac9c00a1b3bcb198a32b2c73d4d37d9cf',1,'ESP32PWM']]],
+  ['reset_5fall_5fpwm_9',['RESET_ALL_PWM',['../app__httpd_8h.html#a7ebf99c5d4c689e701986b3514f11a62',1,'app_httpd.h']]],
+  ['resetpwm_10',['resetPWM',['../class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b',1,'CLAppHttpd']]]
 ];

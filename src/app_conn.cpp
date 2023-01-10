@@ -6,12 +6,15 @@ CLAppConn::CLAppConn() {
 
 int CLAppConn::start() {
 
-    Serial.println("Starting WiFi");
-    WiFi.mode(WIFI_STA); 
-    
     if(loadPrefs() != OK) {
         return WiFi.status();
     }
+    
+    Serial.println("Starting WiFi");
+
+    WiFi.setHostname(mdnsName);
+    
+    WiFi.mode(WIFI_STA); 
 
     // Disable power saving on WiFi to improve responsiveness
     // (https://github.com/espressif/arduino-esp32/issues/1484)
@@ -31,7 +34,7 @@ int CLAppConn::start() {
     if (!accesspoint) {
         if(stationCount > 0) {
             // We have a list to scan
-            Serial.printf("Scanning local Wifi Networks\r\n");
+            Serial.println("Scanning local Wifi Networks");
             int stationsFound = WiFi.scanNetworks();
             Serial.printf("%i networks found\r\n", stationsFound);
             if (stationsFound > 0) {
@@ -83,7 +86,7 @@ int CLAppConn::start() {
                 }    
             }
 
-            WiFi.setHostname(mdnsName);
+            // WiFi.setHostname(mdnsName);
 
             // Initiate network connection request (3rd argument, channel = 0 is 'auto')
             WiFi.begin(bestSSID, stationList[bestStation]->password, 0, bestBSSID);
@@ -114,6 +117,8 @@ int CLAppConn::start() {
 
     if (accesspoint && (WiFi.status() != WL_CONNECTED)) {
         // The accesspoint has been enabled, and we have not connected to any existing networks
+        WiFi.softAPsetHostname(mdnsName);
+        
         WiFi.mode(WIFI_AP);
         // reset ap_status
         ap_status = WL_DISCONNECTED;
@@ -135,7 +140,7 @@ int CLAppConn::start() {
             return wifiStatus();
         }
 
-        WiFi.softAPsetHostname(mdnsName);
+        // WiFi.softAPsetHostname(mdnsName);
 
         if(!WiFi.softAP(apName, apPass, ap_channel)) {
             Serial.println("Access Point init failed!");
@@ -175,18 +180,11 @@ void CLAppConn::calcURLs() {
     }
     if (httpPort != 80) {
         snprintf(httpURL, sizeof(httpURL), "http://%s:%d/", hostName, httpPort);
-#ifndef STREAM_MJPEG
         snprintf(streamURL, sizeof(streamURL), "http://%s:%d/view?mode=stream", hostName, httpPort);
-#else
-        snprintf(streamURL, sizeof(streamURL), "http://%s:%d/stream", hostName, httpPort);
-#endif
+
     } else {
         snprintf(httpURL, sizeof(httpURL), "http://%s/", hostName);
-#ifndef STREAM_MJPEG
         snprintf(streamURL, sizeof(streamURL), "http://%s/view?mode=stream", hostName);
-#else
-        snprintf(streamURL, sizeof(streamURL), "http://%s/stream", hostName);
-#endif
     }
     
 
@@ -461,12 +459,13 @@ void CLAppConn::startOTA() {
 
 void CLAppConn::configMDNS() {
 
-    if(!otaEnabled) {
-        if (!MDNS.begin(mdnsName)) {
-          Serial.println("Error setting up MDNS responder!");
-        }
-        Serial.println("mDNS responder started");
+    // if(!otaEnabled) {
+    if (!MDNS.begin(mdnsName)) {
+        Serial.println("Error setting up MDNS responder!");
     }
+    else
+        Serial.println("mDNS responder started");
+    // }
     //MDNS Config -- note that if OTA is NOT enabled this needs prior steps!
     MDNS.addService("http", "tcp", httpPort);
     Serial.println("Added HTTP service to MDNS server");

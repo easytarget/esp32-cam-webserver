@@ -42,7 +42,6 @@ int CLAppHttpd::start() {
         if(request->arg("mode") == "stream" || 
             request->arg("mode") == "still") {
             if(!AppCam.getLastErr()) {
-                AppHttpd.setStreamMode((request->arg("mode") == "stream"? CAPTURE_STREAM:CAPTURE_STILL));
                 request->send(Storage.getFS(), "/www/view.html", "", false, processor);
             }
             else {
@@ -58,9 +57,6 @@ int CLAppHttpd::start() {
         server->serveStatic(mappingList[i]->uri, Storage.getFS(), mappingList[i]->path);
     }
 
-#ifdef STREAM_MJPEG 
-    server->on("/stream", HTTP_GET, onStream);    
-#endif    
     server->on("/control", HTTP_GET, onControl);
     server->on("/status", HTTP_GET, onStatus);
     server->on("/system", HTTP_GET, onSystemStatus);
@@ -81,7 +77,7 @@ int CLAppHttpd::start() {
         Serial.printf("Stream viewer available at '%sview?mode=stream'\r\n", AppConn.getHTTPUrl());
         Serial.printf("Raw stream URL is '%s'\r\n", AppConn.getStreamUrl());
     }
-
+    
     Serial.println("HTTP server started");
     return OK;
 }
@@ -112,20 +108,18 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
         uint8_t* msg = (uint8_t*) data;
 
         switch(*msg) {
-            case (uint8_t)'u':
-                AppHttpd.startStream(client->id());
-                break;
             case (uint8_t)'s':
-                AppHttpd.setStreamMode(CAPTURE_STREAM);
-                AppHttpd.startStream(client->id());
+                if(AppHttpd.startStream(client->id(), CAPTURE_STREAM) != STREAM_SUCCESS)
+                    client->close();
                 break;
             case (uint8_t)'p':  
-                AppHttpd.setStreamMode(CAPTURE_STILL);
-                AppHttpd.startStream(client->id());
+                AppHttpd.startStream(client->id(), CAPTURE_STILL);
                 break;
             case (uint8_t)'c':
-                AppHttpd.setControlClient(client->id());
-                AppHttpd.serialSendCommand("Connected");
+                if(AppHttpd.getControlClient()==0) {
+                    AppHttpd.setControlClient(client->id());
+                    AppHttpd.serialSendCommand("Connected");
+                }
                 break;
             case (uint8_t)'w':  // write PWM value
                 if(AppHttpd.getControlClient())
@@ -183,82 +177,17 @@ String processor(const String& var) {
     return String();
 }
 
-#ifdef STREAM_MJPEG
-void onStream(AsyncWebServerRequest *request) {
-    AppHttpd.setStreamMode(CAPTURE_STREAM);
-    int res = AppHttpd.startStream(1);
-
-    if(res!=0) {
-        Serial.print("Stream failed to start, err code=");Serial.println(res);
-        request->send(409);
-        return;
-    }
-
-    Serial.println("MJPEG stream started");
-
-    
-    request->sendChunked(AppHttpd.getStreamContentType(), [](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
-            
-            // if stream terminated, close connect
-            if(AppHttpd.getStreamCount() == 0) 
-                return 0;
-
-            size_t bytes_sent = AppHttpd.getFrameBytesSent();
-
-            if(AppHttpd.getChunkType()==STREAM_HEADER) {
-                Serial.print("MJPEG header about to be sent, maxLen="); Serial.println(maxLen);
-                AppHttpd.setChunkType(STREAM_FRAME_BEGIN);
-                return snprintf((char*)buffer, maxLen, AppHttpd.getStreamBoundary());
-            }
-            else if(AppCam.isJPEGinBuffer()) {
-                if(AppHttpd.getChunkType() == STREAM_FRAME_BEGIN) {
-                    AppHttpd.setChunkType(STREAM_FRAME_BODY);
-                    AppHttpd.setFrameBytesSent(0); // reset the byte counter
-                    return snprintf((char*)buffer, maxLen, AppHttpd.getStreamPart());
-                }
-                else if(AppHttpd.getChunkType() == STREAM_FRAME_BODY){
-                    size_t total_frame_bytes = AppCam.getBufferSize();
-                    size_t len = min(total_frame_bytes - bytes_sent, maxLen);
-                    if(len + bytes_sent == total_frame_bytes) {
-                        // we are sending last body chunk
-                        AppHttpd.setChunkType(STREAM_FRAME_END);
-                    }
-                    else
-                        AppHttpd.setFrameBytesSent(len + bytes_sent);
-                    memcpy(buffer, AppCam.getBuffer() + bytes_sent, len);
-                    return len;
-                }
-                else {
-                    AppCam.releaseBuffer();
-                    AppHttpd.setChunkType(STREAM_FRAME_BEGIN); // we expect next frame
-                    return snprintf((char*)buffer, maxLen, AppHttpd.getStreamBoundary());
-                    
-                }
-            }
-            else
-                return RESPONSE_TRY_AGAIN;
-        });
-
-}
-#endif
 
 int CLAppHttpd::snapToStream(bool debug) {
-    
-    if(!stream_client) return ESP_FAIL;
 
     int res = AppCam.snapToBuffer();
 
     if(!res) {
 
         if(AppCam.isJPEGinBuffer()){
-#ifndef STREAM_MJPEG
-            ws->binary(stream_client, AppCam.getBuffer(), AppCam.getBufferSize());
-#else
-            
-            // we do not clean the camera buffer when MJPEG mode is enabled, until frame is sent to the client!!
-            return res;
 
-#endif
+            ws->binaryAll( AppCam.getBuffer(), AppCam.getBufferSize());
+
             if(debug) {
                 Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
             }
@@ -274,85 +203,95 @@ int CLAppHttpd::snapToStream(bool debug) {
     return res;
 }
 
-int CLAppHttpd::startStream(uint32_t id) {
+StreamResponseEnum CLAppHttpd::startStream(uint32_t id, CaptureModeEnum streammode) {
     
-    // if stream already started for a client id, return fail
-    if(stream_client)
-        return OS_FAIL; 
-    
-    stream_client = id;
+    // if video stream requested, check if we can add extra
+    if(streammode == CAPTURE_STREAM) {
+        if(streamCount+1 > MAX_VIDEO_STREAMS) return STREAM_NUM_EXCEEDED;
+        if(addStreamClient(id) != OS_SUCCESS) return STREAM_CLIENT_REGISTER_FAILED;
+    }
 
-    if(!snap_timer)
-        return OS_FAIL;
-
-    if(xTimerIsTimerActive(snap_timer))
-        xTimerStop(snap_timer, 100);
+    if(!snap_timer) return STREAM_TIMER_NOT_INITIALIZED;
 
     if(streammode == CAPTURE_STREAM) {
-        if(autoLamp){
-            setLamp();
-            delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
-        }
+
 
         Serial.print("Stream start, frame period = "); Serial.println(xTimerGetPeriod(snap_timer));
+        
+        // if stream is not started, start 
+        if(xTimerIsTimerActive(snap_timer) == pdFALSE) {
+            if(lampVal>=0 && autoLamp){
+                setLamp(flashLamp);
+                delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+            }
+            vTimerSetReloadMode(snap_timer, pdTRUE);
+            if(xTimerStart(snap_timer, 0) == pdPASS)
+                Serial.println("Stream timer started");
+            else
+                Serial.println("Failed to start the Stream timer!");
+        }
 
-        xTimerStart(snap_timer, 0);
-        streamCount=1;
+        streamCount++;
 
     }
     else if(streammode == CAPTURE_STILL) {
         Serial.println("Still image requested");
-        if(autoLamp){
-            setLamp();
-            delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
-        }
-        int64_t fr_start = esp_timer_get_time();
-    
-        if (snapToStream(isDebugMode()) != OS_SUCCESS) {
+        // if video stream is not active, take the picture as usual
+        if(xTimerIsTimerActive(snap_timer) == pdFALSE) {
+            if(lampVal>=0 && autoLamp){
+                setLamp(flashLamp);
+                delay(75); // coupled with the status led flash this gives ~150ms for lamp to settle.
+            }
+
+            int64_t fr_start = esp_timer_get_time();
+        
+            if (snapToStream(isDebugMode()) != OS_SUCCESS) {
+                if(autoLamp) setLamp(0);
+                return STREAM_IMAGE_CAPTURE_FAILED;
+            }
+            
+            if (isDebugMode()) {
+                int64_t fr_end = esp_timer_get_time();
+                Serial.printf("B %ums\r\n", (uint32_t)((fr_end - fr_start)/1000));
+            }
+
             if(autoLamp) setLamp(0);
-            return OS_FAIL;
+            imagesServed++;
+            
+        }
+        else {
+            Serial.println("Image to be taken from the parallel video stream");
         }
         
-        if (isDebugMode()) {
-            int64_t fr_end = esp_timer_get_time();
-            Serial.printf("B %ums\r\n", (uint32_t)((fr_end - fr_start)/1000));
-        }
-
-        if(autoLamp) setLamp(0);
-
-        imagesServed++;
     }
     else
-        return OS_FAIL;
-    return OS_SUCCESS;
+        return STREAM_MODE_NOT_SUPPORTED;
+
+    return STREAM_SUCCESS;
 }
 
-int CLAppHttpd::stopStream(uint32_t id) {
+StreamResponseEnum CLAppHttpd::stopStream(uint32_t id) {
 
-    if(autoLamp) setLamp(0);
+    if(removeStreamClient(id) != OS_SUCCESS) return STREAM_CLIENT_NOT_FOUND;
 
-    if(!snap_timer)
-        return OS_FAIL;
-
-    if(stream_client != id)
-        return OS_FAIL;
-
-    stream_client = 0;    
+    if(!snap_timer) return STREAM_TIMER_NOT_INITIALIZED;
     
-    if(xTimerIsTimerActive(snap_timer))
-        xTimerStop(snap_timer, 100);   
+    // if the stream is the last one active, stop the timer
+    if(xTimerIsTimerActive(snap_timer) != pdFALSE && streamCount == 1) {
+        vTimerSetReloadMode(snap_timer, pdFALSE);
+        if(xTimerStop(snap_timer, 0) == pdPASS)
+            Serial.println("Stop sent to Stream timer");
+        else
+            Serial.println("Failed to post the stop command to the Stream timer!");
 
-    if(streammode == CAPTURE_STREAM) {
-#ifdef STREAM_MJPEG
-        AppCam.releaseBuffer();
-        chunk_type = STREAM_HEADER;
-        frame_bytes_sent = 0;
-#endif
-        Serial.println("Stream stopped");  
-        streamsServed++;
-        streamCount=0;
+        if(lampVal>0 and autoLamp) setLamp(0);     
     }
-    return OS_SUCCESS;
+    
+    streamsServed++;
+    streamCount--;
+    
+    Serial.println("Stream stopped");
+    return STREAM_SUCCESS;
 }
 
 void onControl(AsyncWebServerRequest *request) {
@@ -688,6 +627,7 @@ int CLAppHttpd::loadPrefs() {
                     json_obj_get_int(&jctx, (char*)"frequency", &freq) == OS_SUCCESS &&
                     json_obj_get_int(&jctx, (char*)"resolution", &resolution) == OS_SUCCESS) {
                     int index = attachPWM(pin, freq, resolution);
+                    delay(75); // let the PWM settle
                     if(index >= 0) {
                         if(lampVal >= 0 && i == 0) {
                             lamppin = pin;
@@ -729,6 +669,7 @@ int CLAppHttpd::loadPrefs() {
     }
 
     json_obj_get_string(&jctx, (char*)"my_name", myName, sizeof(myName));
+
     bool dbg;
     if(json_obj_get_bool(&jctx, (char*)"debug_mode", &dbg) == OS_SUCCESS)
         setDebugMode(dbg);  
@@ -895,6 +836,26 @@ void CLAppHttpd::setLamp(int newVal) {
         writePWM(lamppin, brightness,0);
     }
 
+}
+
+int CLAppHttpd::addStreamClient(uint32_t client_id) {
+    for(int i=0; i < MAX_VIDEO_STREAMS; i++) {
+        if(!stream_clients[i]) {
+            stream_clients[i] = client_id;
+            return OS_SUCCESS;
+        }
+    }
+    return OS_FAIL;
+}
+
+int CLAppHttpd::removeStreamClient(uint32_t client_id) {
+    for(int i=0; i < MAX_VIDEO_STREAMS; i++) {
+        if(stream_clients[i] ==  client_id) {
+            stream_clients[i] = 0;
+            return OS_SUCCESS;
+        }    
+    }
+    return OS_FAIL;
 }
 
 CLAppHttpd AppHttpd;

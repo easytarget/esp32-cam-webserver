@@ -26,9 +26,8 @@
 // Uncomment to disable the notification LED on the module
 // #define LED_DISABLE
 
-// Uncomment to enable MJPEG streaming support
-// This mode is still under development and is not very stable / not recommended
-// #define STREAM_MJPEG
+// Changing this parameter will increase the number of parallel video streams
+#define MAX_VIDEO_STREAMS 2
 
 // Uncomment this line to use LittleFS instead of SD. 
 // NOTE!

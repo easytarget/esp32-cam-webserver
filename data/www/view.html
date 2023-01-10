@@ -21,16 +21,25 @@
       <img id="video" src=""></img>
     </section>
   </body>
-
-  <script src="/js/ws.js" ></script>
    
   <script>
   document.addEventListener('DOMContentLoaded', function (event) {
-    var baseHost = document.location.origin;
-    var urlCreator = window.URL || window.webkitURL;
+    const baseHost = document.location.origin;
+    const urlCreator = window.URL || window.webkitURL;
+    const urlParams = new URLSearchParams(location.search);
+    var viewMode = 'still';
 
+
+    const streamURL = 'ws://' + location.hostname + ':' + location.port + '/ws';
+
+    const ws = new WebSocket(streamURL);
+
+    const stream = document.getElementById('video');
     const rotate = document.getElementById('rotate');
     const spinner = document.getElementById('wait-settings');
+
+    var img_rec = false;
+
 
     const updateValue = (el, value, updateRemote) => {
       updateRemote = updateRemote == null ? true : updateRemote
@@ -42,7 +51,7 @@
       } else {
         initialValue = el.value
         el.value = value
-      }
+      };
 
       if (updateRemote && initialValue !== value) {
         updateConfig(el);
@@ -56,7 +65,17 @@
           console.log('Rotate recieved: ' + rotate.value);
         } 
       }
+    };
+
+    // set view mode
+    for (const [key, value] of urlParams) {
+        if(key == 'mode') {
+          viewMode = value;
+          break;
+        }
     }
+    
+    console.log('Mode=' + viewMode);
 
     // read initial values
     fetch(`${baseHost}/info`)
@@ -64,28 +83,69 @@
         return response.json()
       })
       .then(function (state) {
+        ws.binaryType = 'arraybuffer';
+
+        ws.onmessage = function(event) {
+          if(!img_rec) {
+            var arrayBufferView = new Uint8Array(event.data);
+            var prev_url = stream.src;
+            var blob = new Blob([arrayBufferView], {type: "image/jpeg"});
+            var imageUrl = urlCreator.createObjectURL(blob);
+            stream.src = imageUrl;
+            urlCreator.revokeObjectURL(prev_url);
+            img_rec = (viewMode === 'still');
+          }
+
+        }
+
+        ws.onopen = function(event) {
+          console.log(event.currentTarget.url);
+        }
+
+        ws.onclose = function(event) {
+          console.log(event);
+        }
+
+        ws.onerror = function() {
+          console.log(error);
+        }
+        
         document
           .querySelectorAll('.action-setting')
           .forEach(el => {
             updateValue(el, state[el.id], false)
           })
         spinner.style.display = `none`;
-        var stream_url = state['stream_url']
         applyRotation();
-        if(stream_url.includes('/stream'))
-          startStream(stream_url);
-        else
-          startStream();
-      })
 
-    const startStream = (stream_url) => {
-      if(stream_url) {
-        stream.src = stream_url;
-      }
-      else
-        ws.send('u');
-      stream.style.display = `block`;
-    }
+        startStream();
+      });
+
+    function startStream() {
+      this.send = function (message) {
+        this.waitForConnection(function () {
+          ws.send(message);
+        }, 1000);
+      };
+
+      this.waitForConnection = function (callback, interval) {
+        if (ws.readyState === 1) {
+            callback();
+        } else {
+            var that = this;
+            setTimeout(function () {
+                that.waitForConnection(callback, interval);
+            }, interval);
+        }
+      };
+
+      if(viewMode == 'still')
+        this.send('p');
+      else 
+        this.send('s');
+      
+        stream.style.display = `block`;
+    };
 
     const applyRotation = () => {
       rot = rotate.value;
@@ -95,7 +155,7 @@
         stream.style.transform = `rotate(90deg)`;
       }
       console.log('Rotation ' + rot + ' applied');
-    }
+    };
 
     stream.ondblclick = () => {
       if (stream.requestFullscreen) {
@@ -107,7 +167,7 @@
       } else if (stream.msRequestFullscreen) { /* IE/Edge */
         stream.msRequestFullscreen();
       }
-    }
-  })
+    };
+  });
   </script>
 </html>

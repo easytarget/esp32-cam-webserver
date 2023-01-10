@@ -79,6 +79,7 @@ Key features:</h2>
 <li>Over The Air firmware updates</li>
 <li>Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.</li>
 <li>Using just one IP port, easy for proxying.</li>
+<li>Multi-streaming support (display video in two or more browser sessions)</li>
 <li>Porting the web server to <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESP Async Web Server</a>.</li>
 <li>Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card or the built-in flash formatted as LittleFS). This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.</li>
 <li>Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors</li>
@@ -99,7 +100,7 @@ Supported camera models:</h2>
 Known Issues</h2>
 <p >The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other communication problems are simply due to 'WiFi issues'.</p>
 <p >The AI-THINKER camera module &amp; esp32 combination is quite susceptible to power supply problems affecting both WiFi connectivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.</p>
-<p >A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream, the first steam will freeze.</p>
+<p >This implementation does not support MJPEG video stream format and there is no plans to support it in future. Video streaming is implemented with help of WebSocket API, please read <a class="el" href="md__a_p_i.html">documentation</a> for more details.</p>
 <h1><a class="anchor" id="autotoc_md23"></a>
 Setup:</h1>
 <ul>
@@ -238,14 +239,22 @@ Programming</h2>
 <p >Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.</p>
 <p >Once you have the initial upload done and the board is connected to the wifi network you should see it appearing in the <code>network ports</code> list of the IDE, and you can upload wirelessly.</p>
 <h2><a class="anchor" id="autotoc_md35"></a>
+Accessing the video stream</h2>
+<p >If you need to access the video stream or take still images in a full screen mode (without the camera controls), the following URLs can be used:</p>
+<ul>
+<li><code><a href="http://">http://</a>&lt;your_ip:your_port&gt;/view?mode=still</code> - still image is displayed</li>
+<li><code><a href="http://">http://</a>&lt;your_ip:your_port&gt;/view?mode=stream</code> - video stream is displayed</li>
+</ul>
+<p >The number of parallel video streams is limited to 2 (two) by default. If you need more parallel video streams supported, you can change the <code>MAX_VIDEO_STREAMS</code> parameter in the <b><a class="el" href="app__config_8h.html">app_config.h</a></b> and re-build/upload the sketch to the board.</p>
+<h2><a class="anchor" id="autotoc_md36"></a>
 API</h2>
 <p >The communications between the web browser and the camera module can also be used to send commands directly to the camera (eg to automate it, etc) and form, in effect, an API for the camera.</p><ul>
 <li><a class="el" href="md__a_p_i.html">ESP32 Camera Web Server API</a>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md36"></a>
+<h1><a class="anchor" id="autotoc_md37"></a>
 Contributing</h1>
 <p >Contributions are welcome; please see the <a class="el" href="md__c_o_n_t_r_i_b_u_t_i_n_g.html">Contribution guidelines</a>.</p>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<h1><a class="anchor" id="autotoc_md38"></a>
 Future plans</h1>
 <ol type="1">
 <li>Support HTTPS and user credential when accessing the Web UI, Websocket and API</li>
