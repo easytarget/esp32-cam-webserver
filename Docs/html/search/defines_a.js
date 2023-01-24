@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wifi_5fwatchdog_0',['WIFI_WATCHDOG',['../app__config_8h.html#abe5fef12849f59923de575b49a6e222c',1,'app_config.h']]]
+  ['usable_5fesp32_5fpwm_0',['USABLE_ESP32_PWM',['../esp32pwm_8h.html#abfb817e4209392435fecd08f5c0c1cc5',1,'esp32pwm.h']]]
 ];

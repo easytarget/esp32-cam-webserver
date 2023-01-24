@@ -16,6 +16,7 @@ webcam use.
 * Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
 * Using just one IP port, easy for proxying. 
 * Multi-streaming support (display video in two or more browser sessions)
+* Supporting basic authentication
 * Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
 * Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card
 or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.
@@ -126,12 +127,15 @@ Added HTTP service to MDNS server
 Connected
 ```
 
-Connected to the access point and open the url http://192.168.4.1/. You should see the following page: 
+Connected to the access point and open the url http://192.168.4.1/. Default user name and password is `admin/admin`. 
+You should see the following page: 
+
 <div align="center">
 <img src="assets/wifi-setup-ap.png" width="350">
 </div>
 
 Switch the Access Point Mode off. The screen will change as follows: 
+
 <div align="center">
 <img src="assets/wifi-setup.png" width="350">
 </div>
@@ -180,6 +184,8 @@ This file can be also updated via the Web UI.
     "static_ip": {"ip":"192.168.0.2", "netmask":"255.255.255.0", "gateway":"192.168.0.1", 
                   "dns1":"192.168.0.1", "dns2":"8.8.8.8"},
     "http_port":80,
+    "user":"admin",
+    "password":"admin",
     "ota_enabled":true,
     "ota_password":"YOUR_OTA_PASSWORD",
     "accesspoint":false,

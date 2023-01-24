@@ -8,7 +8,7 @@ CLAppHttpd::CLAppHttpd() {
     setTag("httpd");
 }
 
-void onSnapTimer(TimerHandle_t pxTimer){
+void IRAM_ATTR onSnapTimer(TimerHandle_t pxTimer){
     AppHttpd.snapToStream();
 }
 
@@ -20,6 +20,8 @@ int CLAppHttpd::start() {
     ws = new AsyncWebSocket("/ws");
     
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        if(!request->authenticate(AppConn.getUser(), AppConn.getPwd()))
+            return request->requestAuthentication();
         if(AppConn.isConfigured())
             request->send(Storage.getFS(), "/www/camera.html", "", false, processor);
         else
@@ -27,18 +29,26 @@ int CLAppHttpd::start() {
     });
 
     server->on("/camera", HTTP_GET, [](AsyncWebServerRequest *request){
+        if(!request->authenticate(AppConn.getUser(), AppConn.getPwd()))
+            return request->requestAuthentication();
         request->send(Storage.getFS(), "/www/camera.html", "", false, processor);
     });  
 
     server->on("/setup", HTTP_GET, [](AsyncWebServerRequest *request){
+        if(!request->authenticate(AppConn.getUser(), AppConn.getPwd()))
+            return request->requestAuthentication();
         request->send(Storage.getFS(), "/www/setup.html", "", false, processor);
     });    
 
     server->on("/dump", HTTP_GET, [](AsyncWebServerRequest *request){
+        if(!request->authenticate(AppConn.getUser(), AppConn.getPwd()))
+            return request->requestAuthentication();
         request->send(Storage.getFS(), "/www/dump.html", "", false, processor);
     });    
 
     server->on("/view", HTTP_GET, [](AsyncWebServerRequest *request){
+        if(!request->authenticate(AppConn.getUser(), AppConn.getPwd()))
+            return request->requestAuthentication();
         if(request->arg("mode") == "stream" || 
             request->arg("mode") == "still") {
             if(!AppCam.getLastErr()) {
@@ -54,18 +64,18 @@ int CLAppHttpd::start() {
 
     // adding fixed mappigs
     for(int i=0; i<mappingCount; i++) {
-        server->serveStatic(mappingList[i]->uri, Storage.getFS(), mappingList[i]->path);
+        server->serveStatic(mappingList[i]->uri, Storage.getFS(), mappingList[i]->path).setAuthentication(AppConn.getUser(), AppConn.getPwd());
     }
 
-    server->on("/control", HTTP_GET, onControl);
-    server->on("/status", HTTP_GET, onStatus);
-    server->on("/system", HTTP_GET, onSystemStatus);
-    server->on("/info", HTTP_GET, onInfo);
+    server->on("/control", HTTP_GET, onControl).setAuthentication(AppConn.getUser(), AppConn.getPwd());
+    server->on("/status", HTTP_GET, onStatus).setAuthentication(AppConn.getUser(), AppConn.getPwd());
+    server->on("/system", HTTP_GET, onSystemStatus).setAuthentication(AppConn.getUser(), AppConn.getPwd());
+    server->on("/info", HTTP_GET, onInfo).setAuthentication(AppConn.getUser(), AppConn.getPwd());
 
     
     // adding WebSocket handler
     ws->onEvent(onWsEvent);
-    server->addHandler(ws);   
+    server->addHandler(ws);  
 
     snap_timer = xTimerCreate("SnapTimer", 1000/AppCam.getFrameRate()/portTICK_PERIOD_MS, pdTRUE, 0, onSnapTimer);
 
@@ -75,7 +85,7 @@ int CLAppHttpd::start() {
     if(isDebugMode()) {
         Serial.printf("\r\nUse '%s' to connect\r\n", AppConn.getHTTPUrl());
         Serial.printf("Stream viewer available at '%sview?mode=stream'\r\n", AppConn.getHTTPUrl());
-        Serial.printf("Raw stream URL is '%s'\r\n", AppConn.getStreamUrl());
+        // Serial.printf("Raw stream URL is '%s'\r\n", AppConn.getStreamUrl());
     }
     
     Serial.println("HTTP server started");
@@ -171,14 +181,14 @@ String processor(const String& var) {
     return AppCam.getErr();
   else if(var == "APPURL")
     return String(AppConn.getHTTPUrl());
-  else if(var == "STREAMURL")
-    return String(AppConn.getStreamUrl());
+//   else if(var == "STREAMURL")
+//     return String(AppConn.getStreamUrl());
   else
     return String();
 }
 
 
-int CLAppHttpd::snapToStream(bool debug) {
+int IRAM_ATTR CLAppHttpd::snapToStream(bool debug) {
 
     int res = AppCam.snapToBuffer();
 
@@ -188,13 +198,8 @@ int CLAppHttpd::snapToStream(bool debug) {
 
             ws->binaryAll( AppCam.getBuffer(), AppCam.getBufferSize());
 
-            if(debug) {
-                Serial.print("JPG: "); Serial.print(AppCam.getBufferSize()); 
-            }
         } else {
-            // camera failed to acquire frame
-            if(debug) 
-                Serial.println("Capture Error: Non-JPEG image returned by camera module");
+
             res = OS_FAIL;
         }
     }
@@ -387,6 +392,8 @@ void onControl(AsyncWebServerRequest *request) {
     else if(variable == "ap_pass") AppConn.setApPass(value.c_str());
     else if(variable == "mdns_name") AppConn.setMDNSName(value.c_str());
     else if(variable == "ntp_server") AppConn.setNTPServer(value.c_str());
+    else if(variable == "user") AppConn.setUser(value.c_str());
+    else if(variable == "pwd") AppConn.setPwd(value.c_str());
     else if(variable == "ota_password") AppConn.setOTAPassword(value.c_str());
     else if(variable == "framesize") {
         if(s->pixformat == PIXFORMAT_JPEG) res = s->set_framesize(s, (framesize_t)val);
@@ -501,15 +508,24 @@ void CLAppHttpd::dumpCameraStatusToJson(char * buf, size_t size, bool full_statu
     json_gen_start_object(&jstr);
 
     json_gen_obj_set_string(&jstr, (char*)"cam_name", getName());
-    json_gen_obj_set_string(&jstr, (char*)"stream_url", AppConn.getStreamUrl());
-    json_gen_obj_set_string(&jstr, (char*)"code_ver", getVersion());    
-    json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
-    json_gen_obj_set_bool(&jstr, (char*)"autolamp", isAutoLamp());
-    json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
-    json_gen_obj_set_int(&jstr, (char*)"flashlamp", getFlashLamp());
+    // json_gen_obj_set_string(&jstr, (char*)"stream_url", AppConn.getStreamUrl());
+    AppConn.updateTimeStr();
+    json_gen_obj_set_string(&jstr, (char*)"local_time", AppConn.getLocalTimeStr());
+    json_gen_obj_set_string(&jstr, (char*)"up_time", AppConn.getUpTimeStr());   
+    json_gen_obj_set_int(&jstr, (char*)"rssi", (!AppConn.isAccessPoint()?WiFi.RSSI():(uint8_t)0));
+    json_gen_obj_set_int(&jstr, (char*)"esp_temp", temprature_sens_read());
+    json_gen_obj_set_string(&jstr, (char*)"serial_buf", getSerialBuffer());    
 
     AppCam.dumpStatusToJson(&jstr, full_status);
 
+    if(full_status) {
+        json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
+        json_gen_obj_set_bool(&jstr, (char*)"autolamp", isAutoLamp());
+        json_gen_obj_set_int(&jstr, (char*)"lamp", getLamp());
+        json_gen_obj_set_int(&jstr, (char*)"flashlamp", getFlashLamp());
+
+        json_gen_obj_set_string(&jstr, (char*)"code_ver", getVersion());  
+    }
     json_gen_end_object(&jstr);
     json_gen_str_end(&jstr);
 }
@@ -533,7 +549,7 @@ void CLAppHttpd::dumpSystemStatusToJson(char * buf, size_t size) {
     json_gen_obj_set_string(&jstr, (char*)"ap_name", AppConn.getApName());
     json_gen_obj_set_string(&jstr, (char*)"ssid", AppConn.getSSID());
 
-    json_gen_obj_set_int(&jstr, (char*)"rssi", (!AppConn.isAccessPoint()?WiFi.RSSI():0));
+    json_gen_obj_set_int(&jstr, (char*)"rssi", (!AppConn.isAccessPoint()?WiFi.RSSI():(uint8_t)0));
     json_gen_obj_set_string(&jstr, (char*)"bssid", (!AppConn.isAccessPoint()?WiFi.BSSIDstr().c_str():(char*)""));
     json_gen_obj_set_int(&jstr, (char*)"dhcp", AppConn.isDHCPEnabled());
     
@@ -555,6 +571,8 @@ void CLAppHttpd::dumpSystemStatusToJson(char * buf, size_t size) {
 
     json_gen_obj_set_string(&jstr, (char*)"mdns_name", AppConn.getMDNSname());
     json_gen_obj_set_int(&jstr, (char*)"port", AppConn.getPort());
+
+    json_gen_obj_set_string(&jstr, (char*)"user", AppConn.getUser());
 
     byte mac[6];
     WiFi.macAddress(mac);
@@ -856,6 +874,10 @@ int CLAppHttpd::removeStreamClient(uint32_t client_id) {
         }    
     }
     return OS_FAIL;
+}
+
+void CLAppHttpd::cleanupWsClients() {
+    if(ws) ws->cleanupClients();
 }
 
 CLAppHttpd AppHttpd;

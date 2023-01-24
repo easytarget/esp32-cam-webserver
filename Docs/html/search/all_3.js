@@ -14,9 +14,11 @@ var searchData=
   ['clappcomponent_11',['CLAppComponent',['../class_c_l_app_component.html',1,'']]],
   ['clappconn_12',['CLAppConn',['../class_c_l_app_conn.html',1,'CLAppConn'],['../class_c_l_app_conn.html#a40ab21138b6b3280000a139da9784f58',1,'CLAppConn::CLAppConn()']]],
   ['clapphttpd_13',['CLAppHttpd',['../class_c_l_app_httpd.html',1,'CLAppHttpd'],['../class_c_l_app_httpd.html#ad921ac128d82e11c8170847b25970dea',1,'CLAppHttpd::CLAppHttpd()']]],
-  ['clstorage_14',['CLStorage',['../class_c_l_storage.html',1,'']]],
-  ['configmdns_15',['configMDNS',['../class_c_l_app_conn.html#ab12f6fe1f13192cdcf6c2243c0619a39',1,'CLAppConn']]],
-  ['configntp_16',['configNTP',['../class_c_l_app_conn.html#a17ffc56321ce2e765ae90d1b27ed10e2',1,'CLAppConn']]],
-  ['contributing_20to_20esp32_2dcam_20revisited_17',['Contributing to ESP32-CAM revisited',['../md__c_o_n_t_r_i_b_u_t_i_n_g.html',1,'']]],
-  ['contributing_2emd_18',['CONTRIBUTING.md',['../_c_o_n_t_r_i_b_u_t_i_n_g_8md.html',1,'']]]
+  ['cleanupwsclients_14',['cleanupWsClients',['../class_c_l_app_httpd.html#a36322e4ac13e2d8d8591107fbcad10cf',1,'CLAppHttpd']]],
+  ['clstorage_15',['CLStorage',['../class_c_l_storage.html',1,'']]],
+  ['configmdns_16',['configMDNS',['../class_c_l_app_conn.html#ab12f6fe1f13192cdcf6c2243c0619a39',1,'CLAppConn']]],
+  ['configntp_17',['configNTP',['../class_c_l_app_conn.html#a17ffc56321ce2e765ae90d1b27ed10e2',1,'CLAppConn']]],
+  ['contributing_20to_20esp32_2dcam_20revisited_18',['Contributing to ESP32-CAM revisited',['../md__c_o_n_t_r_i_b_u_t_i_n_g.html',1,'']]],
+  ['contributing_2emd_19',['CONTRIBUTING.md',['../_c_o_n_t_r_i_b_u_t_i_n_g_8md.html',1,'']]],
+  ['credentials_5fsize_20',['CREDENTIALS_SIZE',['../app__conn_8h.html#a247656421419103f78246ec01898a2f8',1,'app_conn.h']]]
 ];

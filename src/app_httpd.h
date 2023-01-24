@@ -11,17 +11,19 @@
 #include "app_conn.h"
 #include "app_cam.h"
 
-#define MAX_URI_MAPPINGS    32
+#define MAX_URI_MAPPINGS                32
 
 #define PWM_DEFAULT_FREQ                50
 #define PWM_DEFAULT_RESOLUTION_BITS     10
 
-#define DEFAULT_uS_LOW        544
-#define DEFAULT_uS_HIGH      2400
+#define DEFAULT_uS_LOW                  544
+#define DEFAULT_uS_HIGH                 2400
 
-#define DEFAULT_FLASH 0xFF
+#define DEFAULT_FLASH                   0xFF
 
-#define RESET_ALL_PWM       0
+#define RESET_ALL_PWM                   0
+
+#define SERIAL_BUFFER_SIZE              64
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,6 +71,8 @@ class CLAppHttpd : public CLAppComponent {
         int start();
         int loadPrefs();
         int savePrefs();
+
+        void cleanupWsClients();
 
         // register a client streaming video
         int addStreamClient(uint32_t client_id);
@@ -143,8 +147,8 @@ class CLAppHttpd : public CLAppComponent {
          * @param pin 
          */
         void resetPWM(uint8_t pin = RESET_ALL_PWM);
-        
 
+        
     private:
 
         UriMapping *mappingList[MAX_URI_MAPPINGS]; 
@@ -158,7 +162,7 @@ class CLAppHttpd : public CLAppComponent {
         // Can be re-defined in the httpd.json file
         char myName[32] = CAM_NAME;
 
-        char serialBuffer[64]="";
+        char serialBuffer[SERIAL_BUFFER_SIZE]="";
 
         AsyncWebServer *server;
         AsyncWebSocket *ws; 

@@ -7,6 +7,8 @@
 #include "app_config.h"
 #include "storage.h"
 
+#define TAG_LENGTH 20
+
 /**
  * @brief Abstract root class for the application components.
  * 
@@ -58,7 +60,7 @@ class CLAppComponent {
         // error code of the last error
         int last_err = 0;
 
-        char prefs[20] = "prefs.json";
+        char prefs[TAG_LENGTH] = "prefs.json";
 };
 
 #endif

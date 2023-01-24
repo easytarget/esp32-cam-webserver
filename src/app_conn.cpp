@@ -264,6 +264,10 @@ int CLAppConn::loadPrefs() {
         readIPFromJSON(&jctx, &apIP.netmask, (char*)"netmask");
         json_obj_leave_object(&jctx);
     }
+    
+    // User name and password
+    json_obj_get_string(&jctx, (char*)"user", user, sizeof(user));
+    json_obj_get_string(&jctx, (char*)"pwd", pwd, sizeof(pwd));
 
     // OTA
     json_obj_get_bool(&jctx, (char*)"ota_enabled", &otaEnabled);   
@@ -361,6 +365,8 @@ int CLAppConn::savePrefs() {
     if(staticIP.dns2) json_gen_obj_set_string(&jstr, "dns2", staticIP.dns2->toString().c_str());
     json_gen_pop_object(&jstr);    
     json_gen_obj_set_int(&jstr, "http_port", httpPort);
+    json_gen_obj_set_string(&jstr, (char*)"user", user);
+    json_gen_obj_set_string(&jstr, (char*)"pwd", pwd);
     json_gen_obj_set_bool(&jstr, "ota_enabled", otaEnabled);
     urlEncode(ebuf, otaPassword, sizeof(otaPassword));
     json_gen_obj_set_string(&jstr, "ota_password", ebuf);

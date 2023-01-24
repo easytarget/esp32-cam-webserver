@@ -1,7 +1,7 @@
 #ifndef app_cam_h
 #define app_cam_h
 
-#define CAM_DUMP_BUFFER_SIZE   640
+#define CAM_DUMP_BUFFER_SIZE   1024
 
 #include <esp_camera.h>
 #include <esp_int_wdt.h>
@@ -39,9 +39,9 @@ class CLAppCam : public CLAppComponent {
         int getRotation() {return myRotation;};
 
         int snapToBuffer();
-        uint8_t * getBuffer() {return (fb?fb->buf:nullptr);};
-        size_t getBufferSize() {return (fb?fb->len:0);};
-        bool isJPEGinBuffer() {return (fb?fb->format == PIXFORMAT_JPEG:false);};
+        uint8_t * IRAM_ATTR getBuffer() {return (fb?fb->buf:nullptr);};
+        size_t IRAM_ATTR getBufferSize() {return (fb?fb->len:0);};
+        bool IRAM_ATTR isJPEGinBuffer() {return (fb?fb->format == PIXFORMAT_JPEG:false);};
         void releaseBuffer(); 
 
         void dumpStatusToJson(json_gen_str_t * jstr, bool full_status = true);

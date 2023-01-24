@@ -4,7 +4,7 @@ var searchData=
   ['readjsonintval_1',['readJsonIntVal',['../class_c_l_app_component.html#a71c8d2c309383c0a5c05fbf6de90f1c8',1,'CLAppComponent']]],
   ['readme_2emd_2',['README.md',['../_r_e_a_d_m_e_8md.html',1,'']]],
   ['refresh_5fusec_3',['REFRESH_USEC',['../esp32pwm_8h.html#a5804a4242d2b0ff3e6156ae62c2b5021',1,'esp32pwm.h']]],
-  ['releasebuffer_4',['releaseBuffer',['../class_c_l_app_cam.html#aaf9c6d7306c5122eb6766011b8fc4c4c',1,'CLAppCam']]],
+  ['releasebuffer_4',['releaseBuffer',['../class_c_l_app_cam.html#a1311e63ad1dc154ec9f0c95acbed98a7',1,'CLAppCam']]],
   ['remove_5',['remove',['../class_c_l_storage.html#afa5139f3590aba42b3de2c8e1786a43b',1,'CLStorage']]],
   ['removeprefs_6',['removePrefs',['../class_c_l_app_component.html#af763174f3eed76761a2eeab9aa845e6a',1,'CLAppComponent']]],
   ['removestreamclient_7',['removeStreamClient',['../class_c_l_app_httpd.html#ae332523260d4aa6ca7ff5ff53df4e373',1,'CLAppHttpd']]],

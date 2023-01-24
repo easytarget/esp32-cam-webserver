@@ -113,7 +113,7 @@ the `<key>` parameter.
   * Returns:
 
     ```json  
-    {"cam_name":"ESP32 CAM Web Server","stream_url":"http://<ip:port>/view?mode=stream","code_ver":"Jan  7 2023 @ 19:16:55","lamp":0,"autolamp":false,"lamp":0,"flashlamp":0,"rotate":0,"xclk":8,"frame_rate":12,"framesize":8,"quality":12,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"denoise":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":204,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":0,"hmirror":0,"dcw":1,"colorbar":0,"cam_pid":38,"cam_ver":66,"debug_mode":false}
+    {"cam_name":"ESP32 CAM Web Server","code_ver":"Jan  7 2023 @ 19:16:55","lamp":0,"autolamp":false,"lamp":0,"flashlamp":0,"rotate":0,"xclk":8,"frame_rate":12,"framesize":8,"quality":12,"brightness":0,"contrast":0,"saturation":0,"sharpness":0,"denoise":0,"special_effect":0,"wb_mode":0,"awb":1,"awb_gain":1,"aec":1,"aec2":0,"ae_level":0,"aec_value":204,"agc":1,"agc_gain":0,"gainceiling":0,"bpc":0,"wpc":1,"raw_gma":1,"lenc":1,"vflip":0,"hmirror":0,"dcw":1,"colorbar":0,"cam_pid":38,"cam_ver":66,"debug_mode":false}
     ```
 * Reboot the camera
   * `http://<IP-ADDRESS>/control?var=reboot&val=0`

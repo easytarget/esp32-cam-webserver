@@ -1,6 +1,8 @@
 {   "mdns_name":"esp32cam",
     "dhcp":true,
     "http_port":80,
+    "user":"admin",
+    "pwd":"admin",
     "ota_enabled":false,
     "ota_password":"changeit!",
     "accesspoint":false,

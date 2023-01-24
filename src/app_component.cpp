@@ -2,13 +2,13 @@
 
 char * CLAppComponent::getPrefsFileName(bool forsave) {
     if(tag) {
-        sprintf(prefs, "/%s.json", tag);
+        snprintf(prefs, TAG_LENGTH, "/%s.json", tag);
         configured = Storage.exists(prefs);
         if(configured || forsave)
             return prefs;
         else {
             Serial.printf("Pref file %s not found, falling back to default\r\n", prefs);
-            sprintf(prefs, "/default_%s.json", tag);
+            snprintf(prefs, TAG_LENGTH, "/default_%s.json", tag);
             return prefs;
         }
     }

@@ -29,8 +29,7 @@
     const urlParams = new URLSearchParams(location.search);
     var viewMode = 'still';
 
-
-    const streamURL = 'ws://' + location.hostname + ':' + location.port + '/ws';
+    var streamURL = ( location.protocol === 'https:'?'wss://':'ws://') + location.hostname + ':' + location.port + '/ws';
 
     const ws = new WebSocket(streamURL);
 
@@ -39,7 +38,6 @@
     const spinner = document.getElementById('wait-settings');
 
     var img_rec = false;
-
 
     const updateValue = (el, value, updateRemote) => {
       updateRemote = updateRemote == null ? true : updateRemote

@@ -142,10 +142,11 @@ int CLAppCam::savePrefs(){
     char * prefs_file = getPrefsFileName(true); 
 
     if (Storage.exists(prefs_file)) {
-        Serial.printf("Updating %s\r\n", prefs_file);
+        Serial.print("Updating "); 
     } else {
-        Serial.printf("Creating %s\r\n", prefs_file);
+        Serial.print("Creating ");
     }
+    Serial.println(prefs_file);
     
     char buf[CAM_DUMP_BUFFER_SIZE];
     json_gen_str_t jstr;
@@ -164,19 +165,19 @@ int CLAppCam::savePrefs(){
         return OK;
     }
     else {
-        Serial.printf("Failed to save camera preferences to file %s\r\n", prefs_file);
+        Serial.print("Failed to save camera preferences to file "); Serial.println(prefs_file);
         return FAIL;
     }
 
 }
 
-int CLAppCam::snapToBuffer() {
+int IRAM_ATTR CLAppCam::snapToBuffer() {
     fb = esp_camera_fb_get();
 
     return (fb?ESP_OK:ESP_FAIL);
 }
 
-void CLAppCam::releaseBuffer() {
+void IRAM_ATTR CLAppCam::releaseBuffer() {
     if(fb) {
         esp_camera_fb_return(fb);
         fb = NULL;
@@ -188,13 +189,16 @@ void CLAppCam::dumpStatusToJson(json_gen_str_t * jstr, bool full_status) {
     
     json_gen_obj_set_int(jstr, (char*)"rotate", myRotation);
     
-    if(getLastErr() || !full_status) return;
-
-    json_gen_obj_set_int(jstr, (char*)"xclk", xclk);
-    json_gen_obj_set_int(jstr, (char*)"frame_rate", frameRate);
+    if(getLastErr()) return;
 
     sensor_t * s = esp_camera_sensor_get();
+    json_gen_obj_set_int(jstr, (char*)"cam_pid", s->id.PID);
+    json_gen_obj_set_int(jstr, (char*)"cam_ver", s->id.VER);        
     json_gen_obj_set_int(jstr, (char*)"framesize", s->status.framesize);
+    json_gen_obj_set_int(jstr, (char*)"frame_rate", frameRate);   
+    
+    if(!full_status) return;
+
     json_gen_obj_set_int(jstr, (char*)"quality", s->status.quality);
     json_gen_obj_set_int(jstr, (char*)"brightness", s->status.brightness);
     json_gen_obj_set_int(jstr, (char*)"contrast", s->status.contrast);
@@ -220,9 +224,9 @@ void CLAppCam::dumpStatusToJson(json_gen_str_t * jstr, bool full_status) {
     json_gen_obj_set_int(jstr, (char*)"hmirror", s->status.hmirror);
     json_gen_obj_set_int(jstr, (char*)"dcw", s->status.dcw);
     json_gen_obj_set_int(jstr, (char*)"colorbar", s->status.colorbar);
-    json_gen_obj_set_int(jstr, (char*)"cam_pid", s->id.PID);
-    json_gen_obj_set_int(jstr, (char*)"cam_ver", s->id.VER);    
     json_gen_obj_set_bool(jstr, (char*)"debug_mode", isDebugMode());
+
+    json_gen_obj_set_int(jstr, (char*)"xclk", xclk); 
 
 }
 

@@ -95,6 +95,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af530618baf6452852e39524efa4fd365"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae148f357fde98a0da866b9990cfd1c20"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#ae148f357fde98a0da866b9990cfd1c20">savePrefs</a> ()</td></tr>
 <tr class="separator:ae148f357fde98a0da866b9990cfd1c20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36322e4ac13e2d8d8591107fbcad10cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a36322e4ac13e2d8d8591107fbcad10cf">cleanupWsClients</a> ()</td></tr>
+<tr class="separator:a36322e4ac13e2d8d8591107fbcad10cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63d4be662678fa3ea9a8b44b5d42e03c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a63d4be662678fa3ea9a8b44b5d42e03c">addStreamClient</a> (uint32_t client_id)</td></tr>
 <tr class="separator:a63d4be662678fa3ea9a8b44b5d42e03c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae332523260d4aa6ca7ff5ff53df4e373"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#ae332523260d4aa6ca7ff5ff53df4e373">removeStreamClient</a> (uint32_t client_id)</td></tr>
@@ -113,8 +115,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7f0287888c88a2dd7939a22789b9c4f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2db88a341da481eff2270d5fa8d607a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a2db88a341da481eff2270d5fa8d607a3">incImagesServed</a> ()</td></tr>
 <tr class="separator:a2db88a341da481eff2270d5fa8d607a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e52f72c1d20cf6420e2f17b0b521da4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a4e52f72c1d20cf6420e2f17b0b521da4">snapToStream</a> (bool debug=false)</td></tr>
-<tr class="separator:a4e52f72c1d20cf6420e2f17b0b521da4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acffcdf9fc6ae30371f62c8a7ac7b4f9a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#acffcdf9fc6ae30371f62c8a7ac7b4f9a">snapToStream</a> (bool debug=false)</td></tr>
+<tr class="separator:acffcdf9fc6ae30371f62c8a7ac7b4f9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a071a53aa74f989696b630d2eeb86bc52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="app__httpd_8h.html#a49b2fc77b667a1630ea42a25e221482d">StreamResponseEnum</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a071a53aa74f989696b630d2eeb86bc52">startStream</a> (uint32_t id, <a class="el" href="app__httpd_8h.html#acc448de68cb13f9577db9486eb36aa80">CaptureModeEnum</a> stream_mode)</td></tr>
 <tr class="separator:a071a53aa74f989696b630d2eeb86bc52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17207c9fd26083c92e51720e97e3cc92"><td class="memItemLeft" align="right" valign="top"><a class="el" href="app__httpd_8h.html#a49b2fc77b667a1630ea42a25e221482d">StreamResponseEnum</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_httpd.html#a17207c9fd26083c92e51720e97e3cc92">stopStream</a> (uint32_t id)</td></tr>
@@ -281,6 +283,23 @@ Additional Inherited Members</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>int </dd></dl>
+
+</div>
+</div>
+<a id="a36322e4ac13e2d8d8591107fbcad10cf" name="a36322e4ac13e2d8d8591107fbcad10cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36322e4ac13e2d8d8591107fbcad10cf">&#9670;&nbsp;</a></span>cleanupWsClients()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CLAppHttpd::cleanupWsClients </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -913,14 +932,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a4e52f72c1d20cf6420e2f17b0b521da4" name="a4e52f72c1d20cf6420e2f17b0b521da4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e52f72c1d20cf6420e2f17b0b521da4">&#9670;&nbsp;</a></span>snapToStream()</h2>
+<a id="acffcdf9fc6ae30371f62c8a7ac7b4f9a" name="acffcdf9fc6ae30371f62c8a7ac7b4f9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acffcdf9fc6ae30371f62c8a7ac7b4f9a">&#9670;&nbsp;</a></span>snapToStream()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int CLAppHttpd::snapToStream </td>
+          <td class="memname">int IRAM_ATTR CLAppHttpd::snapToStream </td>
           <td>(</td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>debug</em> = <code>false</code></td><td>)</td>

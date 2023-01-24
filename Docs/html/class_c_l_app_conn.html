@@ -146,8 +146,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a790ba7c0b56edae2de159abf29f0127b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae243b486cbd9ac417ff050df27bab72f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#ae243b486cbd9ac417ff050df27bab72f">getHTTPUrl</a> ()</td></tr>
 <tr class="separator:ae243b486cbd9ac417ff050df27bab72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b240d40a51a7d76f22be73b2563b412"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a3b240d40a51a7d76f22be73b2563b412">getStreamUrl</a> ()</td></tr>
-<tr class="separator:a3b240d40a51a7d76f22be73b2563b412"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fa2c289453dd0849fe5d982d6b0ff59"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a6fa2c289453dd0849fe5d982d6b0ff59">getPort</a> ()</td></tr>
 <tr class="separator:a6fa2c289453dd0849fe5d982d6b0ff59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a070b7374e82ecb50e90e8356a7a9e488"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a070b7374e82ecb50e90e8356a7a9e488">setPort</a> (int port)</td></tr>
@@ -184,6 +182,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac3116acd85cb131735ed6bbb668f39cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a4f24949950433f1672c3db6af49dde"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a9a4f24949950433f1672c3db6af49dde">printLocalTime</a> (bool extraData=false)</td></tr>
 <tr class="separator:a9a4f24949950433f1672c3db6af49dde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a664465cb799202a4368146ec7736b417"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a664465cb799202a4368146ec7736b417">getUser</a> ()</td></tr>
+<tr class="separator:a664465cb799202a4368146ec7736b417"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68625561797201d5b72200a699888ec6"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a68625561797201d5b72200a699888ec6">getPwd</a> ()</td></tr>
+<tr class="separator:a68625561797201d5b72200a699888ec6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4012fb28dafb8bcffd7ab6eeff638a66"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a4012fb28dafb8bcffd7ab6eeff638a66">setUser</a> (const char *val)</td></tr>
+<tr class="separator:a4012fb28dafb8bcffd7ab6eeff638a66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b86ca63e5cc3a86cc88b69c369411ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_conn.html#a0b86ca63e5cc3a86cc88b69c369411ec">setPwd</a> (const char *val)</td></tr>
+<tr class="separator:a0b86ca63e5cc3a86cc88b69c369411ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_c_l_app_component"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_c_l_app_component')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_c_l_app_component.html">CLAppComponent</a></td></tr>
 <tr class="memitem:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_c_l_app_component.html#a7e64a4c55bd1f3216c507101835392b5">start</a> ()</td></tr>
 <tr class="separator:a7e64a4c55bd1f3216c507101835392b5 inherit pub_methods_class_c_l_app_component"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -553,6 +559,31 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a68625561797201d5b72200a699888ec6" name="a68625561797201d5b72200a699888ec6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68625561797201d5b72200a699888ec6">&#9670;&nbsp;</a></span>getPwd()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char * CLAppConn::getPwd </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a71dcb95711f410222bacc42527fe837c" name="a71dcb95711f410222bacc42527fe837c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a71dcb95711f410222bacc42527fe837c">&#9670;&nbsp;</a></span>getSSID()</h2>
 
@@ -603,8 +634,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a3b240d40a51a7d76f22be73b2563b412" name="a3b240d40a51a7d76f22be73b2563b412"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b240d40a51a7d76f22be73b2563b412">&#9670;&nbsp;</a></span>getStreamUrl()</h2>
+<a id="a05b74d2731b9c2220c431e354b1b55a5" name="a05b74d2731b9c2220c431e354b1b55a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05b74d2731b9c2220c431e354b1b55a5">&#9670;&nbsp;</a></span>getUpTimeStr()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -613,7 +644,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">char * CLAppConn::getStreamUrl </td>
+          <td class="memname">char * CLAppConn::getUpTimeStr </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -628,8 +659,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a05b74d2731b9c2220c431e354b1b55a5" name="a05b74d2731b9c2220c431e354b1b55a5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05b74d2731b9c2220c431e354b1b55a5">&#9670;&nbsp;</a></span>getUpTimeStr()</h2>
+<a id="a664465cb799202a4368146ec7736b417" name="a664465cb799202a4368146ec7736b417"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a664465cb799202a4368146ec7736b417">&#9670;&nbsp;</a></span>getUser()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -638,7 +669,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">char * CLAppConn::getUpTimeStr </td>
+          <td class="memname">char * CLAppConn::getUser </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -1245,6 +1276,32 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a0b86ca63e5cc3a86cc88b69c369411ec" name="a0b86ca63e5cc3a86cc88b69c369411ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b86ca63e5cc3a86cc88b69c369411ec">&#9670;&nbsp;</a></span>setPwd()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CLAppConn::setPwd </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa952573f6e22c4d31375d4359034d9ea" name="aa952573f6e22c4d31375d4359034d9ea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa952573f6e22c4d31375d4359034d9ea">&#9670;&nbsp;</a></span>setSSID()</h2>
 
@@ -1295,6 +1352,32 @@ Additional Inherited Members</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4012fb28dafb8bcffd7ab6eeff638a66" name="a4012fb28dafb8bcffd7ab6eeff638a66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4012fb28dafb8bcffd7ab6eeff638a66">&#9670;&nbsp;</a></span>setUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void CLAppConn::setUser </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>

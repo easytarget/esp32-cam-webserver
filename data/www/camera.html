@@ -66,7 +66,6 @@
     const streamButton = document.getElementById('toggle-stream');
     const closeButton = document.getElementById('close-stream');
 
-
     const networkButton = document.getElementById('nw-setup');
     const monitorButton = document.getElementById('monitor');
 
@@ -123,8 +122,6 @@
       setLightSlider(true);
       show(viewContainer);
     }
-
-
 
     const applyRotation = (el) => {
       rot = el.value;
@@ -192,6 +189,7 @@
           console.log("Camera (PID=" + state['cam_pid'] + " not recognized, default to " + cam_model.name);
         }
         var menu = document.getElementById("menu")
+        state['stream_url'] = ( location.protocol === 'https:'?'wss://':'ws://') + location.hostname + ':' + location.port + '/ws';
         updateFormFieldDefs(cameraFormFields, cam_model.fieldupdates);
         addFormFields(menu, cameraFormFields, selectOptions, cam_model.optionfilters);
         addPreferences(menu);

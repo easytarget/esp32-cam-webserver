@@ -94,6 +94,7 @@ void loop() {
             handleSerial();
             AppConn.handleDNSRequest();
         }
+        AppHttpd.cleanupWsClients();
     } else {
         // client mode can fail; so reconnect as appropriate
 
@@ -105,6 +106,7 @@ void loop() {
                 AppConn.handleOTA();
                 handleSerial();
             }
+            AppHttpd.cleanupWsClients();
         } else {
             // disconnected; notify 
             notifyDisconnect();
@@ -148,7 +150,7 @@ void handleSerial() {
         if (cmd == '#' ) {
             String rsp = Serial.readStringUntil('\n');
             rsp.trim();
-            sprintf(AppHttpd.getSerialBuffer(), rsp.c_str());
+            snprintf(AppHttpd.getSerialBuffer(), SERIAL_BUFFER_SIZE, rsp.c_str());
         }
     }
 }

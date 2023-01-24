@@ -80,6 +80,7 @@ Key features:</h2>
 <li>Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.</li>
 <li>Using just one IP port, easy for proxying.</li>
 <li>Multi-streaming support (display video in two or more browser sessions)</li>
+<li>Supporting basic authentication</li>
 <li>Porting the web server to <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESP Async Web Server</a>.</li>
 <li>Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card or the built-in flash formatted as LittleFS). This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.</li>
 <li>Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors</li>
@@ -148,7 +149,9 @@ Initial configuration</h2>
 <div class="line">mDNS responder started</div>
 <div class="line">Added HTTP service to MDNS server</div>
 <div class="line">Connected</div>
-</div><!-- fragment --><p >Connected to the access point and open the url <a href="http://192.168.4.1/">http://192.168.4.1/</a>. You should see the following page: </p><div align="center"> <img src="assets/wifi-setup-ap.png" alt="" width="350" class="inline"/> </div><p >Switch the Access Point Mode off. The screen will change as follows: </p><div align="center"> <img src="assets/wifi-setup.png" alt="" width="350" class="inline"/> </div><p >Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure your wifi router has this band enabled.</p>
+</div><!-- fragment --><p >Connected to the access point and open the url <a href="http://192.168.4.1/">http://192.168.4.1/</a>. Default user name and password is <code>admin/admin</code>. You should see the following page:</p>
+<div align="center"> <img src="assets/wifi-setup-ap.png" alt="" width="350" class="inline"/> </div><p >Switch the Access Point Mode off. The screen will change as follows:</p>
+<div align="center"> <img src="assets/wifi-setup.png" alt="" width="350" class="inline"/> </div><p >Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure your wifi router has this band enabled.</p>
 <p >Set up your preferred NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not leave it empty or default.</p>
 <p >Click <code>Save</code> and then <code>Reboot</code>. If everything is configured correctly, the ESP32CAM board will restart and connect to your wifi automatically. The assigned IP address can be seen in the Serial Monitor logs.</p>
 <p >Open the browser and navigate to <a href="http://">http://</a>&lt;YOUR_IP_ADDRESS:YOUR_PORT&gt;/ (for example, <a href="http://192.168.0.2:8080">http://192.168.0.2:8080</a>)</p>
@@ -173,6 +176,8 @@ Network Configuration (/conn.json)</h3>
 <div class="line">    &quot;static_ip&quot;: {&quot;ip&quot;:&quot;192.168.0.2&quot;, &quot;netmask&quot;:&quot;255.255.255.0&quot;, &quot;gateway&quot;:&quot;192.168.0.1&quot;, </div>
 <div class="line">                  &quot;dns1&quot;:&quot;192.168.0.1&quot;, &quot;dns2&quot;:&quot;8.8.8.8&quot;},</div>
 <div class="line">    &quot;http_port&quot;:80,</div>
+<div class="line">    &quot;user&quot;:&quot;admin&quot;,</div>
+<div class="line">    &quot;password&quot;:&quot;admin&quot;,</div>
 <div class="line">    &quot;ota_enabled&quot;:true,</div>
 <div class="line">    &quot;ota_password&quot;:&quot;YOUR_OTA_PASSWORD&quot;,</div>
 <div class="line">    &quot;accesspoint&quot;:false,</div>

@@ -12,7 +12,9 @@
 #include "app_component.h"
 #include "app_cam.h"
 
-#define MAX_KNOWN_STATIONS  5
+#define MAX_KNOWN_STATIONS              5
+
+#define CREDENTIALS_SIZE                32
 
 /**
  * @brief WiFi connectivity details (SSID/password).
@@ -73,7 +75,7 @@ class CLAppConn : public CLAppComponent {
         wl_status_t wifiStatus() {return (accesspoint?ap_status:WiFi.status());};
 
         char * getHTTPUrl(){ return httpURL;};
-        char * getStreamUrl(){ return streamURL;};
+        // char * getStreamUrl(){ return streamURL;};
         int getPort() {return httpPort;};
         void setPort(int port) {httpPort = port;};
 
@@ -97,6 +99,11 @@ class CLAppConn : public CLAppComponent {
         void updateTimeStr();
 
         void printLocalTime(bool extraData=false);
+
+        char * getUser() {return user;};
+        char * getPwd() {return pwd;};
+        void setUser(const char * val) {snprintf(user, sizeof(user), val);};
+        void setPwd(const char * val) {snprintf(pwd, sizeof(pwd), val);}
 
     private:
         int getSSIDIndex();
@@ -142,6 +149,10 @@ class CLAppConn : public CLAppComponent {
 
         // HTTP Port. Can be overriden during IP setup
         int httpPort = 80;
+        
+        // user name and password
+        char user[CREDENTIALS_SIZE] = "admin";
+        char pwd[CREDENTIALS_SIZE] = "admin";
 
         // OTA parameters
         bool otaEnabled = false;
