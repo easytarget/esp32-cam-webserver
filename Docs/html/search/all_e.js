@@ -10,5 +10,6 @@ var searchData=
   ['removestreamclient_7',['removeStreamClient',['../class_c_l_app_httpd.html#ae332523260d4aa6ca7ff5ff53df4e373',1,'CLAppHttpd']]],
   ['reset_8',['reset',['../class_e_s_p32_p_w_m.html#ac9c00a1b3bcb198a32b2c73d4d37d9cf',1,'ESP32PWM']]],
   ['reset_5fall_5fpwm_9',['RESET_ALL_PWM',['../app__httpd_8h.html#a7ebf99c5d4c689e701986b3514f11a62',1,'app_httpd.h']]],
-  ['resetpwm_10',['resetPWM',['../class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b',1,'CLAppHttpd']]]
+  ['reset_5fgpio_5fnum_10',['RESET_GPIO_NUM',['../camera__pins_8h.html#a5c7f6f1de30b1a82b0c3114875188e63',1,'camera_pins.h']]],
+  ['resetpwm_11',['resetPWM',['../class_c_l_app_httpd.html#ad36b8d25c9e6b1ac2fc2a2502763998b',1,'CLAppHttpd']]]
 ];

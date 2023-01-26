@@ -1,7 +1,8 @@
 var searchData=
 [
-  ['serial_5fbuffer_5fsize_0',['SERIAL_BUFFER_SIZE',['../app__httpd_8h.html#aaa07390e6158db5d82d40510d2ae02d5',1,'app_httpd.h']]],
-  ['storage_5funits_1',['STORAGE_UNITS',['../storage_8h.html#a41be8b1964027c1f9ddfc1e01af3f261',1,'storage.h']]],
-  ['storage_5funits_5fbt_2',['STORAGE_UNITS_BT',['../storage_8h.html#a58de0b755f7c8d4e84b9be13013c03d2',1,'storage.h']]],
-  ['storage_5funits_5fmb_3',['STORAGE_UNITS_MB',['../storage_8h.html#acfefb2c2a43c05d5c979ef54f7030a34',1,'storage.h']]]
+  ['pclk_5fgpio_5fnum_0',['PCLK_GPIO_NUM',['../camera__pins_8h.html#ad65308c6f2f23570174a6833aacad785',1,'camera_pins.h']]],
+  ['pwdn_5fgpio_5fnum_1',['PWDN_GPIO_NUM',['../camera__pins_8h.html#acd94fd0cc9c4019e56a4ee5bbae46187',1,'camera_pins.h']]],
+  ['pwm_5fbase_5findex_2',['PWM_BASE_INDEX',['../esp32pwm_8h.html#a5dd6108cc275a92e30ff3fb9b28bf9d3',1,'esp32pwm.h']]],
+  ['pwm_5fdefault_5ffreq_3',['PWM_DEFAULT_FREQ',['../app__httpd_8h.html#a8791ebb56b256ad962ec5e05162c78e7',1,'app_httpd.h']]],
+  ['pwm_5fdefault_5fresolution_5fbits_4',['PWM_DEFAULT_RESOLUTION_BITS',['../app__httpd_8h.html#a1103a8e595e190825db719eaed2b5d5a',1,'app_httpd.h']]]
 ];

@@ -3,7 +3,11 @@
 
 #include <FS.h>
 
+#if __has_include("../myconfig.h")
+#include "../myconfig.h"
+#else
 #include "app_config.h"
+#endif
 
 #define STORAGE_UNITS_BT 0
 #define STORAGE_UNITS_MB 2
@@ -12,6 +16,10 @@
 #include <LITTLEFS.h>
 #define FORMAT_LITTLEFS_IF_FAILED true
 #define STORAGE_UNITS STORAGE_UNITS_BT
+#elif defined(CAMERA_MODEL_LILYGO_T_SIMCAM)
+#include "camera_pins.h"
+#include "SD.h"
+#define STORAGE_UNITS STORAGE_UNITS_MB
 #else
 #include "SD_MMC.h"
 #define STORAGE_UNITS STORAGE_UNITS_MB
@@ -47,6 +55,8 @@ class CLStorage {
 
 #ifdef USE_LittleFS
         fs::LITTLEFSFS & getFS() {return *fsStorage;};
+#elif defined(CAMERA_MODEL_LILYGO_T_SIMCAM)
+        fs::SDFS & getFS() {return *fsStorage;};
 #else
         fs::SDMMCFS & getFS() {return *fsStorage;};
 #endif        
@@ -54,6 +64,8 @@ class CLStorage {
     private:
 #ifdef USE_LittleFS
         fs::LITTLEFSFS * const fsStorage = &LITTLEFS;
+#elif defined(CAMERA_MODEL_LILYGO_T_SIMCAM)
+        fs::SDFS * const fsStorage = &SD;
 #else
         fs::SDMMCFS * const fsStorage = &SD_MMC; 
 #endif

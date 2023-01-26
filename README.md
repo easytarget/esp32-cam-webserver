@@ -1,6 +1,6 @@
 # ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](assets/logo.svg)</span>
 
-This sketch is a fully customizable webcam server based on ESP32-based board with camera. 
+This sketch is a fully customizable webcam server based on ESP32-S/ESP32-S3 - based board with camera. 
 It can be used as a starting point for your own webcam solution. 
 
 There are many other variants of a webcam server for these modules online, 
@@ -22,11 +22,23 @@ webcam use.
 or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.
 * Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors 
 * Compact size of the sketch and low memory utilization
+* Support of new ESP32-S3 board (LILYGO T-SIMCAM)
 
   
 ### Supported development boards ###
-The sketch has been tested on the [AI Thinker ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) 
-module. Other ESP32 boards equipped with camera may be compatible but not guaranteed.
+The sketch has been tested on the following boards:
+
+* [AI Thinker ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) 
+module. 
+* [LILYGO T-SIMCAM](https://github.com/Xinyuan-LilyGO/LilyGo-Camera-Series)
+
+Other ESP32-S/ESP32-S3 boards equipped with camera may be supported/compatible but not guaranteed.
+
+In order to compile this sketch for a supported board, please do the following:
+
+1. Copy the `src/app_config.h` file to the root folder (where esp32-cam-webserver.ino sketch is located), rename it to `myconfig.h` 
+2. Open this file in a text editor and then search and replace `app_config_h` with `myconfig_h`. 
+3. Uncomment the line corresponding to your board model. Please ensure only one line is uncommented!
 
 ### Supported camera models:
 The sketch has been tested on the following camera models:
@@ -37,6 +49,8 @@ The sketch has been tested on the following camera models:
 Other camera models are not supported but may work with some limitations. 
 
 ### Known Issues
+
+#### AI-Thinker ESP32-CAM 
 
 The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having 
 small antennas, older designs, congested airwaves and demanding users. The majority of 
@@ -51,25 +65,35 @@ This implementation does not support MJPEG video stream format and there is no p
 support it in future. Video streaming is implemented with help of WebSocket API,
 please read [documentation](API.md) for more details.
 
+#### LILYGO T-SIMCAM
+
+To be discovered. The board is relatively stable so far. 
+
 ## Setup:
 
 * For programming you will need a suitable development environment. Possible options
   include Visual Studio Code, Arduino Studio or Espressif development environment .
 
-### Wiring for AI-THINKER Boards (and similar clone-alikes)
+### Wiring for AI-THINKER Board (and similar clone-alikes without USB port)
 
 Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below.
 ![Hoockup](assets/hookup.png)
 
-* Connect the **RX** line from the serisal adapter to the **TX** pin on ESP32
+* Connect the **RX** line from the serisal adapter to the **TX** pin on AI-THINKER board
 * The adapters **TX** line goes to the ESP32 **RX** pin
-* The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is 
+* The **GPIO0** pin of the AI-THINKER must be held LOW (to ground) when the unit is 
   powered up to allow it to enter it's programming mode. This can be done with simple 
   jumper cable connected at power on, fitting a switch for this is useful if you 
   will be reprogramming a lot.
-* You will to supply 5v to the ESP32 in order to power it during programming; the FTDI 
-  board alone fails to supply this sometimes. The ESP32 CAM board is very sensitive 
+* You will to supply 5v to the AI-THINKER in order to power it during programming; the FTDI 
+  board alone fails to supply this sometimes. The AI-THINKER CAM board is very sensitive 
   to the quality of power source. Decoupling capacitors are very much recommended.
+
+### Connecting LILYGO T-SIMCAM
+
+This board is equipped with USB-C, so all you need is a USB-C port on your PC and a cable. It has the reset and 
+programming push buttons already so no breadboarding / external connections other than USB-C required. In 
+order to program, press both buttons simultaneously.
 
 ### Download the Sketch, Unpack and compile
 Download the latest release of the sketch from this repository. Once you have done that you 
@@ -185,7 +209,7 @@ This file can be also updated via the Web UI.
                   "dns1":"192.168.0.1", "dns2":"8.8.8.8"},
     "http_port":80,
     "user":"admin",
-    "password":"admin",
+    "pwd":"admin",
     "ota_enabled":true,
     "ota_password":"YOUR_OTA_PASSWORD",
     "accesspoint":false,
@@ -208,6 +232,7 @@ This file can be also updated via the Web UI.
     "lamp":0,
     "autolamp":true,
     "flashlamp":100,
+    "max_streams":2,
     "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}],
     "mapping":[ {"uri":"/img", "path": "/www/img"},
                 {"uri":"/css", "path": "/www/css"},
@@ -256,6 +281,8 @@ The parameter `mapping` allows to configure folders with static content for the 
 
 ### Programming
 
+#### AI-Thinker ESP32-CAM
+
 Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board 
 will appear in the ESP32 Arduino section of the boards list. Select this (do not use 
 the `AI-THINKER` entry listed in the boards menu, it is not OTA compatible, and will 
@@ -279,6 +306,14 @@ Once you have the initial upload done and the board is connected to the wifi net
 you should see it appearing in the `network ports` list of the IDE, and you can upload 
 wirelessly.
 
+#### LILYGO T-SIMCAM
+
+In order to program this board, use the settings as below:
+
+![IDE board config](assets/liligo-ota-board-selection.png)
+
+Please ensure to check all the parameters before uploading as shown above, this is important.
+
 ### Accessing the video stream
 If you need to access the video stream or take still images in a full screen mode (without 
 the camera controls), the following URLs can be used:
@@ -287,8 +322,8 @@ the camera controls), the following URLs can be used:
 * `http://<your_ip:your_port>/view?mode=stream` - video stream is displayed
 
 The number of parallel video streams is  limited to 2 (two) by default.  If you need more 
-parallel video streams supported, you can change the `MAX_VIDEO_STREAMS` parameter in the 
-**app_config.h** and re-build/upload the sketch to the board. 
+parallel video streams supported, you can change the `max_streams` parameter in the 
+**httpd.json** config file. 
 
 ### API
 The communications between the web browser and the camera module can also be used to 
@@ -302,7 +337,6 @@ Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING
 
 ## Future plans
 
-1. Support HTTPS and user credential when accessing the Web UI, Websocket and API
-2. Support of other boards and cameras.
-3. Explore how to improve the video quality and further reduce requirements to resources.
+1. Support of other boards and cameras, as well as their extended capabilities. 
+2. Explore how to improve the video quality and further reduce requirements to resources.
 

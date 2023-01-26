@@ -38,7 +38,12 @@ bool CLStorage::init() {
 #ifdef USE_LittleFS
   return fsStorage->begin(FORMAT_LITTLEFS_IF_FAILED);
 #else
+#if defined(CAMERA_MODEL_LILYGO_T_SIMCAM)
+  SPI.begin(SD_SCLK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
+  if(!fsStorage->begin(SD_CS_PIN, SPI)) return false;
+#else
   if(!fsStorage->begin("/root", true, false, SDMMC_FREQ_DEFAULT)) return false;
+#endif
 
   uint8_t cardType = fsStorage->cardType();
 

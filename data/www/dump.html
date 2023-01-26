@@ -106,8 +106,7 @@
                 bodyHtml += 'CPU Freq: ' + data.cpu_freq + ' MHz, Xclk: ' + data.xclk + 
                             ', Cores: ' + data.num_cores + '<br>';
                 
-                var temp_c = ((data.esp_temp - 32) / 1.8).toFixed(0);  
-                bodyHtml += 'MCU Temp: ' + temp_c + ' &deg;C, ' + data.esp_temp + ' &deg;F<br>';
+                bodyHtml += 'MCU Temp: ' + data.esp_temp + ' &deg;C<br>';
 
                 bodyHtml += 'Heap: ' + data.heap_avail + 
                             ', free: ' + data.heap_free + 

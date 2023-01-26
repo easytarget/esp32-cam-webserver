@@ -6,6 +6,9 @@ CLAppHttpd::CLAppHttpd() {
     sketchSpace = ESP.getFreeSketchSpace();
     sketchMD5 = ESP.getSketchMD5();
     setTag("httpd");
+#ifdef CAMERA_MODEL_AI_THINKER
+    setPrefix("aithinker");
+#endif
 }
 
 void IRAM_ATTR onSnapTimer(TimerHandle_t pxTimer){
@@ -212,7 +215,7 @@ StreamResponseEnum CLAppHttpd::startStream(uint32_t id, CaptureModeEnum streammo
     
     // if video stream requested, check if we can add extra
     if(streammode == CAPTURE_STREAM) {
-        if(streamCount+1 > MAX_VIDEO_STREAMS) return STREAM_NUM_EXCEEDED;
+        if(streamCount+1 > max_streams) return STREAM_NUM_EXCEEDED;
         if(addStreamClient(id) != OS_SUCCESS) return STREAM_CLIENT_REGISTER_FAILED;
     }
 
@@ -513,7 +516,7 @@ void CLAppHttpd::dumpCameraStatusToJson(char * buf, size_t size, bool full_statu
     json_gen_obj_set_string(&jstr, (char*)"local_time", AppConn.getLocalTimeStr());
     json_gen_obj_set_string(&jstr, (char*)"up_time", AppConn.getUpTimeStr());   
     json_gen_obj_set_int(&jstr, (char*)"rssi", (!AppConn.isAccessPoint()?WiFi.RSSI():(uint8_t)0));
-    json_gen_obj_set_int(&jstr, (char*)"esp_temp", temprature_sens_read());
+    json_gen_obj_set_int(&jstr, (char*)"esp_temp", getTemp());
     json_gen_obj_set_string(&jstr, (char*)"serial_buf", getSerialBuffer());    
 
     AppCam.dumpStatusToJson(&jstr, full_status);
@@ -595,7 +598,7 @@ void CLAppHttpd::dumpSystemStatusToJson(char * buf, size_t size) {
 
     json_gen_obj_set_int(&jstr, (char*)"cpu_freq", ESP.getCpuFreqMHz());
     json_gen_obj_set_int(&jstr, (char*)"num_cores", ESP.getChipCores());
-    json_gen_obj_set_int(&jstr, (char*)"esp_temp", temprature_sens_read()); // fahrenheit
+    json_gen_obj_set_int(&jstr, (char*)"esp_temp", getTemp()); // Celsius
     json_gen_obj_set_int(&jstr, (char*)"heap_avail", ESP.getHeapSize());
     json_gen_obj_set_int(&jstr, (char*)"heap_free", ESP.getFreeHeap());
     json_gen_obj_set_int(&jstr, (char*)"heap_min_free", ESP.getMinFreeHeap());
@@ -634,6 +637,7 @@ int CLAppHttpd::loadPrefs() {
     json_obj_get_int(&jctx, (char*)"lamp", &lampVal);
     json_obj_get_bool(&jctx, (char*)"autolamp", &autoLamp);
     json_obj_get_int(&jctx, (char*)"flashlamp", &flashLamp);
+    json_obj_get_int(&jctx, (char*)"max_streams", &max_streams);
 
     int count = 0, pin = 0, freq = 0, resolution = 0, def_val = 0;
 
@@ -707,6 +711,7 @@ int CLAppHttpd::savePrefs() {
     json_gen_obj_set_int(&jstr, (char*)"lamp", lampVal);
     json_gen_obj_set_bool(&jstr, (char*)"autolamp", autoLamp);
     json_gen_obj_set_int(&jstr, (char*)"flashlamp", flashLamp);
+    json_gen_obj_set_int(&jstr, (char*)"max_streams", max_streams);
 
     if(pwmCount > 0) {
         json_gen_push_array(&jstr, (char*)"pwm");
@@ -857,7 +862,7 @@ void CLAppHttpd::setLamp(int newVal) {
 }
 
 int CLAppHttpd::addStreamClient(uint32_t client_id) {
-    for(int i=0; i < MAX_VIDEO_STREAMS; i++) {
+    for(int i=0; i < max_streams; i++) {
         if(!stream_clients[i]) {
             stream_clients[i] = client_id;
             return OS_SUCCESS;
@@ -867,7 +872,7 @@ int CLAppHttpd::addStreamClient(uint32_t client_id) {
 }
 
 int CLAppHttpd::removeStreamClient(uint32_t client_id) {
-    for(int i=0; i < MAX_VIDEO_STREAMS; i++) {
+    for(int i=0; i < max_streams; i++) {
         if(stream_clients[i] ==  client_id) {
             stream_clients[i] = 0;
             return OS_SUCCESS;

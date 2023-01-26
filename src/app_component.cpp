@@ -8,7 +8,10 @@ char * CLAppComponent::getPrefsFileName(bool forsave) {
             return prefs;
         else {
             Serial.printf("Pref file %s not found, falling back to default\r\n", prefs);
-            snprintf(prefs, TAG_LENGTH, "/default_%s.json", tag);
+            if(prefix)
+              snprintf(prefs, TAG_LENGTH, "/%s_%s.json", prefix, tag);
+            else
+              snprintf(prefs, TAG_LENGTH, "/default_%s.json", tag);
             return prefs;
         }
     }

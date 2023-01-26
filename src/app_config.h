@@ -1,7 +1,6 @@
 #ifndef app_config_h
 #define app_config_h
 
-
 /* Give the camera a name for the web interface */
 #define CAM_NAME "ESP32 CAM Web Server"
 
@@ -26,9 +25,6 @@
 // Uncomment to disable the notification LED on the module
 // #define LED_DISABLE
 
-// Changing this parameter will increase the number of parallel video streams
-#define MAX_VIDEO_STREAMS 2
-
 // Uncomment this line to use LittleFS instead of SD. 
 // NOTE!
 // LittleFS is still experimental, not recommended. The 'official' library installed from the Library Manager 
@@ -45,7 +41,8 @@
  * Remember to also select the board in the Boards Manager
  * This is not optional
  */
-#define CAMERA_MODEL_AI_THINKER       // default
+
+// #define CAMERA_MODEL_AI_THINKER       // default
 // #define CAMERA_MODEL_WROVER_KIT
 // #define CAMERA_MODEL_ESP_EYE
 // #define CAMERA_MODEL_M5STACK_PSRAM
@@ -54,6 +51,7 @@
 // #define CAMERA_MODEL_M5STACK_ESP32CAM   // Originally: CAMERA_MODEL_M5STACK_NO_PSRAM
 // #define CAMERA_MODEL_TTGO_T_JOURNAL
 // #define CAMERA_MODEL_ARDUCAM_ESP32S_UNO
+// #define CAMERA_MODEL_LILYGO_T_SIMCAM
 
 
 #endif

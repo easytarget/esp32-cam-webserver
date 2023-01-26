@@ -1,8 +1,8 @@
 var searchData=
 [
   ['cam_5fdump_5fbuffer_5fsize_0',['CAM_DUMP_BUFFER_SIZE',['../app__cam_8h.html#af4eda2c4e06ebf930ef5c62db3c476d8',1,'app_cam.h']]],
-  ['cam_5fname_1',['CAM_NAME',['../app__config_8h.html#acc59b7b9d083568456e1131e8492b5dd',1,'app_config.h']]],
-  ['camera_5fmodel_5fai_5fthinker_2',['CAMERA_MODEL_AI_THINKER',['../app__config_8h.html#af3ad6cce87c9d1876247f85e3cece96e',1,'app_config.h']]],
+  ['cam_5fname_1',['CAM_NAME',['../myconfig_8h.html#acc59b7b9d083568456e1131e8492b5dd',1,'CAM_NAME():&#160;myconfig.h'],['../app__config_8h.html#acc59b7b9d083568456e1131e8492b5dd',1,'CAM_NAME():&#160;app_config.h']]],
+  ['camera_5fmodel_5flilygo_5ft_5fsimcam_2',['CAMERA_MODEL_LILYGO_T_SIMCAM',['../myconfig_8h.html#a6f978183d6f1660434f17fcb81f02ac7',1,'myconfig.h']]],
   ['camera_5fpins_2eh_3',['camera_pins.h',['../camera__pins_8h.html',1,'']]],
   ['capacityunits_4',['capacityUnits',['../class_c_l_storage.html#a287d73a832226a938cc114b21bf52fb7',1,'CLStorage']]],
   ['capture_5fstill_5',['CAPTURE_STILL',['../app__httpd_8h.html#acc448de68cb13f9577db9486eb36aa80aa95e79ced3f093812e4ada2d4642d0ac',1,'app_httpd.h']]],

@@ -44,10 +44,11 @@ var searchData=
   ['getstaticip_41',['getStaticIP',['../class_c_l_app_conn.html#a8c4d060e34c26f9a3e96015226c1e8e1',1,'CLAppConn']]],
   ['getstreamcount_42',['getStreamCount',['../class_c_l_app_httpd.html#a5f8f1b5b6e4a1da9dbc9788a4442e00c',1,'CLAppHttpd']]],
   ['getstreamsserved_43',['getStreamsServed',['../class_c_l_app_httpd.html#a2b63e9eb18e2d67fc3f352fec0b66cd9',1,'CLAppHttpd']]],
-  ['gettimer_44',['getTimer',['../class_e_s_p32_p_w_m.html#ac756839276b3d623d20b10fba0247ff6',1,'ESP32PWM']]],
-  ['getuptimestr_45',['getUpTimeStr',['../class_c_l_app_conn.html#a05b74d2731b9c2220c431e354b1b55a5',1,'CLAppConn']]],
-  ['getused_46',['getUsed',['../class_c_l_storage.html#a9effb4148704bbc571acce5214e5dd74',1,'CLStorage']]],
-  ['getuser_47',['getUser',['../class_c_l_app_conn.html#a664465cb799202a4368146ec7736b417',1,'CLAppConn']]],
-  ['getversion_48',['getVersion',['../class_c_l_app_httpd.html#a90f2e9504cac2da977017fc217edc82b',1,'CLAppHttpd']]],
-  ['getxclk_49',['getXclk',['../class_c_l_app_cam.html#a8e19e1d337c7d7406d713a42615005aa',1,'CLAppCam']]]
+  ['gettemp_44',['getTemp',['../class_c_l_app_httpd.html#a2f1de4b1917500805fb7e185fb3410cd',1,'CLAppHttpd']]],
+  ['gettimer_45',['getTimer',['../class_e_s_p32_p_w_m.html#ac756839276b3d623d20b10fba0247ff6',1,'ESP32PWM']]],
+  ['getuptimestr_46',['getUpTimeStr',['../class_c_l_app_conn.html#a05b74d2731b9c2220c431e354b1b55a5',1,'CLAppConn']]],
+  ['getused_47',['getUsed',['../class_c_l_storage.html#a9effb4148704bbc571acce5214e5dd74',1,'CLStorage']]],
+  ['getuser_48',['getUser',['../class_c_l_app_conn.html#a664465cb799202a4368146ec7736b417',1,'CLAppConn']]],
+  ['getversion_49',['getVersion',['../class_c_l_app_httpd.html#a90f2e9504cac2da977017fc217edc82b',1,'CLAppHttpd']]],
+  ['getxclk_50',['getXclk',['../class_c_l_app_cam.html#a8e19e1d337c7d7406d713a42615005aa',1,'CLAppCam']]]
 ];

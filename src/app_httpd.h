@@ -25,13 +25,8 @@
 
 #define SERIAL_BUFFER_SIZE              64
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-uint8_t temprature_sens_read();
-#ifdef __cplusplus
-}
-#endif
+#define MAX_VIDEO_STREAMS               5
+
 
 enum CaptureModeEnum {CAPTURE_STILL, CAPTURE_STREAM};
 enum StreamResponseEnum {STREAM_SUCCESS, 
@@ -148,6 +143,7 @@ class CLAppHttpd : public CLAppComponent {
          */
         void resetPWM(uint8_t pin = RESET_ALL_PWM);
 
+        uint8_t getTemp() {return temperatureRead();};
         
     private:
 
@@ -184,9 +180,11 @@ class CLAppHttpd : public CLAppComponent {
 
         int8_t streamCount=0;
 
-        
         long streamsServed=0;
         long imagesServed=0;
+
+        // maximum number of parallel video streams supported. This number can range from 1 to MAX_VIDEO_STREAMS
+        int max_streams=2;
         
         // Sketch Info
         int sketchSize ;

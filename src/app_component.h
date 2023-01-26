@@ -4,10 +4,15 @@
 #include "json_generator.h"
 #include "json_parser.h"
 
+#if __has_include("../myconfig.h")
+#include "../myconfig.h"
+#else
 #include "app_config.h"
+#endif
+
 #include "storage.h"
 
-#define TAG_LENGTH 20
+#define TAG_LENGTH 32
 
 /**
  * @brief Abstract root class for the application components.
@@ -17,12 +22,12 @@ class CLAppComponent {
     public:
     // Sketch Info
     
-        int start(){return OS_SUCCESS;};
-        int loadPrefs(){return OS_SUCCESS;};
-        int savePrefs(){return OS_SUCCESS;};
+        virtual int start(){return OS_SUCCESS;};
+        virtual int loadPrefs(){return OS_SUCCESS;};
+        virtual int savePrefs(){return OS_SUCCESS;};
         
-        void dumpPrefs();
-        int removePrefs();
+        virtual void dumpPrefs();
+        virtual int removePrefs();
         
         char * getPrefsFileName(bool forsave = false);
 
@@ -35,6 +40,7 @@ class CLAppComponent {
 
     protected:
         void setTag(const char *t) {tag = t;};
+        void setPrefix(const char *p) {prefix = p;};
 
         void setErr(int err_code) {last_err = err_code;};
 
@@ -53,6 +59,8 @@ class CLAppComponent {
     private:
         // prefix for forming preference file name of this class
         const char * tag;   
+        const char * prefix;
+
         bool configured = false;
 
         bool debug_mode = false;
