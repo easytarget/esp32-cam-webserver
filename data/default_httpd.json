@@ -1,0 +1,8 @@
+{
+    "max_streams":2,
+    "pwm": [],
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
+                {"uri":"/css", "path": "/www/css"},
+                {"uri":"/js", "path": "/www/js"}],
+    "debug_mode": false
+}

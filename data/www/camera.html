@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ESP32-CAM Camera</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <style>
+      @media (min-width: 800px) and (orientation:landscape) {
+        #content {
+          display:flex;
+          flex-wrap: nowrap;
+          flex-direction: row;
+          align-items:flex-start;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="main">
+      <div id="logo">
+        <label for="nav-toggle-cb" id="nav-toggle" >&#9776;&nbsp;&nbsp;Camera&nbsp;&nbsp;&nbsp;&nbsp;</label>
+        <button id="nw-setup" style="float:left;" title="Configure network parameters">Setup</button>
+        <button id="monitor" style="float:left;" title="Monitor system parameters">Dump</button>
+        <button id="get-still" style="float:left;" title="Capture a still image">Picture</button>
+        <button id="toggle-stream" style="float:left;" class="hidden">Video</button>
+        <div id="wait-settings" style="float:left;" class="loader" title="Waiting for camera settings to load"></div>
+      </div>
+      <div id="content">
+        <input type="checkbox" id="view-mode" checked="checked" class="hidden">
+        <div class="hidden" id="sidebar">
+         <input type="checkbox" id="nav-toggle-cb" checked="checked">
+            <nav id="menu"></nav> 
+        </div>
+        <figure>
+          <div id="stream-container" class="image-container hidden">
+            <div class="close close-rot-none" id="close-stream">×</div>
+            <div id="stream" src="">
+              <iframe id="stream-frame" allowfullscreen="true"></iframe>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+  </body>
+  <script src="/js/utils.js"></script>
+  <script src="/js/cam.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function (event) {
+
+    var baseHost = document.location.origin;
+
+    const header = document.getElementById('logo');
+    const settings = document.getElementById('sidebar');
+    const waitSettings = document.getElementById('wait-settings');
+    const viewSettings = document.getElementById("nav-toggle-cb");
+    const viewMode = document.getElementById("view-mode");
+    
+    const view = document.getElementById('stream');
+    const viewFrame = document.getElementById('stream-frame');
+    const viewContainer = document.getElementById('stream-container');
+    const stillButton = document.getElementById('get-still');
+    const streamButton = document.getElementById('toggle-stream');
+    const closeButton = document.getElementById('close-stream');
+
+    const networkButton = document.getElementById('nw-setup');
+    const monitorButton = document.getElementById('monitor');
+
+    const toggleViewMode = () => {
+      const swapButton = document.getElementById('swap-viewer');
+      if(viewMode.checked) {
+        swapButton.innerHTML = 'More <i class="fa fa-caret-down"></i>';
+      }
+      else {
+        swapButton.innerHTML = 'Less <i class="fa fa-caret-up"></i>';
+      }
+
+      toggleMenuVisible(false);
+
+      document
+        .querySelectorAll('.input-group')
+        .forEach(el => {
+          var simple = el.getAttribute("data-simple");
+          // if input group not simple, hide or show it, depending on the view mode (checked = simple)
+          if(simple != "true") 
+            showhideone(el, viewMode.checked, "_simple");
+
+        });
+
+      toggleMenuVisible(true);
+    };
+
+    const toggleMenuVisible = (mode) => {
+      if(mode) {
+        hide(waitSettings);
+        show(settings);
+        show(streamButton);
+      }
+      else {
+        show(waitSettings);
+        hide(settings);
+        hide(streamButton);
+      }
+    };
+
+    const stopStream = () => {
+      viewFrame.src = '';
+      streamButton.innerHTML = 'Video';
+      streamButton.setAttribute("title", `Start the stream`);
+      setLightSlider(false);
+      hide(viewContainer);
+    }
+
+    const startStream = () => {
+      viewFrame.src = '/view?mode=stream';
+      view.scrollIntoView(false);
+      streamButton.innerHTML = 'Stop';
+      streamButton.setAttribute("title", `Stop the stream`);
+      setLightSlider(true);
+      show(viewContainer);
+    }
+
+    const applyRotation = (el) => {
+      rot = el.value;
+      if (rot == -90) {
+        viewContainer.style.transform = `rotate(-90deg)  translate(-100%)`;
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-left');
+      } else if (rot == 90) {
+        viewContainer.style.transform = `rotate(90deg) translate(0, -100%)`;
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-none');
+        closeButton.classList.add('close-rot-right');
+      } else {
+        viewContainer.style.transform = `rotate(0deg)`;
+        closeButton.classList.remove('close-rot-left');
+        closeButton.classList.remove('close-rot-right');
+        closeButton.classList.add('close-rot-none');
+      }
+      console.log('Rotation ' + rot + ' applied');
+    };  
+
+    function refresh(el) {
+      if(el.id == "rotate") {
+        applyRotation(el);
+      }
+      return refreshControl(el);
+    }
+
+    const addPreferences = (parent) => {
+      var div_group = document.createElement("div"); 
+      div_group.classList.add("input-group");
+      div_group.classList.add("actions-group");
+      div_group.setAttribute("id", "preferences-group");
+      div_group.setAttribute("data-simple", "true");
+
+      div_group.appendChild(createButton("save_prefs", "Save", "Save preferences on camera module", "true", "cam"));
+      div_group.appendChild(createButton("remove_prefs", "Erase", "Erase saved preferences on camera module", "true", "cam"));
+      div_group.appendChild(createButton("reboot", "Reboot", "Reboot the camera module", "true"));
+      div_group.appendChild(createButton("swap-viewer", "More","Show more controls"));
+
+      parent.appendChild(div_group);
+    };
+
+    document
+      .querySelectorAll('.close')
+      .forEach(el => {
+        el.onclick = () => {
+          hide(el.parentNode);
+        }
+      });
+
+    // init the page controls
+    fetch(`${baseHost}/status`)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (state) {
+        document.title = state['cam_name'] + ' Camera';
+        var cam_model = cameraTypes.find(item => item.pid == state['cam_pid']);
+        if(cam_model)
+          console.log("Camera " + cam_model.name + " detected");
+        else {
+          cam_model = cameraTypes[0];
+          console.log("Camera (PID=" + state['cam_pid'] + " not recognized, default to " + cam_model.name);
+        }
+        var menu = document.getElementById("menu")
+        state['stream_url'] = ( location.protocol === 'https:'?'wss://':'ws://') + location.hostname + ':' + location.port + '/ws';
+        updateFormFieldDefs(cameraFormFields, cam_model.fieldupdates);
+        addFormFields(menu, cameraFormFields, selectOptions, cam_model.optionfilters);
+        addPreferences(menu);
+
+        document
+          .querySelectorAll('.default-action')
+          .forEach(el => {
+            loadControlValue(el, state[el.id]);
+            refreshControl(el);
+            if(el.id == "rotate") {
+                applyRotation(el);
+            }
+          });
+        
+        toggleViewMode();
+
+        networkButton.onclick = () => {
+          window.location.href = '/setup';
+        }
+
+        monitorButton.onclick = () => {
+          window.location.href = '/dump';
+        }
+        
+        stillButton.onclick = () => {
+            stopStream();
+            viewFrame.src = '/view?mode=still';
+            view.scrollIntoView(false);
+            show(viewContainer);
+          };
+
+        closeButton.onclick = () => {
+            stopStream();
+            hide(viewContainer);
+          };
+
+        streamButton.onclick = () => {
+            const streamEnabled = streamButton.innerHTML === 'Stop'
+            if (streamEnabled) {
+              stopStream();
+            } else {
+              startStream();
+            }
+          };
+        
+
+        // Attach default on change action
+        document
+          .querySelectorAll('.default-action')
+          .forEach(el => {
+            if(el.type == "submit")
+              el.onclick = () =>  {
+                if(el.id == "swap-viewer") {
+                  var value = viewMode.checked ? 1 : 0;
+                  viewMode.checked = !value;
+                  toggleViewMode();
+                }
+                else
+                  if(submitChanges(el)) {
+                      if(el.id == "reboot") {
+                        hide(settings);
+                        hide(viewContainer);
+                        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+                      }
+                  }
+              }
+            else {
+              el.onchange = () => {
+                submitChanges(el);
+                if(el.id == "rotate") {
+                  applyRotation(el);
+                }
+              }
+            }
+          });
+
+        // Update range sliders as they are being moved
+        document
+          .querySelectorAll('input[type="range"]')
+          .forEach(el => {
+            el.oninput = () => updateRangeConfig(el)
+          });
+          
+        toggleMenuVisible(true);
+      });  
+
+  });
+  </script>
+</html>
