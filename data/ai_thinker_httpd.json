@@ -1,0 +1,11 @@
+{
+    "lamp":0,
+    "autolamp":true,
+    "flashlamp":100,
+    "max_streams":2,
+    "pwm": [{"pin":4, "frequency":50000, "resolution":9}],
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
+                {"uri":"/css", "path": "/www/css"},
+                {"uri":"/js", "path": "/www/js"}],
+    "debug_mode": false
+}

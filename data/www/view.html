@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title id="title">ESP32-CAM StreamViewer</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+    <link rel="stylesheet" type="text/css" href="/css/stream.css">
+  </head>
+
+  <body>
+    <section class="main">
+      <div id="wait-settings" style="float:left;" class="loader" title="Waiting for stream settings to load"></div>
+      <div style="display: none;">
+        <!-- Hide the next entries, they are present in the body so that we
+             can pass settings to/from them for use in the scripting -->
+        <div id="rotate" class="action-setting hidden">0</div>
+        <div id="cam_name" class="action-setting hidden"></div>
+      </div>
+      <img id="video" src=""></img>
+    </section>
+  </body>
+   
+  <script>
+  document.addEventListener('DOMContentLoaded', function (event) {
+    const baseHost = document.location.origin;
+    const urlCreator = window.URL || window.webkitURL;
+    const urlParams = new URLSearchParams(location.search);
+    var viewMode = 'still';
+
+    var streamURL = ( location.protocol === 'https:'?'wss://':'ws://') + location.hostname + ':' + location.port + '/ws';
+
+    const ws = new WebSocket(streamURL);
+
+    const stream = document.getElementById('video');
+    const rotate = document.getElementById('rotate');
+    const spinner = document.getElementById('wait-settings');
+
+    var img_rec = false;
+
+    const updateValue = (el, value, updateRemote) => {
+      updateRemote = updateRemote == null ? true : updateRemote
+      let initialValue
+      if (el.type === 'checkbox') {
+        initialValue = el.checked
+        value = !!value
+        el.checked = value
+      } else {
+        initialValue = el.value
+        el.value = value
+      };
+
+      if (updateRemote && initialValue !== value) {
+        updateConfig(el);
+      } else if(!updateRemote){
+        if(el.id === "cam_name"){
+          window.document.title = value;
+          stream.setAttribute("title", value + "\n(doubleclick for fullscreen)");
+          console.log('Name set to: ' + value);
+        } else if(el.id === "rotate") {
+          rotate.value = value;
+          console.log('Rotate recieved: ' + rotate.value);
+        } 
+      }
+    };
+
+    // set view mode
+    for (const [key, value] of urlParams) {
+        if(key == 'mode') {
+          viewMode = value;
+          break;
+        }
+    }
+    
+    console.log('Mode=' + viewMode);
+
+    // read initial values
+    fetch(`${baseHost}/info`)
+      .then(function (response) {
+        return response.json()
+      })
+      .then(function (state) {
+        ws.binaryType = 'arraybuffer';
+
+        ws.onmessage = function(event) {
+          if(!img_rec) {
+            var arrayBufferView = new Uint8Array(event.data);
+            var prev_url = stream.src;
+            var blob = new Blob([arrayBufferView], {type: "image/jpeg"});
+            var imageUrl = urlCreator.createObjectURL(blob);
+            stream.src = imageUrl;
+            urlCreator.revokeObjectURL(prev_url);
+            img_rec = (viewMode === 'still');
+          }
+
+        }
+
+        ws.onopen = function(event) {
+          console.log(event.currentTarget.url);
+        }
+
+        ws.onclose = function(event) {
+          console.log(event);
+        }
+
+        ws.onerror = function() {
+          console.log(error);
+        }
+        
+        document
+          .querySelectorAll('.action-setting')
+          .forEach(el => {
+            updateValue(el, state[el.id], false)
+          })
+        spinner.style.display = `none`;
+        applyRotation();
+
+        startStream();
+      });
+
+    function startStream() {
+      this.send = function (message) {
+        this.waitForConnection(function () {
+          ws.send(message);
+        }, 1000);
+      };
+
+      this.waitForConnection = function (callback, interval) {
+        if (ws.readyState === 1) {
+            callback();
+        } else {
+            var that = this;
+            setTimeout(function () {
+                that.waitForConnection(callback, interval);
+            }, interval);
+        }
+      };
+
+      if(viewMode == 'still')
+        this.send('p');
+      else 
+        this.send('s');
+      
+        stream.style.display = `block`;
+    };
+
+    const applyRotation = () => {
+      rot = rotate.value;
+      if (rot == -90) {
+        stream.style.transform = `rotate(-90deg)`;
+      } else if (rot == 90) {
+        stream.style.transform = `rotate(90deg)`;
+      }
+      console.log('Rotation ' + rot + ' applied');
+    };
+
+    stream.ondblclick = () => {
+      if (stream.requestFullscreen) {
+        stream.requestFullscreen();
+      } else if (stream.mozRequestFullScreen) { /* Firefox */
+        stream.mozRequestFullScreen();
+      } else if (stream.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        stream.webkitRequestFullscreen();
+      } else if (stream.msRequestFullscreen) { /* IE/Edge */
+        stream.msRequestFullscreen();
+      }
+    };
+  });
+  </script>
+</html>

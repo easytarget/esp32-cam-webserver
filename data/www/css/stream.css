@@ -1,0 +1,38 @@
+/* Streamviewer stylesheet, define all style elements here */
+body {
+    font-family: Arial,Helvetica,sans-serif;
+    background: #181818;
+    color: #EFEFEF;
+    font-size: 16px;
+    margin: 0px;
+    overflow:hidden;
+  }
+
+  img {
+    object-fit: contain;
+    display: block;
+    margin: 0px;
+    padding: 0px;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .loader {
+    border: 0.5em solid #f3f3f3;
+    border-top: 0.5em solid #000000;
+    border-radius: 50%;
+    width: 1em;
+    height: 1em;
+    -webkit-animation: spin 2s linear infinite; /* Safari */
+    animation: spin 2s linear infinite;
+  }
+
+  @-webkit-keyframes spin {   /* Safari */
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }

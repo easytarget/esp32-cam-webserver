@@ -1,157 +1,342 @@
-# ESP32-CAM example revisited. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](Docs/logo.svg)</span>
+# ESP32-CAM WebServer. &nbsp;&nbsp;&nbsp; <span title="Master branch build status">[![CI Status](https://travis-ci.com/easytarget/esp32-cam-webserver.svg?branch=master)](https://travis-ci.com/github/easytarget/esp32-cam-webserver)</span> &nbsp;&nbsp; <span title="ESP EYE">![ESP-EYE logo](assets/logo.svg)</span>
 
-## Taken from the ESP examples, and expanded
-This sketch is a extension/expansion/rework of the 'official' ESP32 Camera example sketch from Espressif:
+This sketch is a fully customizable webcam server based on ESP32-S/ESP32-S3 - based board with camera. 
+It can be used as a starting point for your own webcam solution. 
 
-https://github.com/espressif/arduino-esp32/tree/master/libraries/ESP32/examples/Camera/CameraWebServer
+There are many other variants of a webcam server for these modules online, 
+but most are created for a specific scenario and not good for general, casual, 
+webcam use.
 
-But expanded with:
-* More options for default network and camera settings
-* Save and restore settings
-* Control of on-board lamps, rotate the view in the browser
-* Dedicated standalone stream viewer
+### Key features: ###
+* Extended options for default network and camera settings
+* Configuration through the web browser, including intial WiFi setup
+* Save and restore settings in JSON configuration files
+* Dedicated stream viewer
 * Over The Air firmware updates
-* Lots of minor fixes and tweaks, documentation etc.
+* Optimizing the way how the video stream is processed, thus allowing higher frame rates on high resolution.
+* Using just one IP port, easy for proxying. 
+* Multi-streaming support (display video in two or more browser sessions)
+* Supporting basic authentication
+* Porting the web server to [ESP Async Web Server](https://github.com/me-no-dev/ESPAsyncWebServer). 
+* Storing web pages as separate HTML/CSS/JS files on the storage (can be either a micro SD flash memory card
+or the built-in flash formatted as LittleFS).  This greatly simplifies development of the interface. Basically, one can swap the face of this project just by replacing files on storage file system.
+* Introducing a standard way of attaching and controlling PWM output on the board for different scenarios involving servos and motors 
+* Compact size of the sketch and low memory utilization
+* Support of new ESP32-S3 board (LILYGO T-SIMCAM)
 
-And 'reduced' by removing the Face Recognition features
-* **If you want to try the Face Recognition features** please use the [`3.x` maintenance branch](https://github.com/easytarget/esp32-cam-webserver/tree/3.x), which still recieves bugfixes, but is not receiving any further development.
-* They were a demo, only worked in low resolution modes, did not preserve the face database between power cycles, and were of little use in real-world applications.
-* There are other (specialised) sketches for the ESP-CAM that do use face recognitioni more effectively, if this is your thing :-)
+  
+### Supported development boards ###
+The sketch has been tested on the following boards:
 
-The original example is a bit incomprehensible and hard to modify as supplied. It is very focused on showing off the face recognition capabilities, and forgets the 'webcam' part.
-* There are many other variants of a webcam server for these modules online, but most are created for a specific scenario and not good for general, casual, webcam use.
+* [AI Thinker ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) 
+module. 
+* [LILYGO T-SIMCAM](https://github.com/Xinyuan-LilyGO/LilyGo-Camera-Series)
 
-![Actually, there are two cats in this image!]( Docs/twocatsactually.png)
+Other ESP32-S/ESP32-S3 boards equipped with camera may be supported/compatible but not guaranteed.
 
-Hopefully this expanded example is more useful for those users who wish to set up a simple ESP32 based webcam using the cheap(ish) modules freely available online. Especially the AI-THINKER board:
+In order to compile this sketch for a supported board, please do the following:
 
-#### AI-THINKER ESP32-CAM vs Other Modules:
+1. Copy the `src/app_config.h` file to the root folder (where esp32-cam-webserver.ino sketch is located), rename it to `myconfig.h` 
+2. Open this file in a text editor and then search and replace `app_config_h` with `myconfig_h`. 
+3. Uncomment the line corresponding to your board model. Please ensure only one line is uncommented!
 
-I have four [AI-THINKER ESP32-CAM](https://github.com/raphaelbs/esp32-cam-ai-thinker/blob/master/assets/ESP32-CAM_Product_Specification.pdf) boards, so the descriptions below are for that board. But I took care to leave the default definitions and controls for other boards in the example intact. You may need to adjust the programming method to suit the your board, look for examples online.
+### Supported camera models:
+The sketch has been tested on the following camera models:
 
-* For some other good examples and information on ESP32 based webcams I also recommend the sketches here:
-https://github.com/raphaelbs/esp32-cam-ai-thinker
-* The AI thinker wiki can be quite informative, when run through an online translator and read sensibly:
-https://wiki.ai-thinker.com/esp32-cam
-* Default pinouts are also included for WRover Kit, ESP Eye and M5Stack esp32 camera modules.
-  I do not have any of these boards, so they are untested by me. Please [let me know](https://github.com/easytarget/esp32-cam-webserver/issues) if you find issues or have a board not [in the list](./camera_pins.h).
+* OV2640 (default)
+* OV3660
 
-## Troubleshooting:
-
-A lot of common issues with this sketch are discussed and covered in the discussion forums:
-
-https://github.com/easytarget/esp32-cam-webserver/discussions/categories/common-issues
-
-The existing [issues list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue) on Github is a good place to start if you have a specific issue not covered above or in the forums.
-
-There is also this excellent guide for help with some common issues seen with the camera modules:
-https://randomnerdtutorials.com/esp32-cam-troubleshooting-guide/
+Other camera models are not supported but may work with some limitations. 
 
 ### Known Issues
 
-Builds made with PlatformIO are currently (v4.0) broken; the stream will die shortly after starting. See https://github.com/easytarget/esp32-cam-webserver/issues/218 for more info.
+#### AI-Thinker ESP32-CAM 
 
-The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having small antennas, older designs, congested airwaves and demanding users. The majority of disconnects, stutters and other comms problems are simply due to 'WiFi issues'. The AI-THINKER camera module & esp32 combination is quite susceptible to power supply problems affecting both WiFi conctivity and Video quality; short cabling and decent power supplies are your friend here; also well cooled cases and, if you have the time, decoupling capacitors on the power lines.
+The ESP32 itself is susceptible to the usual list of WiFi problems, not helped by having 
+small antennas, older designs, congested airwaves and demanding users. The majority of 
+disconnects, stutters and other communication problems are simply due to 'WiFi issues'. 
 
-A basic limitation of the sketch is that it can can only support one stream at a time. If you try to connect to a cam that is already streaming (or attempting to stream) you will get no response and, eventually, a timeout. The stream itself is a [MJPEG stream](https://en.wikipedia.org/wiki/Motion_JPEG), which relies on the client (the web browser) to hold the connection open and request each new frame in turn via javascript. This can cause errors when browsers run into Javascript or caching problem, fail to request new frames or refuse to close the connection.
-* If you cannot start the stream you can check the `/dump` page of the cam to see if it currently reports the camera as streaming or not.
+The AI-THINKER camera module & esp32 combination is quite susceptible to power supply 
+problems affecting both WiFi connectivity and Video quality; short cabling and decent 
+power supplies are your friend here; also well cooled cases and, if you have the time, 
+decoupling capacitors on the power lines.
 
-Note that I do not respond to any Private Messages (via github, hackaday, or wherever) for support.
+This implementation does not support MJPEG video stream format and there is no plans to 
+support it in future. Video streaming is implemented with help of WebSocket API,
+please read [documentation](API.md) for more details.
+
+#### LILYGO T-SIMCAM
+
+To be discovered. The board is relatively stable so far. 
 
 ## Setup:
 
-* For programming you will need a suitable development environment, I use the Arduino IDE, but this code should work in the Espressif development environment too.
-* Make sure you are using the [latest version](https://www.arduino.cc/en/main/software#download) of the IDE and then follow [This Guide](https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html) to set up the Espressif Arduino core for the IDE.
-* _I do not recommend or support running with development builds of either the IDE or the ESP arduino core._
-* If you have a development board (anything that can be programmed via a standard USB cable/jack on the board itself) you are in luck. Just plug it in and skip ahead to the [config](#config) section. Remember to set your board model.
-* The AI-THINKER board requires use of an external **3.3v** serial adapter to program; I use a `FTDI Friend` adapter, for more about this read AdaFruits excellent [FTDI Friend guide](https://learn.adafruit.com/ftdi-friend).
-* Be careful not to use a 5v serial adapter since this will damage the ESP32.
+* For programming you will need a suitable development environment. Possible options
+  include Visual Studio Code, Arduino Studio or Espressif development environment .
 
-### Wiring for AI-THINKER Boards (and similar clone-alikes)
+### Wiring for AI-THINKER Board (and similar clone-alikes without USB port)
 
 Is pretty simple, You just need jumper wires, no soldering really required, see the diagram below.
-![Hoockup](Docs/hookup.png)
-* Connect the **RX** line from the serial adapter to the **TX** pin on ESP32
+![Hoockup](assets/hookup.png)
+
+* Connect the **RX** line from the serisal adapter to the **TX** pin on AI-THINKER board
 * The adapters **TX** line goes to the ESP32 **RX** pin
-* The **GPIO0** pin of the ESP32 must be held LOW (to ground) when the unit is powered up to allow it to enter it's programming mode. This can be done with simple jumper cable connected at poweron, fitting a switch for this is useful if you will be reprogramming a lot.
-* You must supply 5v to the ESP32 in order to power it during programming, the FTDI board can supply this.
+* The **GPIO0** pin of the AI-THINKER must be held LOW (to ground) when the unit is 
+  powered up to allow it to enter it's programming mode. This can be done with simple 
+  jumper cable connected at power on, fitting a switch for this is useful if you 
+  will be reprogramming a lot.
+* You will to supply 5v to the AI-THINKER in order to power it during programming; the FTDI 
+  board alone fails to supply this sometimes. The AI-THINKER CAM board is very sensitive 
+  to the quality of power source. Decoupling capacitors are very much recommended.
 
-### Download the Sketch, Unpack and Rename
-Download the latest release of the sketch from https://github.com/easytarget/esp32-cam-webserver/releases/latest
-- You can get the latest stable development release by cloning / downloading the `master` branch of the repo.
+### Connecting LILYGO T-SIMCAM
 
-This will give you an archive file with the Version number in it, eg.`esp32-cam-webserver-4.0.zip`. You need to unpack this into your Arduino sketch folder, and then you need to **rename the folder you extracted to remove the version number**, eg.`esp32-cam-webserver-4.0` becomes `esp32-cam-webserver`.
+This board is equipped with USB-C, so all you need is a USB-C port on your PC and a cable. It has the reset and 
+programming push buttons already so no breadboarding / external connections other than USB-C required. In 
+order to program, press both buttons simultaneously.
 
-Once you have done that you can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and selecting `esp32-cam-webserver.ino`.
+### Download the Sketch, Unpack and compile
+Download the latest release of the sketch from this repository. Once you have done that you 
+can open the sketch in the IDE by going to the `esp32-cam-webserver` sketch folder and 
+selecting `esp32-cam-webserver.ino`. Compile it and upload to your board.
 
-### Config
+### Preparing the Web Server storage.
+You will need to copy the content of the **data** folder from this repository to the storage, which 
+can be either a micro SD flash memory card or the built-in flash memory with Little FS file system.
 
-By default the sketch assumes you have an AI-THINKER board, it creates an AccessPoint called `ESP32-CAM-CONNECT` and with the password `InsecurePassword`; connect to that and then browse to [`http://192.168.4.1/`](http://192.168.4.1/). This is nice and easy for testing and demo purposes.
+**IMPORTANT!** Without the storage and content of the data folder on it, the sketch will not start. 
 
-To make a permanent config with your home wifi settings, different defaults or a different board; copy (or rename) the file `myconfig.sample.h` in the sketch folder to `myconfig.h` and edit that, all the usable defaults are in that file. Because this is your private copy of the config it will not get overwritten if you update the main sketch!
+#### Using micro SD flash memory card
+You will need a blank SD card, which must be formatted as FAT32. Insert it into the micro SD slot of your computer and copy all the files from the **data** folder. The structure of files on the SD card should be 
+like this: 
+![Data Folder](assets/data-folder.png)
+
+After that, insert the card in the slot of your ESP32CAM board and restart it. The Server should start normally.
+
+Please ensure the size of the card does not exceed 4GB, which is a maximum supported capacity for ESP32-CAM board. Higher capacity SD card may not work.
+
+#### Using built-in storage formatted as Little FS 
+This option is still experimental and recommended for advanced users only. First, you will need to 
+prepare your board and the dev environment for LittleFS. You can read about it [here:](https://github.com/lorol/LITTLEFS).
+
+Next, you will need to prepare the sketch for work with LittleFS. For that, you will need to uncomment the 
+following line in the `src/app_config.h`:
+
+```
+// #define USE_LittleFS
+```
+
+Re-build the sketch and upload it to the ESP32CAM board. Also upload the data folder using the 
+**ESP32 Sketch Data Upload** tool, which is invoked from the `Tools` menu of Arduino IDE.
+
+Provided that everything goes well, you should be able to boot your ESP32 CAM Web Server from LittleFS.
+
+### Initial configuration
+
+If the system has not been configured yet, it will start in Access Point mode by default. The SSID
+of the access point will be `esp32cam` and the password is `123456789`. if you have the Serial monitor
+connected to the ESP32CAM board, you should see the following messages:
+
+```
+No known networks found, entering AccessPoint fallback mode
+Setting up Access Point (channel=1)
+  SSID     : esp32cam
+  Password : 123456789
+IP address: 192.168.4.1
+Access Point init successful
+Starting Captive Portal
+OTA is disabled
+mDNS responder started
+Added HTTP service to MDNS server
+Connected
+```
+
+Connected to the access point and open the url http://192.168.4.1/. Default user name and password is `admin/admin`. 
+You should see the following page: 
+
+<div align="center">
+<img src="assets/wifi-setup-ap.png" width="350">
+</div>
+
+Switch the Access Point Mode off. The screen will change as follows: 
+
+<div align="center">
+<img src="assets/wifi-setup.png" width="350">
+</div>
+
+Specify SSID and Password for your WiFi setup. This board supports only 2.4 GHz band so you will need to ensure 
+your wifi router has this band enabled.
+
+Set up your preferred NTP server, Time Zone, Daylight Saving Time (DST), desired host name, HTTP port. 
+If you plan to use Over-the-Air firmware update, please ensure to specify a complex password. Do not 
+leave it empty or default.
+
+Click `Save` and then `Reboot`. If everything is configured correctly, the ESP32CAM board will restart 
+and connect to your wifi automatically. The assigned IP address can be seen in the Serial Monitor logs.
+
+Open the browser and navigate to http://<YOUR_IP_ADDRESS:YOUR_PORT>/ (for example, http://192.168.0.2:8080)
+
+You should see the following screen: 
+
+![Camera](assets/camera.png). 
+
+Here you can take still images or start the video streaming from the camera installed on ESP32CAM.
+
+The WiFi configuration page is available at the address `http://<YOUR_IP_ADDRESS:YOUR_PORT>/setup`.
+
+The system monitoring page is accessible at `http://<YOUR_IP_ADDRESS:YOUR_PORT>/dump`:
+
+![Dump](assets/dump.png). 
+
+### Configuration files
+
+The web server stores its configuration in JSON files. The format of the files is below. If any of these
+files is missing in the root folder of the storage used, default values will be loaded. Almost all parameters of 
+the configuration files can be updated using the Web UI so you don't have to update them manually for most of the cases.
+
+#### Network Configuration (/conn.json)
+The sample network config file is shown below. Please ensure you update it with parameters specific to your network. 
+This file can be also updated via the Web UI.
+
+```json
+{   
+    "mdns_name":"YOUR_MDNS_NAME",
+    "stations":[
+        {"ssid": "YOUR_SSID", "pass":"YOUR_WIFI_PASSWORD"}
+    ],
+    "dhcp": true,
+    "static_ip": {"ip":"192.168.0.2", "netmask":"255.255.255.0", "gateway":"192.168.0.1", 
+                  "dns1":"192.168.0.1", "dns2":"8.8.8.8"},
+    "http_port":80,
+    "user":"admin",
+    "pwd":"admin",
+    "ota_enabled":true,
+    "ota_password":"YOUR_OTA_PASSWORD",
+    "accesspoint":false,
+    "ap_ssid":"esp32cam",
+    "ap_pass":"123456789",
+    "ap_ip": {"ip":"192.168.4.1", "netmask":"255.255.255.0"},
+    "ap_dhcp":true,
+    "ntp_server":"pool.ntp.org",
+    "gmt_offset":14400,
+    "dst_offset":0,
+    "debug_mode": false
+}
+```
+
+#### HTTP server configuration (/httpd.json)
+
+```json
+{
+    "my_name": "MY_NAME",
+    "lamp":0,
+    "autolamp":true,
+    "flashlamp":100,
+    "max_streams":2,
+    "pwm": [{"pin":4, "frequency":50000, "resolution":9, "default":0}],
+    "mapping":[ {"uri":"/img", "path": "/www/img"},
+                {"uri":"/css", "path": "/www/css"},
+                {"uri":"/js", "path": "/www/js"}],
+    "debug_mode": false
+}
+```
+The parameter `pwm` allows to configure PWM out, which can be used in various applications (for example,
+to control PTZ camera servo motors)
+
+The parameter `mapping` allows to configure folders with static content for the web server. 
+
+#### Camera Configuration (/cam.json):
+
+```json
+{
+    "framesize":8,
+    "quality":12,
+    "xclk":8,
+    "frame_rate":12,
+    "brightness":0,
+    "contrast":0,
+    "saturation":0,
+    "special_effect":0,
+    "wb_mode":0,"awb":1,
+    "awb_gain":1,
+    "aec":1,
+    "aec2":0,
+    "ae_level":0,
+    "aec_value":204,
+    "agc":1,
+    "agc_gain":0,
+    "gainceiling":0,
+    "bpc":0,
+    "wpc":1,
+    "raw_gma":1,
+    "lenc":1,
+    "vflip":0,
+    "hmirror":0,
+    "dcw":1,
+    "colorbar":0,
+    "rotate":"0", 
+    "debug_mode": false
+}
+```
 
 ### Programming
 
-Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board will appear in the ESP32 Arduino section of the boards list. Select this (do not use the `AI-THINKER` entry listed in the boiards menu, it is not OTA compatible, and will caus the module to crash and reboot rather than updating if you use it.
-![IDE board config](Docs/ota-board-selection.png)
+#### AI-Thinker ESP32-CAM
 
-Make sure you select the `Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)` partition scheme and turn `PSRAM` on.
+Assuming you are using the latest Espressif Arduino core the `ESP32 Dev Module` board 
+will appear in the ESP32 Arduino section of the boards list. Select this (do not use 
+the `AI-THINKER` entry listed in the boards menu, it is not OTA compatible, and will 
+cause the module to crash and reboot rather than updating if you use it.
+![IDE board config](assets/ota-board-selection.png)
 
-The first time you program (or if OTA is failing) you need to compile and upload the code from the IDE, and when the `Connecting...` appears in the console reboot the ESP32 module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is uploading, most boards have a 'boot' button to trigger a reboot.
+Make sure you select the `Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)` partition 
+scheme and turn `PSRAM` on.
 
-Once the upload completes (be patient, it can be a bit slow) open the serial monitor in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor you should see the board start, connect to the wifi and then report the IP address it has been assigned.
+The first time you program (or if OTA is failing) you need to compile and upload the 
+code from the IDE, and when the `Connecting...` appears in the console reboot the ESP32 
+module while keeping **GPIO0** grounded. You can release GPO0 once the sketch is 
+uploading, most boards have a 'boot' button to trigger a reboot.
 
-Once you have the initial upload done and the board is connected to the wifi network you should see it appearing in the `network ports` list of the IDE, and you can upload wirelessly.
+Once the upload completes (be patient, it can be a bit slow) open the serial monitor 
+in the IDE and reboot the board again without GPIO0 grounded. In the serial monitor 
+you should see the board start, connect to the wifi and then report the IP address 
+it has been assigned.
 
-If you have a status LED configured it will give a double flash when it begins attempting to conenct to WiFi, and five short flashes once it has succeeded. It will also flash briefly when you access the camera to change settings.
+Once you have the initial upload done and the board is connected to the wifi network 
+you should see it appearing in the `network ports` list of the IDE, and you can upload 
+wirelessly.
 
-Go to the URL given in the serial output, the web UI should appear with the settings panel open. Click away!
+#### LILYGO T-SIMCAM
 
-## My Modifications:
+In order to program this board, use the settings as below:
 
-![The simplified viewer](Docs/simpleviewer.png)<br>*The new default Simple view, just the basics*
+![IDE board config](assets/liligo-ota-board-selection.png)
 
-The WiFi details can be stored in an (optional) header file to allow easier code development, and a camera name for the UI title can be configured. The lamp and status LED's are optional, and the lamp uses a exponential scale for brightness so that the control has some finess.
+Please ensure to check all the parameters before uploading as shown above, this is important.
 
-All of the face recognition code has been removed as of V4.0; this reduces the code size enough to allow OTA programming while improving compile and programming times.
+### Accessing the video stream
+If you need to access the video stream or take still images in a full screen mode (without 
+the camera controls), the following URLs can be used:
 
-The compressed and binary encoded HTML used in the example has been unpacked to raw text, this makes it much easier to access and modify the Javascript and UI elements. Given the relatively small size of the index page there is very little benefit from compressing it.
+* `http://<your_ip:your_port>/view?mode=still` - still image is displayed
+* `http://<your_ip:your_port>/view?mode=stream` - video stream is displayed
 
-The streamviewer, lamp control, and all the other new features have been added. I have tried to retain the basic structure of the original example,extending where necessary.
-
-The web UI has had changes to add the lamp control (only when enabled) and make the streamm window rotate and resize appropriately. I also made the 'Start Stream' and 'Snapshot' controls more prominent, and added feedback of the camera name + firmware.
-
-I would also like to shoutout to @jmfloyd; who suggested rotating the image in the browser since the esp32 itself cannot do this.
-
-![The stream viewer](Docs/streamview.png)<br>*Standalone StreamViewer; No decoration or controls, the image is resizable, and you can doubleclick it for fullscreen*
-
-![The info page](Docs/infodump.png)<br>*Boring Details, useful when debugging or if you want to check stats*
+The number of parallel video streams is  limited to 2 (two) by default.  If you need more 
+parallel video streams supported, you can change the `max_streams` parameter in the 
+**httpd.json** config file. 
 
 ### API
-The communications between the web browser and the camera module can also be used to send commands directly to the camera (eg to automate it, etc) and form, in effect, an API for the camera.
-* I have [documented this here](https://github.com/easytarget/esp32-cam-webserver/blob/master/API.md).
-
-## Notes:
-
-* I only have AI-THINKER modules with OV2640 camera installed; so I have only been able to test with this combination. I have attempted to preserve all the code for other boards and the OV3660 module, and I have merged all changes for the WebUI etc, but I cannot guarantee operation for these.
-* I created a small board with a handy switch for power, a pushbutton for the GPIO0 programming switch, and a socket for the AI-THINKER board. This proved very useful for development work and programming multiple devices.
-* I found some excellent [cases on Thingieverse](https://www.thingiverse.com/thing:3708345).
-
-![Cameras and a Programmer](Docs/webcams.programmer.jpg)
+The communications between the web browser and the camera module can also be used to 
+send commands directly to the camera (eg to automate it, etc) and form, in effect, 
+an API for the camera.
+* [ESP32 Camera Web Server API](API.md).
 
 ## Contributing
 
 Contributions are welcome; please see the [Contribution guidelines](CONTRIBUTING.md).
 
-## Plans
+## Future plans
 
-Time allowing; my Current plan is:
+1. Support of other boards and cameras, as well as their extended capabilities. 
+2. Explore how to improve the video quality and further reduce requirements to resources.
 
-V4
-* Investigate using SD card to capture images
-* Implement a better network stack for remembering multiple AP's, auto-config etc.
-  * Advanced (web upload) OTA might be nice to have if possible
-* UI Skinning/Theming
-* OSD
-  * Temperature/humidity/pressure sensor support (bme20,dht11)
-You can check the [enhancement list](https://github.com/easytarget/esp32-cam-webserver/issues?q=is%3Aissue+label%3Aenhancement) (past and present), and add any thoughts you may have there.

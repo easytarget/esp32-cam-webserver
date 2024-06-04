@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>ESP32-CAM Setup</title>
+        <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png">
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <style>
+            @media (min-width: 800px) and (orientation:landscape) {
+              #content {
+                display:flex;
+                flex-wrap: nowrap;
+                flex-direction: column;
+                align-items:flex-start;
+              }
+            };
+            
+          </style>
+    </head>
+    <body>
+        <section class="main">
+            <div id="logo">
+                <label for="nav-toggle-cb" id="nav-toggle" style="float:left;">&#9776;&nbsp;&nbsp;Setup&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <button id="camera" style="float:left;" title="Open camera view">Camera</button>
+                <button id="monitor" style="float:left;" title="Monitor system parameters">Dump</button>
+                <br>
+            </div>
+            <div id="content">
+                <div id="sidebar">
+                    <input type="checkbox" id="nav-toggle-cb" checked="checked">
+                        <nav id="menu"></nav>
+                </div>
+            </div>
+        </section>
+    </body>
+    <script src="/js/setup.js"></script>
+    <script src="/js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function (event) {
+            var baseHost = document.location.origin;
+
+            const header = document.getElementById('logo');
+            const settings = document.getElementById('sidebar');
+
+            const cameraButton = document.getElementById('camera');
+            const monitorButton = document.getElementById('monitor');
+
+
+            const addActions = (parent) => {
+                var div_group = document.createElement("div"); 
+                div_group.classList.add("input-group");
+                div_group.classList.add("actions-group");
+                div_group.setAttribute("id", "actions-group");
+                div_group.setAttribute("data-simple", "true");
+
+                div_group.appendChild(createButton("save_prefs", "Save", "Save network settings", "true", "conn"));
+                div_group.appendChild(createButton("reset_prefs", "Reset", "Reset network settings", "true", "conn"));
+                div_group.appendChild(createButton("reboot", "Reboot", "Reboot the server", "true"));
+
+                parent.appendChild(div_group);
+            };
+
+            // init the page controls
+            fetch(`${baseHost}/system`)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (state) {
+                document.title = state['cam_name'] + ' Setup'
+                var menu = document.getElementById("menu")
+                addFormFields(menu, networkFormFields, selectOptions);
+                addActions(menu);
+
+                document
+                    .querySelectorAll('.default-action')
+                    .forEach(el => {
+                        loadControlValue(el, state[el.id]);
+                        refreshControl(el);
+                    });
+
+                // Attach default on change action
+                document
+                    .querySelectorAll('.default-action')
+                    .forEach(el => {
+                        if(el.type == "submit")
+                            el.onclick = () => {
+                                if(submitChanges(el)) {
+                                    if(el.id == "reboot") {
+                                        hide(settings);
+                                        header.innerHTML = '<h1>Rebooting!</h1><hr>Page will reload after 30 seconds.';
+                                    }
+                                    else if(el.id == "save_prefs") {
+                                        rebootBtn = document.getElementById("reboot");
+                                        portField = document.getElementById("port");
+                                        if(rebootBtn && portField) {
+                                            rebootUrl = location.protocol + '//' + location.hostname + ':' + portField.value + '/';
+                                            rebootBtn.setAttribute("data-reboot_to", rebootUrl);
+                                        }
+                                    }
+                                }
+                            }
+                        else {
+                            el.onchange = () => submitChanges(el);
+                        }    
+                    });
+
+                cameraButton.onclick = () => {
+                    window.location.href = '/camera';
+                }
+
+                monitorButton.onclick = () => {
+                    window.location.href = '/dump';
+                }
+
+                show(settings);
+
+            });
+            
+        });
+    </script>
+</html>
