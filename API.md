@@ -19,7 +19,7 @@ The WebUI and camera server communicate entirely via HTTP requests and responses
 
 ## *key / val* settings and commands
 
-Call the `/status` URI to recieve a JSON response containing all the available settings and current value.
+Call the `/status` URI to receive a JSON response containing all the available settings and current value.
 
 Call `/control?var=<key>&val=<val>` with a settings key and value to set camera properties or trigger actions.
 
