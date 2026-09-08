@@ -19,7 +19,7 @@ The WebUI and camera server communicate entirely via HTTP requests and responses
 
 ## *key / val* settings and commands
 
-Call the `/status` URI to recieve a JSON response containing all the available settings and current value.
+Call the `/status` URI to receive a JSON response containing all the available settings and current value.
 
 Call `/control?var=<key>&val=<val>` with a settings key and value to set camera properties or trigger actions.
 
@@ -87,7 +87,7 @@ Only for 3Mp+ camera modules:
 #### Commands
 These are commands; they can be sent by calling the `/control` URI with them as the `<key>` *(a `<val>` must also be supplied, but can be any value and is ignored)*.
 ```
-face_enroll     - Enroll a new face in the FaceDB (only when face recognition is avctive)
+face_enroll     - Enroll a new face in the FaceDB (only when face recognition is active)
 save_prefs      - Saves preferences file
 clear_prefs     - Deletes the preferences file
 reboot          - Reboots the camera
